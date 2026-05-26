@@ -47,7 +47,7 @@ dev = [
 
 [project.scripts]
 texgraph = "texgraph.cli:app"
-fletcher = "fletcher.cli:main"
+fletcher = "texgraph.cli:app"
 
 [project.urls]
 Homepage = "https://github.com/texgraph/texgraph"

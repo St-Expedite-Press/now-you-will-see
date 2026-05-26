@@ -1,29 +1,17 @@
-"""Fletcher editorial tools — unified CLI entry point."""
+"""Fletcher — compatibility shim.
 
-from __future__ import annotations
+All commands have been merged into the unified `texgraph` CLI.
+This module exists so that the `fletcher` entry point continues to work;
+it delegates directly to the same Typer application.
 
-import argparse
+Invoke as `texgraph` or `fletcher` — both expose the same command surface.
+"""
 
-from fletcher import archive, audit, metadata, pagemap, pdf, plan, scan
+from texgraph.cli import app
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        prog="fletcher",
-        description="Fletcher scholarly edition tools: PDF inspection, transcription audit, metadata, and source acquisition.",
-    )
-    sub = parser.add_subparsers(dest="command", required=True)
-
-    pdf.register(sub)
-    metadata.register(sub)
-    audit.register(sub)
-    pagemap.register(sub)
-    plan.register(sub)
-    scan.register(sub)
-    archive.register(sub)
-
-    args = parser.parse_args()
-    raise SystemExit(args.func(args))
+    app()
 
 
 if __name__ == "__main__":

@@ -35,8 +35,7 @@ from texgraph import __version__
 from texgraph.utils import poem_scaffold, slugify
 
 app = typer.Typer(
-    name="texgraph",
-    help="Markdown → LuaLaTeX → PDF/X poetry-collection compiler.",
+    help="Markdown -> LuaLaTeX -> PDF/X poetry-collection compiler and editorial toolkit.",
     add_completion=False,
     rich_markup_mode="rich",
 )
@@ -157,7 +156,7 @@ def build(
         help="Show lualatex log output after compilation.",
     ),
 ) -> None:
-    """Build the full collection: parse → render → compile.
+    """Build the full collection: parse -> render -> compile.
 
     Reads [bold]collection.yaml[/bold] for book metadata, parses all Markdown
     files in the content directory, renders a LuaLaTeX document via Jinja2
@@ -767,6 +766,335 @@ def studio(
         app_dir=str(Path(__file__).parents[2] / "studio" / "backend"),
         log_level="warning",
     )
+
+
+# ---------------------------------------------------------------------------
+# pdf sub-app  (pdf info / pdf text / pdf render)
+# ---------------------------------------------------------------------------
+
+_pdf_app = typer.Typer(help="PDF inspection and page rendering.  Requires poppler-utils.")
+app.add_typer(_pdf_app, name="pdf")
+
+
+@_pdf_app.command("info")
+def pdf_info(
+    pdf: Path = typer.Argument(..., help="Path to the PDF file."),
+    as_json: bool = typer.Option(False, "--json", help="Output parsed metadata as JSON."),
+) -> None:
+    """Show PDF metadata via pdfinfo."""
+    import json as _json
+    import shutil
+    import subprocess
+
+    if not shutil.which("pdfinfo"):
+        console.print("[red]pdfinfo not found on PATH.[/red]  Install poppler-utils.")
+        raise typer.Exit(code=1)
+    from fletcher.env import resolve_in_repo
+    result = subprocess.run(
+        ["pdfinfo", str(resolve_in_repo(pdf))],
+        check=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+    )
+    if as_json:
+        data: dict[str, str | int] = {}
+        for line in result.stdout.splitlines():
+            if ":" not in line:
+                continue
+            k, v = line.split(":", 1)
+            k = k.strip().lower().replace(" ", "_")
+            v = v.strip()
+            if k == "pages":
+                try:
+                    data[k] = int(v)
+                    continue
+                except ValueError:
+                    pass
+            data[k] = v
+        print(_json.dumps(data, indent=2, sort_keys=True))
+    else:
+        print(result.stdout, end="")
+
+
+@_pdf_app.command("text")
+def pdf_text(
+    pdf: Path = typer.Argument(..., help="Path to the PDF file."),
+    first: int = typer.Option(..., "--first", "-f", help="First page number."),
+    last: int = typer.Option(..., "--last", "-l", help="Last page number."),
+    output: Optional[Path] = typer.Option(None, "--output", "-o", help="Write to file instead of stdout."),
+) -> None:
+    """Extract layout text from a page range via pdftotext."""
+    import shutil
+    import subprocess
+
+    if not shutil.which("pdftotext"):
+        console.print("[red]pdftotext not found on PATH.[/red]  Install poppler-utils.")
+        raise typer.Exit(code=1)
+    from fletcher.env import resolve_in_repo
+    result = subprocess.run(
+        ["pdftotext", "-f", str(first), "-l", str(last), "-layout", str(resolve_in_repo(pdf)), "-"],
+        check=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+    )
+    if output:
+        resolve_in_repo(output).write_text(result.stdout, encoding="utf-8")
+    else:
+        print(result.stdout, end="")
+
+
+@_pdf_app.command("render")
+def pdf_render(
+    pdf: Path = typer.Argument(..., help="Path to the PDF file."),
+    first: int = typer.Option(..., "--first", "-f", help="First page number."),
+    last: int = typer.Option(..., "--last", "-l", help="Last page number."),
+    prefix: Path = typer.Option(..., "--prefix", help="Output filename prefix (e.g. tmp_fw)."),
+    dpi: int = typer.Option(180, "--dpi", help="Render resolution (DPI).", show_default=True),
+) -> None:
+    """Render PDF pages to PNG images via pdftoppm."""
+    import shutil
+    import subprocess
+
+    if not shutil.which("pdftoppm"):
+        console.print("[red]pdftoppm not found on PATH.[/red]  Install poppler-utils.")
+        raise typer.Exit(code=1)
+    from fletcher.env import repo_root, resolve_in_repo
+    prefix_path = resolve_in_repo(prefix)
+    prefix_path.parent.mkdir(parents=True, exist_ok=True)
+    subprocess.run(
+        ["pdftoppm", "-f", str(first), "-l", str(last), "-png", "-r", str(dpi),
+         str(resolve_in_repo(pdf)), str(prefix_path)],
+        cwd=str(repo_root()), check=True,
+    )
+    created = sorted(prefix_path.parent.glob(f"{prefix_path.name}-*.png"))
+    print(f"rendered={len(created)} prefix={prefix_path.relative_to(repo_root())}")
+
+
+# ---------------------------------------------------------------------------
+# archive sub-app  (archive files / archive download)
+# ---------------------------------------------------------------------------
+
+_archive_app = typer.Typer(help="Internet Archive source acquisition.")
+app.add_typer(_archive_app, name="archive")
+
+_IA_BASE = "https://archive.org"
+
+
+@_archive_app.command("files")
+def archive_files(
+    identifier: str = typer.Argument(..., help="Internet Archive identifier."),
+    pattern: str = typer.Option(".pdf", "--pattern", help="Filter filenames (case-insensitive)."),
+) -> None:
+    """List files available for an Internet Archive identifier."""
+    import json as _json
+    import urllib.request
+
+    with urllib.request.urlopen(f"{_IA_BASE}/metadata/{identifier}", timeout=60) as resp:
+        data = _json.loads(resp.read().decode("utf-8"))
+    for item in data.get("files", []):
+        name = item.get("name", "")
+        if pattern and pattern.lower() not in name.lower():
+            continue
+        print(f"{name}\t{item.get('format', '')}\t{item.get('size', '')}")
+
+
+@_archive_app.command("download")
+def archive_download(
+    identifier: str = typer.Argument(..., help="Internet Archive identifier."),
+    filename: str = typer.Argument(..., help="Filename within the IA item."),
+    output: Path = typer.Argument(..., help="Destination path inside the repo."),
+) -> None:
+    """Download one file from Internet Archive into the repo."""
+    import shutil
+    import urllib.request
+
+    from fletcher.env import resolve_in_repo
+    dest = resolve_in_repo(output)
+    if dest.exists():
+        console.print(f"[red]Refusing to overwrite existing file:[/red] {dest}")
+        raise typer.Exit(code=1)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    url = f"{_IA_BASE}/download/{identifier}/{filename}"
+    with urllib.request.urlopen(url, timeout=180) as resp, dest.open("wb") as target:
+        shutil.copyfileobj(resp, target)
+    print(f"saved {dest} ({dest.stat().st_size} bytes)")
+
+
+# ---------------------------------------------------------------------------
+# audit command
+# ---------------------------------------------------------------------------
+
+@app.command()
+def audit(
+    volume: Path = typer.Argument(
+        ...,
+        help="Book directory to audit (e.g. volumes/01_early/books/02_city).",
+    ),
+    as_json: bool = typer.Option(False, "--json", help="Output results as JSON."),
+) -> None:
+    """Audit a transcription book directory for completeness and correctness."""
+    import json as _json
+
+    from fletcher.audit import audit_book
+    from fletcher.env import resolve_in_repo
+
+    result = audit_book(resolve_in_repo(volume))
+    if as_json:
+        print(_json.dumps(result, indent=2, sort_keys=True))
+    else:
+        print(f"volume={result['volume']}")
+        print(f"poem_count={result['poem_count']}")
+        print(f"statuses={result['statuses']}")
+        for key in ["issues", "forbidden_hits", "unchecked", "temporary_renders"]:
+            values = result[key]
+            print(f"{key}={len(values)}")
+            for v in values:
+                print(f"  {v}")
+    bad = any(result[k] for k in ["issues", "forbidden_hits", "unchecked", "temporary_renders"])
+    raise typer.Exit(code=1 if bad else 0)
+
+
+# ---------------------------------------------------------------------------
+# metadata command
+# ---------------------------------------------------------------------------
+
+@app.command()
+def metadata(
+    target: Path = typer.Argument(..., help="Book, books, volume, or volumes directory."),
+    write: bool = typer.Option(False, "--write", help="Write book.json files."),
+    check: bool = typer.Option(False, "--check", help="Check book.json files for staleness."),
+    as_json: bool = typer.Option(False, "--json", help="Print generated metadata as JSON."),
+) -> None:
+    """Generate or validate per-book book.json metadata."""
+    import json as _json
+
+    from fletcher.env import repo_root, resolve_in_repo
+    from fletcher.metadata import book_dirs, build_metadata
+
+    tgt = resolve_in_repo(target)
+    books = book_dirs(tgt)
+    if not books:
+        console.print(f"[red]No book.md files found under:[/red] {tgt.relative_to(repo_root())}")
+        raise typer.Exit(code=1)
+
+    all_meta = [build_metadata(b) for b in books]
+
+    if write:
+        for book, meta in zip(books, all_meta, strict=True):
+            out = book / "book.json"
+            out.write_text(_json.dumps(meta, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    issues: list[str] = []
+    if check:
+        root = repo_root()
+        for book, meta in zip(books, all_meta, strict=True):
+            path = book / "book.json"
+            if not path.exists():
+                issues.append(f"{book.relative_to(root)}: missing book.json")
+            elif _json.loads(path.read_text(encoding="utf-8-sig")) != meta:
+                issues.append(f"{book.relative_to(root)}: book.json stale or inconsistent")
+
+    if as_json:
+        print(_json.dumps(all_meta, indent=2, ensure_ascii=False))
+    else:
+        print(f"books={len(books)}")
+        if write:
+            print("wrote=book.json")
+        if check:
+            print(f"issues={len(issues)}")
+            for issue in issues:
+                print(f"  {issue}")
+
+    raise typer.Exit(code=1 if issues else 0)
+
+
+# ---------------------------------------------------------------------------
+# page-map command
+# ---------------------------------------------------------------------------
+
+@app.command("page-map")
+def page_map(
+    offset: int = typer.Option(..., "--offset", help="scan = printed + offset"),
+    printed: str = typer.Option(..., "--printed", help='Page range spec, e.g. "7-10,14,18".'),
+) -> None:
+    """Map printed page numbers to scan page numbers via a fixed offset."""
+    from fletcher.pagemap import expand_pages
+
+    try:
+        pages = expand_pages(printed)
+    except SystemExit as exc:
+        console.print(f"[red]Invalid page range:[/red] {exc}")
+        raise typer.Exit(code=1)
+    print("printed,scan")
+    for p in pages:
+        print(f"{p},{p + offset}")
+
+
+# ---------------------------------------------------------------------------
+# plan command
+# ---------------------------------------------------------------------------
+
+@app.command()
+def plan(
+    document: Path = typer.Argument(..., help="Markdown project plan file."),
+    check: bool = typer.Option(False, "--check", help="Fail on missing index/appendices or stale tokens."),
+) -> None:
+    """Inspect project plan heading structure and index readiness."""
+    import re as _re
+
+    from fletcher.env import resolve_in_repo
+    from fletcher.plan import headings
+
+    path = resolve_in_repo(document)
+    if not path.exists():
+        console.print(f"[red]Missing document:[/red] {path}")
+        raise typer.Exit(code=1)
+
+    rows = headings(path)
+
+    if not check:
+        for level, title, anchor in rows:
+            print("  " * (level - 1) + f"- [{title}](#{anchor})")
+        raise typer.Exit(code=0)
+
+    text = path.read_text(encoding="utf-8-sig")
+    issues: list[str] = []
+    if not rows:
+        issues.append("no markdown headings found")
+    if "# Index" not in text:
+        issues.append("missing '# Index' section")
+    if "# Appendix" not in text and "## Appendix" not in text:
+        issues.append("missing appendix headings")
+    _stale_re = _re.compile(r"(?:cite[^\n]{0,40}turn\d+)|turn\d+(?:view|search|news|reddit)\d+")
+    if stale := _stale_re.findall(text):
+        issues.append(f"stale citation tokens found: {len(stale)}")
+    anchors = [a for _, _, a in rows]
+    for dup in sorted({a for a in anchors if anchors.count(a) > 1}):
+        issues.append(f"duplicate heading anchor: {dup}")
+    if issues:
+        for issue in issues:
+            print(f"ISSUE: {issue}")
+        raise typer.Exit(code=1)
+    print(f"ok headings={len(rows)}")
+
+
+# ---------------------------------------------------------------------------
+# scan command
+# ---------------------------------------------------------------------------
+
+@app.command()
+def scan(
+    target: Path = typer.Argument(..., help="Book, volume, or volumes directory."),
+    output: Path = typer.Option(..., "--output", "-o", help="Markdown output path."),
+    front_pages: int = typer.Option(25, "--front-pages", help="Pages to scan at front of source.", show_default=True),
+    back_pages: int = typer.Option(12, "--back-pages", help="Pages to scan at back of source.", show_default=True),
+) -> None:
+    """Scan source PDFs for front/back matter keyword signals."""
+    from fletcher.env import resolve_in_repo
+    from fletcher.metadata import book_dirs, build_metadata
+    from fletcher.scan import _write_markdown, scan_book
+
+    tgt = resolve_in_repo(target)
+    books = book_dirs(tgt)
+    results = [scan_book(build_metadata(b), front_pages, back_pages) for b in books]
+    _write_markdown(results, resolve_in_repo(output))
+    print(f"books={len(results)} output={output}")
 
 
 if __name__ == "__main__":
