@@ -1097,5 +1097,298 @@ def scan(
     print(f"books={len(results)} output={output}")
 
 
+# ---------------------------------------------------------------------------
+# Internal helper: resolve project stage root (projects/<id>/)
+# ---------------------------------------------------------------------------
+
+def _resolve_stage_root(project: Optional[str]) -> Path:
+    """Return ``projects/<id>/`` — the stage root containing ingest/, proof/, etc.
+
+    Resolves through workspace.yaml.  The workspace stores paths to the
+    typeset directory (``projects/<id>/typeset``); the stage root is one
+    level up.
+    """
+    from texgraph.workspace import find_workspace, load_workspace
+
+    workspace_path = find_workspace(Path.cwd())
+    if workspace_path is None:
+        console.print(
+            "[red]No workspace.yaml found.[/red]  "
+            "Run from a workspace directory or use --workspace."
+        )
+        raise typer.Exit(code=1)
+
+    workspace = load_workspace(workspace_path)
+    effective_id = project or workspace.default_project
+    if not effective_id:
+        console.print(
+            "[red]No project specified and no default_project in workspace.yaml.[/red]  "
+            "Use --project <id>."
+        )
+        raise typer.Exit(code=1)
+
+    try:
+        ref = workspace.get_project(effective_id)
+    except KeyError as exc:
+        console.print(f"[red]Project not found:[/red] {exc}")
+        raise typer.Exit(code=1)
+
+    # ref.path is relative to workspace root, pointing at the typeset dir.
+    # Stage root is one level above.
+    stage_root = (workspace_path.parent / ref.path).resolve().parent
+    return stage_root
+
+
+# ---------------------------------------------------------------------------
+# verify command
+# ---------------------------------------------------------------------------
+
+@app.command()
+def verify(
+    stage: str = typer.Argument(
+        ...,
+        help="Stage to verify preconditions for "
+             "(transcribe | proof | typeset | final | covers).",
+    ),
+    project: Optional[str] = typer.Option(
+        None, "--project", "-p",
+        help="Project ID from workspace.yaml.  Uses default when omitted.",
+    ),
+) -> None:
+    """Check that the upstream stage is complete before starting STAGE.
+
+    Reads the upstream PROMOTION.yaml and verifies all required fields.
+    Exits 0 when preconditions pass; exits 1 with a report when they do not.
+
+    Examples
+    --------
+
+        texgraph verify transcribe
+
+        texgraph verify proof --project my-collection
+    """
+    from texgraph.promotions import UPSTREAM, verify_stage
+
+    console.rule(f"[bold cyan]Texgraph Verify — {stage}[/bold cyan]")
+
+    if stage not in UPSTREAM:
+        console.print(
+            f"[red]Unknown stage:[/red] '{stage}'  "
+            f"Valid: {', '.join(UPSTREAM)}"
+        )
+        raise typer.Exit(code=1)
+
+    stage_root = _resolve_stage_root(project)
+    upstream = UPSTREAM[stage]
+
+    console.print(f"  Project root:   [dim]{stage_root}[/dim]")
+    console.print(f"  Checking:       [bold]{upstream}/PROMOTION.yaml[/bold]")
+    console.print()
+
+    ok, issues = verify_stage(stage_root, stage)
+
+    if ok:
+        console.print(
+            f"[bold green]OK[/bold green]  "
+            f"{upstream}/PROMOTION.yaml passes all preconditions.  "
+            f"[bold]{stage}[/bold] is unlocked."
+        )
+        raise typer.Exit(code=0)
+
+    console.print(f"[bold red]BLOCKED[/bold red]  {len(issues)} issue(s) must be resolved:\n")
+    for issue in issues:
+        console.print(f"  [red]x[/red] {issue}")
+    console.print()
+    console.print(
+        f"Resolve the issues above, then re-run:  "
+        f"[bold]texgraph verify {stage}[/bold]"
+    )
+    raise typer.Exit(code=1)
+
+
+# ---------------------------------------------------------------------------
+# ingest sub-app
+# ---------------------------------------------------------------------------
+
+_ingest_app = typer.Typer(help="Ingest stage tools: source intake and registration.")
+app.add_typer(_ingest_app, name="ingest")
+
+
+@_ingest_app.command("rename")
+def ingest_rename(
+    file: Path = typer.Argument(..., help="Source file to ingest (will be moved, not copied)."),
+    author: str = typer.Option(..., "--author", "-a", help="Author slug (e.g. gould-fletcher)."),
+    year: int = typer.Option(..., "--year", "-y", help="Original publication year (4-digit)."),
+    title: str = typer.Option(..., "--title", "-t", help="Title slug (e.g. irradiations-sand-and-spray)."),
+    source: str = typer.Option(
+        "upload",
+        "--source", "-s",
+        help="Source slug: archive-org | hathitrust | gutenberg | scan | upload | url",
+        show_default=True,
+    ),
+    project: Optional[str] = typer.Option(
+        None, "--project", "-p",
+        help="Project ID from workspace.yaml.  Uses default when omitted.",
+    ),
+    pages: Optional[int] = typer.Option(
+        None, "--pages",
+        help="Page count (optional; can be recorded later via pdfinfo).",
+    ),
+    rights: str = typer.Option(
+        "unknown",
+        "--rights",
+        help="Rights status: public_domain | cc_by | licensed | unknown",
+        show_default=True,
+    ),
+    access_confirmed: bool = typer.Option(
+        False, "--access-confirmed",
+        help="Confirm rights/access have been verified.",
+    ),
+    notes: str = typer.Option("", "--notes", help="Optional provenance notes."),
+) -> None:
+    """Move a source file into the project and register it under the stable naming schema.
+
+    The file is MOVED (not copied) to ``projects/<id>/ingest/raw/<stable_name>.<ext>``.
+    A provenance record is written alongside it.  The project's
+    ``ingest/PROMOTION.yaml`` is created or updated with the new source entry
+    (status: pending — run ``texgraph promote ingest`` after all sources are registered
+    and access is confirmed).
+
+    Stable naming schema: <author>_<year>_<title>_<source>.<ext>
+
+    Examples
+    --------
+
+        texgraph ingest rename irradiations.pdf \\
+            --author gould-fletcher --year 1913 \\
+            --title irradiations-sand-and-spray \\
+            --source archive-org --pages 120 \\
+            --rights public_domain --access-confirmed
+
+        texgraph ingest rename manuscript.docx \\
+            --author smith --year 2024 --title collected-poems \\
+            --source upload --access-confirmed
+    """
+    import hashlib
+    from datetime import datetime, timezone
+
+    from texgraph.promotions import read_promotion, write_promotion
+    from texgraph.utils import slugify
+
+    console.rule("[bold cyan]Texgraph Ingest Rename[/bold cyan]")
+
+    # --- Validate source file -----------------------------------------------
+    file = file.resolve()
+    if not file.exists():
+        console.print(f"[red]File not found:[/red] {file}")
+        raise typer.Exit(code=1)
+    if not file.is_file():
+        console.print(f"[red]Not a file:[/red] {file}")
+        raise typer.Exit(code=1)
+
+    # --- Build stable name --------------------------------------------------
+    author_slug = slugify(author)
+    title_slug = slugify(title)
+    source_slug = slugify(source)
+    ext = file.suffix.lower()
+    stable_name = f"{author_slug}_{year}_{title_slug}_{source_slug}{ext}"
+
+    # --- Resolve project stage root -----------------------------------------
+    stage_root = _resolve_stage_root(project)
+    raw_dir = stage_root / "ingest" / "raw"
+    raw_dir.mkdir(parents=True, exist_ok=True)
+    dest = raw_dir / stable_name
+
+    if dest.exists():
+        console.print(
+            f"[red]Destination already exists:[/red] {dest}\n"
+            f"  Delete it first or choose a different stable name."
+        )
+        raise typer.Exit(code=1)
+
+    # --- Compute checksum before moving ------------------------------------
+    console.print(f"  Source:    [dim]{file}[/dim]")
+    console.print(f"  Dest:      [bold]{dest.relative_to(stage_root)}[/bold]")
+
+    sha256 = hashlib.sha256()
+    with file.open("rb") as fh:
+        for chunk in iter(lambda: fh.read(65536), b""):
+            sha256.update(chunk)
+    checksum = sha256.hexdigest()
+
+    # --- Move file ----------------------------------------------------------
+    shutil.move(str(file), str(dest))
+    console.print(f"  Moved.     sha256={checksum[:16]}…")
+
+    # --- Write provenance file ---------------------------------------------
+    ingested_at = datetime.now(timezone.utc).isoformat()
+    provenance_path = raw_dir / (stable_name + ".provenance.yaml")
+    provenance: dict = {
+        "stable_name": stable_name,
+        "original_name": file.name,
+        "source_type": source_slug,
+        "rights": rights,
+        "access_confirmed": access_confirmed,
+        "checksum_sha256": checksum,
+        "ingested_at": ingested_at,
+        "notes": notes,
+    }
+    if pages is not None:
+        provenance["page_count"] = pages
+
+    import yaml as _yaml
+    provenance_path.write_text(
+        _yaml.dump(provenance, allow_unicode=True, sort_keys=False, default_flow_style=False),
+        encoding="utf-8",
+    )
+    console.print(f"  Provenance: {provenance_path.relative_to(stage_root)}")
+
+    # --- Update ingest/PROMOTION.yaml --------------------------------------
+    existing = read_promotion(stage_root, "ingest") or {}
+    sources: list[dict] = existing.get("sources") or []
+
+    # Remove any prior entry with the same stable_name (idempotent re-run)
+    sources = [s for s in sources if s.get("stable_name") != stable_name]
+
+    source_entry: dict = {
+        "stable_name": stable_name,
+        "stable_path": str(dest.relative_to(stage_root)),
+        "format": ext.lstrip("."),
+        "checksum_sha256": checksum,
+        "access_confirmed": access_confirmed,
+        "provenance_ref": str(provenance_path.relative_to(stage_root)),
+    }
+    if pages is not None:
+        source_entry["page_count"] = pages
+
+    sources.append(source_entry)
+
+    promotion: dict = {
+        "stage": "ingest",
+        "project_id": stage_root.name,
+        "status": existing.get("status", "pending"),
+        "naming_schema_version": 1,
+        "sources": sources,
+    }
+    if "approved_at" in existing:
+        promotion["approved_at"] = existing["approved_at"]
+
+    promo_path = write_promotion(stage_root, "ingest", promotion)
+    console.print(f"  Promotion:  {promo_path.relative_to(stage_root)}")
+
+    # --- Summary ------------------------------------------------------------
+    access_note = (
+        "[green]access confirmed[/green]"
+        if access_confirmed
+        else "[yellow]access NOT confirmed[/yellow] — set --access-confirmed when verified"
+    )
+    console.print(
+        f"\n[bold green]Registered:[/bold green] {stable_name}\n"
+        f"  Rights: {rights}  |  {access_note}\n"
+        f"  Status: [yellow]pending[/yellow] — run [bold]texgraph promote ingest[/bold] "
+        f"once all sources are registered and access is confirmed."
+    )
+
+
 if __name__ == "__main__":
     app()

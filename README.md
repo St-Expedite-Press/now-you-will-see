@@ -185,6 +185,20 @@ system does not auto-promote.
 | typeset → front-end | format target, output mode |
 | covers/front-end → final | vendor format, visual direction, copy approval |
 
+Gates are enforced by `PROMOTION.yaml` files at `projects/<id>/<stage>/PROMOTION.yaml`.
+`texgraph verify <stage>` reads the upstream gate and exits non-zero if preconditions
+are unmet. See ONTOLOGY.md § Data Schemas for full schema reference.
+
+### Pipeline Gate Implementation
+
+- [x] Step 1: PROMOTION.yaml schemas defined in ONTOLOGY.md
+- [x] Step 2: `texgraph verify <stage>` — precondition enforcement (`promotions.py` + CLI)
+- [x] Step 3: `texgraph ingest rename` — first concrete stage gate (stable naming, provenance record, ingest PROMOTION.yaml)
+- [ ] Step 4: `texgraph proof-build` — proof PDF generation command
+- [ ] Step 5: `texgraph promote <stage>` — write approved PROMOTION.yaml at each gate
+- [ ] Step 6: Style token extraction (typeset → covers handshake payload)
+- [ ] Step 7: Cover payload reader (covers stage reads typeset style tokens)
+
 ---
 
 ## Agentic Workflow Architecture
@@ -349,7 +363,7 @@ backend, React frontend, and shared infrastructure.
 |---|---|---|
 | E-reader rendering path | `front-end/` | Content model ready; EPUB renderer not written |
 | Named format presets | `typeset/` | render_config parameterized; no preset registry |
-| Promotion records | All stages | User approvals honored but not formally recorded |
+| Promotion records (steps 4–7) | All stages | Steps 1–3 complete; `promote`, `proof-build`, style tokens, cover payload remain |
 | Studio module-agents | `machinery/studio/` | Planned; backend/frontend scaffold in place |
 | covers/ skills and tools | `covers/` | AGENTS.md only |
 | final/ skills and packaging | `final/` | AGENTS.md only |
@@ -585,6 +599,13 @@ entrypoints; prefer `texgraph` in new scripts.
 | `texgraph new poem "Title" [--section <id>]` | Scaffold a poem file |
 | `texgraph studio` | Launch FastAPI + React Studio |
 
+### Pipeline gates
+
+| Command | What it does |
+|---|---|
+| `texgraph verify <stage> [--project <id>]` | Check upstream PROMOTION.yaml; exits 0 on pass, 1 on fail with issues listed |
+| `texgraph ingest rename <file> --author A --year Y --title T` | Rename source to stable name, write provenance record, update ingest PROMOTION.yaml |
+
 ### Editorial and source
 
 | Command | What it does |
@@ -618,7 +639,8 @@ entrypoints; prefer `texgraph` in new scripts.
 
 | File | Purpose |
 |---|---|
-| `machinery/src/texgraph/cli.py` | All CLI commands (1,101 lines) |
+| `machinery/src/texgraph/cli.py` | All CLI commands |
+| `machinery/src/texgraph/promotions.py` | PROMOTION.yaml I/O and stage precondition checkers |
 | `machinery/src/texgraph/config.py` | CollectionConfig, WorkspaceConfig, ProjectRef |
 | `machinery/src/texgraph/parser.py` | Markdown/YAML poem parsing |
 | `machinery/src/texgraph/renderer.py` | Jinja2 → LaTeX rendering with smart escaping |
@@ -636,6 +658,8 @@ entrypoints; prefer `texgraph` in new scripts.
 **Built and functional:**
 - Complete CLI: `texgraph build`, `watch`, `list`, `new poem`, `studio`, plus
   full editorial suite (`pdf`, `archive`, `audit`, `metadata`, `page-map`, `plan`, `scan`)
+- Pipeline gate commands: `texgraph verify <stage>` and `texgraph ingest rename`
+- `promotions.py`: PROMOTION.yaml I/O and per-stage precondition checkers
 - `fletcher` compatibility alias pointing to the same CLI
 - Markdown/YAML poem parsing (`poem`, `prose`, `poem-cycle`, `poem-screenplay`)
 - Jinja2 LaTeX rendering with smart-quote and escape handling
@@ -650,9 +674,11 @@ entrypoints; prefer `texgraph` in new scripts.
 - Example project `spectra_poems` (tracked, buildable, three poems)
 
 **Next work:**
+- `texgraph promote <stage>` — write approved PROMOTION.yaml (pipeline gate step 5)
+- `texgraph proof-build` — proof PDF generation command (pipeline gate step 4)
+- Style token extraction and cover payload reader (pipeline gate steps 6–7)
 - E-reader rendering path in `front-end/` (EPUB 3 from existing content model)
 - Named format presets in render_config (trade, A5, chapbook, e-reader)
-- Promotion records: formal artifact of user approval at each stage gate
 - Studio module-agents: per-stage interactive agents in the web interface
 - covers/ skills and tools
 - final/ skills and packaging tools

@@ -80,13 +80,23 @@ Local project workspaces. Gitignored except tracked example projects.
 ```
 projects/
   <project_id>/
-    ingest/              ← raw sources, provenance records (local only)
-    transcribe/          ← transcription files, plans, metadata (local only)
-    proof/               ← audit reports, corrections (local only)
+    ingest/
+      raw/               ← renamed source files (<stable_name>.<ext>)
+                            provenance records (<stable_name>.provenance.yaml)
+      PROMOTION.yaml     ← stage gate: sources approved for transcription
+    transcribe/
+      PROMOTION.yaml     ← stage gate: volumes transcribed and policy accepted
+      <volume files, plans, metadata>
+    proof/
+      PROMOTION.yaml     ← stage gate: corrections complete, proof PDF present
+      <audit reports, corrections>
     typeset/             ← collection.yaml, content/, output/ (build root)
-    covers/              ← cover assets and production files (local only)
-    front-end/           ← publication-facing assets (local only)
-    final/               ← release packages, manifests (local only)
+      PROMOTION.yaml     ← stage gate: interior PDF embedded and approved
+    covers/
+      PROMOTION.yaml     ← stage gate: final PDF present, cover unlock set
+      <cover assets and production files>
+    front-end/           ← publication-facing assets
+    final/               ← release packages, manifests
 
   spectra_poems/         ← tracked example project (in git)
 ```
@@ -115,6 +125,8 @@ registers each project ID and its typeset path.
 | `book.md` | Volume/book manifest with YAML front matter. |
 | `volume.md` | Volume-level manifest with YAML front matter. |
 | `.ontology-baseline` | Stored git hash for ontology_check.py comparisons. Gitignored. |
+| `PROMOTION.yaml` | Stage gate record at `projects/<id>/<stage>/PROMOTION.yaml`. Written by `texgraph ingest rename` / `texgraph promote`. Read by `texgraph verify`. |
+| `<stable_name>.provenance.yaml` | Source provenance record beside the renamed ingest file. Documents origin, rights, SHA-256 checksum, ingested_at timestamp, and notes. |
 
 ---
 
@@ -185,6 +197,97 @@ projects:
 default_project: project-slug
 ```
 
+### Stable source naming schema
+
+Renamed ingest files follow this pattern:
+
+```
+<author_slug>_<year>_<title_slug>_<source_slug>.<ext>
+```
+
+- `author_slug` — hyphen-separated lowercase author last name(s), e.g. `keats`
+- `year` — four-digit publication year, e.g. `1820`
+- `title_slug` — hyphen-separated lowercase title words, e.g. `lamia-and-other-poems`
+- `source_slug` — `upload` (default) or descriptive slug for the source origin
+- `ext` — original file extension preserved (`.pdf`, `.docx`, `.txt`, etc.)
+
+Example: `keats_1820_lamia-and-other-poems_upload.pdf`
+
+The presence of a stable-named file certifies it has been processed through ingest. The original file is gone after rename — moving, not copying, is the intentional design: the rename is the record of processing.
+
+### PROMOTION.yaml — ingest stage
+
+Written by `texgraph ingest rename`; approved manually via `texgraph promote ingest`.
+
+```yaml
+status: pending                    # pending | approved
+sources:
+  - stable_name: keats_1820_lamia-and-other-poems_upload.pdf
+    stable_path: ingest/raw/keats_1820_lamia-and-other-poems_upload.pdf
+    original_name: Lamia 1820.pdf
+    source_type: upload            # upload | internet_archive | scan | other
+    rights: unknown                # unknown | public_domain | licensed | restricted
+    access_confirmed: true
+    checksum_sha256: "abc123..."
+    ingested_at: "2026-05-26T14:00:00"
+    page_count: 120                # optional
+    notes: ""
+```
+
+Gate condition for `transcribe`: `status == approved` and all sources have `access_confirmed: true` with `stable_path` present on disk.
+
+### PROMOTION.yaml — transcribe stage
+
+```yaml
+status: pending                    # pending | approved
+policy_accepted: true
+all_statuses_at_least: transcribed # transcribed | checked | final
+uncertain_readings_accepted: false # true = user has explicitly accepted open readings
+volumes:
+  - id: vol-1
+    transcription_status: transcribed  # not_started | transcribed | checked | final
+    uncertain_readings: []             # list of unresolved reading notes
+```
+
+Gate condition for `proof`: `status == approved`, `policy_accepted`, all volumes meet `all_statuses_at_least` floor, and `uncertain_readings_accepted` if any open readings exist.
+
+### PROMOTION.yaml — proof stage
+
+```yaml
+status: pending                    # pending | approved
+proof_pdf: proof/output/proof.pdf  # path relative to project root
+textual_questions:
+  open: 0                          # must be 0 for promotion
+  resolved: 12
+page_count: 128                    # must be even for print
+user_accepted_layout: true
+```
+
+Gate condition for `typeset`: `status == approved`, `proof_pdf` exists on disk, `textual_questions.open == 0`, `page_count` is even, `user_accepted_layout`.
+
+### PROMOTION.yaml — typeset stage
+
+```yaml
+status: pending                    # pending | approved
+interior_pdf: typeset/output/my-collection.pdf
+fonts_embedded: true               # verified with pdffonts
+user_approved_interior: true
+```
+
+Gate condition for `covers`: `status == approved`, `interior_pdf` exists on disk, `fonts_embedded`, `user_approved_interior`.
+
+### PROMOTION.yaml — final stage
+
+```yaml
+status: pending                    # pending | approved
+final_pdf: final/output/my-collection-final.pdf
+cover_unlock:
+  unlocked: true
+  unlocked_at: "2026-05-26T14:00:00"
+```
+
+Gate condition for `covers`: `status == approved`, `final_pdf` exists on disk, `cover_unlock.unlocked`.
+
 ### Book manifest front matter (transcription projects)
 
 ```yaml
@@ -195,7 +298,7 @@ author: "Author Name"
 publisher: "Publisher"
 place: "City"
 year: 1913
-source_pdf: "ingest/raw/<bucket>/<stable>.pdf"
+source_pdf: "ingest/raw/<stable>.pdf"
 source_status: present                   # present | missing | working_source_reprint | access_restricted | pending_acquisition
 pdf_pages: 120
 transcription_status: in_progress        # not_started | in_progress | transcribed | checked | final
@@ -216,7 +319,7 @@ matter_type: dedication                  # dedication | preface | contents | epi
                                          # acknowledgment | illustration_list |
                                          # frontispiece | dedicatory_poem |
                                          # colophon | publisher_ad | appendix
-source_pdf: "ingest/raw/<bucket>/<stable>.pdf"
+source_pdf: "ingest/raw/<stable>.pdf"
 source_pages_scan: "1-2"
 source_pages_printed: "i-ii"
 status: transcribed
@@ -287,6 +390,13 @@ Both `texgraph` and `fletcher` invoke the same CLI. `fletcher` is an alias.
 | `texgraph list` | workspace | List registered projects |
 | `texgraph new poem "Title" [--section <id>]` | typeset | Scaffold poem file |
 | `texgraph studio` | machinery | Launch FastAPI + React Studio |
+
+### Pipeline gate commands
+
+| Command | Stage | What it does |
+|---|---|---|
+| `texgraph verify <stage> [--project <id>]` | all | Check upstream PROMOTION.yaml preconditions; exits 0 on pass, 1 on fail |
+| `texgraph ingest rename <file> --author A --year Y --title T [--source S] [--project <id>]` | ingest | Rename source to stable name, write provenance record, update ingest PROMOTION.yaml |
 
 ### Editorial and source commands
 
@@ -394,6 +504,17 @@ These must always be true. Violating any of them breaks the system.
 
 11. **`texgraph` and `fletcher` are aliases for the same CLI**. Keep command
     names stable; treat both as compatibility entrypoints.
+
+12. **`PROMOTION.yaml` is the machine-readable gate**. A stage does not begin
+    work unless the upstream PROMOTION.yaml exists and passes `texgraph verify`.
+    The file lives at `projects/<id>/<stage>/PROMOTION.yaml`. Writing `status:
+    approved` requires explicit user action via `texgraph promote <stage>` (not
+    yet implemented — stages 4–7 of the gate implementation plan).
+
+13. **Stable source naming is the ingest certification**. A file named according
+    to the schema `<author>_<year>_<title>_<source>.<ext>` in `ingest/raw/`
+    certifies it has been processed. The original file is gone — `texgraph ingest
+    rename` moves, not copies. Presence of the renamed file is the processing record.
 
 ---
 
