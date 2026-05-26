@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 780" font-family="'Courier New', monospace">
+
+  <!-- Deep background -->
+  <rect width="1200" height="780" fill="#0a0a0a"/>
+
+  <!-- Background LaTeX/poetry fragments (very faint, atmospheric) -->
+  <text x="24" y="100" fill="#131313" font-size="11">\documentclass[11pt, openright]{book}</text>
+  <text x="24" y="118" fill="#131313" font-size="11">\usepackage{fontspec, microtype, verse}</text>
+  <text x="24" y="136" fill="#131313" font-size="11">\setmainfont{Garamond Premier Pro}</text>
+  <text x="24" y="154" fill="#131313" font-size="11">\usepackage[x-4p]{pdfx}</text>
+  <text x="24" y="630" fill="#131313" font-size="11">\begin{verse}</text>
+  <text x="24" y="648" fill="#131313" font-size="11">  The girl at the crossing won't let me pass---\\</text>
+  <text x="24" y="666" fill="#131313" font-size="11">  her hem red-dipped in the ditch's bleed.</text>
+  <text x="24" y="684" fill="#131313" font-size="11">\end{verse}</text>
+  <text x="860" y="80" fill="#131313" font-size="11">title: "Lift Wind / Love Heat"</text>
+  <text x="860" y="98" fill="#131313" font-size="11">author: "Eleanor Voss Hartley"</text>
+  <text x="860" y="116" fill="#131313" font-size="11">year: 2025</text>
+  <text x="860" y="134" fill="#131313" font-size="11">isbn: "978-0-000-00000-0"</text>
+  <text x="860" y="660" fill="#131313" font-size="11">output/collection.pdf</text>
+  <text x="860" y="678" fill="#131313" font-size="11">42 pages · 1.2 MB</text>
+  <text x="860" y="696" fill="#131313" font-size="11">Build: success · 8.4s</text>
+
+  <!-- Card shadow -->
+  <rect x="354" y="104" width="500" height="576" rx="10" fill="#070707"/>
+
+  <!-- Login card -->
+  <rect x="350" y="100" width="500" height="576" rx="10" fill="#161616" stroke="#282828" stroke-width="1"/>
+
+  <!-- Top accent bar -->
+  <rect x="350" y="100" width="500" height="4" rx="2" fill="#40916c"/>
+
+  <!-- Logo mark -->
+  <text x="600" y="192" font-size="44" text-anchor="middle" fill="#40916c">⬡</text>
+
+  <!-- Wordmark -->
+  <text x="600" y="236" font-size="22" font-weight="bold" text-anchor="middle" fill="#e0e0e0">Texgraph Studio</text>
+  <text x="600" y="257" font-size="11" text-anchor="middle" fill="#4a4a4a" font-style="italic">poetry collection compiler</text>
+
+  <!-- Divider -->
+  <rect x="390" y="274" width="420" height="1" fill="#222"/>
+
+  <!-- Email label + field -->
+  <text x="390" y="300" font-size="11" fill="#777">Email</text>
+  <rect x="390" y="306" width="420" height="36" rx="4" fill="#1e1e1e" stroke="#2e2e2e" stroke-width="1"/>
+  <text x="406" y="329" font-size="12" fill="#3e3e3e">your@email.com</text>
+
+  <!-- Password label + forgot -->
+  <text x="390" y="362" font-size="11" fill="#777">Password</text>
+  <text x="810" y="362" font-size="11" fill="#2d6a4f" text-anchor="end">Forgot password?</text>
+  <rect x="390" y="368" width="420" height="36" rx="4" fill="#1e1e1e" stroke="#2e2e2e" stroke-width="1"/>
+  <text x="406" y="391" font-size="12" fill="#3e3e3e">••••••••••••</text>
+
+  <!-- Remember me -->
+  <rect x="390" y="414" width="14" height="14" rx="3" fill="#2d6a4f" stroke="#40916c" stroke-width="1"/>
+  <text x="412" y="425" font-size="11" fill="#666">Remember me</text>
+
+  <!-- Sign In button -->
+  <rect x="390" y="444" width="420" height="44" rx="5" fill="#2d6a4f" stroke="#40916c" stroke-width="1"/>
+  <text x="600" y="471" font-size="14" font-weight="bold" text-anchor="middle" fill="#d8f3dc">Sign In</text>
+
+  <!-- OR separator -->
+  <rect x="390" y="508" width="191" height="1" fill="#242424"/>
+  <text x="600" y="512" font-size="11" text-anchor="middle" fill="#383838">or</text>
+  <rect x="619" y="508" width="191" height="1" fill="#242424"/>
+
+  <!-- Local workspace option -->
+  <rect x="390" y="522" width="420" height="38" rx="4" fill="#191919" stroke="#2e2e2e" stroke-width="1"/>
+  <text x="600" y="545" font-size="12" text-anchor="middle" fill="#888">⊞  Open local workspace</text>
+
+  <!-- Footer links -->
+  <text x="600" y="585" font-size="11" text-anchor="middle" fill="#3a3a3a">Create account  ·  Documentation  ·  GitHub</text>
+
+  <!-- Version stamp -->
+  <text x="600" y="626" font-size="10" text-anchor="middle" fill="#282828">v1.0.0</text>
+
+  <!-- Wireframe label -->
+  <text x="600" y="756" font-size="10" text-anchor="middle" fill="#333">WIREFRAME 01 — Login</text>
+
+</svg>

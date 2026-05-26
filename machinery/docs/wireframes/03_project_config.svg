@@ -1,0 +1,187 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 780" font-family="'Courier New', monospace">
+
+  <rect width="1200" height="780" fill="#0f0f0f"/>
+
+  <!-- Breadcrumb top bar -->
+  <rect x="0" y="0" width="1200" height="48" fill="#111"/>
+  <text x="20" y="28" font-size="13" fill="#40916c">⬡</text>
+  <text x="38" y="28" font-size="12" fill="#555">Projects</text>
+  <text x="112" y="28" font-size="12" fill="#444">›</text>
+  <text x="124" y="28" font-size="12" fill="#888">New Project</text>
+  <text x="214" y="28" font-size="12" fill="#444">›</text>
+  <text x="226" y="28" font-size="12" fill="#d4d4d4" font-weight="bold">Configure</text>
+  <!-- Step indicator -->
+  <text x="1100" y="28" font-size="11" fill="#555">Step 1 of 2</text>
+
+  <!-- ─────────────────────────────────── -->
+  <!-- LEFT FORM PANEL (x=0, w=580)        -->
+  <!-- ─────────────────────────────────── -->
+  <rect x="0" y="48" width="580" height="680" fill="#141414"/>
+
+  <!-- Scrollable form content -->
+
+  <!-- BOOK IDENTITY section -->
+  <text x="24" y="80" font-size="11" fill="#555" letter-spacing="1">BOOK IDENTITY</text>
+  <rect x="24" y="86" width="532" height="1" fill="#222"/>
+
+  <!-- Title -->
+  <text x="24" y="110" font-size="11" fill="#777">Collection Title  <tspan fill="#f59e0b">*</tspan></text>
+  <rect x="24" y="116" width="532" height="34" rx="4" fill="#1e1e1e" stroke="#333" stroke-width="1"/>
+  <text x="36" y="138" font-size="12" fill="#555" font-style="italic">e.g. Lift Wind / Love Heat</text>
+
+  <!-- Subtitle -->
+  <text x="24" y="166" font-size="11" fill="#777">Subtitle  <tspan fill="#555" font-style="italic">(optional)</tspan></text>
+  <rect x="24" y="172" width="532" height="34" rx="4" fill="#1e1e1e" stroke="#2a2a2a" stroke-width="1"/>
+  <text x="36" y="194" font-size="12" fill="#333" font-style="italic">optional...</text>
+
+  <!-- Author (two columns) -->
+  <text x="24" y="222" font-size="11" fill="#777">Author  <tspan fill="#f59e0b">*</tspan></text>
+  <rect x="24" y="228" width="334" height="34" rx="4" fill="#1e1e1e" stroke="#333" stroke-width="1"/>
+  <text x="36" y="250" font-size="12" fill="#555" font-style="italic">Full name</text>
+
+  <text x="368" y="222" font-size="11" fill="#777">Short name</text>
+  <rect x="368" y="228" width="188" height="34" rx="4" fill="#1e1e1e" stroke="#2a2a2a" stroke-width="1"/>
+  <text x="380" y="250" font-size="12" fill="#333" font-style="italic">For headers</text>
+
+  <!-- Year + Language (two columns) -->
+  <text x="24" y="280" font-size="11" fill="#777">Year  <tspan fill="#f59e0b">*</tspan></text>
+  <rect x="24" y="286" width="120" height="34" rx="4" fill="#1e1e1e" stroke="#333" stroke-width="1"/>
+  <text x="36" y="308" font-size="12" fill="#555">2025</text>
+
+  <text x="156" y="280" font-size="11" fill="#777">Language</text>
+  <rect x="156" y="286" width="160" height="34" rx="4" fill="#1e1e1e" stroke="#2a2a2a" stroke-width="1"/>
+  <text x="168" y="308" font-size="12" fill="#d4d4d4">English  ▾</text>
+
+  <!-- PUBLICATION section -->
+  <text x="24" y="346" font-size="11" fill="#555" letter-spacing="1">PUBLICATION</text>
+  <rect x="24" y="352" width="532" height="1" fill="#222"/>
+
+  <text x="24" y="374" font-size="11" fill="#777">Publisher</text>
+  <rect x="24" y="380" width="334" height="34" rx="4" fill="#1e1e1e" stroke="#2a2a2a" stroke-width="1"/>
+  <text x="36" y="402" font-size="12" fill="#333" font-style="italic">optional...</text>
+
+  <text x="368" y="374" font-size="11" fill="#777">ISBN</text>
+  <rect x="368" y="380" width="188" height="34" rx="4" fill="#1e1e1e" stroke="#2a2a2a" stroke-width="1"/>
+  <text x="380" y="402" font-size="12" fill="#333" font-style="italic">978-0-…</text>
+
+  <!-- BUILD SETTINGS section -->
+  <text x="24" y="436" font-size="11" fill="#555" letter-spacing="1">BUILD SETTINGS</text>
+  <rect x="24" y="442" width="532" height="1" fill="#222"/>
+
+  <text x="24" y="466" font-size="11" fill="#777">LuaLaTeX path</text>
+  <rect x="24" y="472" width="440" height="34" rx="4" fill="#1e1e1e" stroke="#2a2a2a" stroke-width="1"/>
+  <text x="36" y="494" font-size="12" fill="#555">lualatex</text>
+  <rect x="472" y="472" width="84" height="34" rx="4" fill="#1a2a1a" stroke="#2d6a4f" stroke-width="1"/>
+  <text x="514" y="494" font-size="11" text-anchor="middle" fill="#4ade80">Detect</text>
+
+  <!-- Draft mode toggle -->
+  <text x="24" y="524" font-size="11" fill="#777">Draft mode</text>
+  <rect x="24" y="530" width="44" height="22" rx="11" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+  <circle cx="36" cy="541" r="9" fill="#555"/>
+  <text x="76" y="545" font-size="11" fill="#555">Single lualatex pass, skip PDF/X</text>
+
+  <!-- PATHS section -->
+  <text x="24" y="574" font-size="11" fill="#555" letter-spacing="1">DIRECTORY STRUCTURE</text>
+  <rect x="24" y="580" width="532" height="1" fill="#222"/>
+
+  <text x="24" y="602" font-size="11" fill="#777">Content dir</text>
+  <rect x="24" y="608" width="248" height="34" rx="4" fill="#1e1e1e" stroke="#2a2a2a" stroke-width="1"/>
+  <text x="36" y="630" font-size="12" fill="#555">content</text>
+
+  <text x="284" y="602" font-size="11" fill="#777">Output dir</text>
+  <rect x="284" y="608" width="272" height="34" rx="4" fill="#1e1e1e" stroke="#2a2a2a" stroke-width="1"/>
+  <text x="296" y="630" font-size="12" fill="#555">output</text>
+
+  <!-- Agent setup CTA -->
+  <rect x="24" y="656" width="532" height="48" rx="6" fill="#131320" stroke="#3a3a7e" stroke-width="1.5"/>
+  <text x="40" y="678" font-size="13" fill="#8888cc">⬡</text>
+  <text x="58" y="678" font-size="12" fill="#aaaaee" font-weight="bold">Set up this project with the AI Agent instead</text>
+  <text x="58" y="696" font-size="11" fill="#5555aa">Conversational setup — describe your collection and the agent builds the config</text>
+  <text x="544" y="678" font-size="12" fill="#5555aa" text-anchor="end">→</text>
+
+  <!-- Form divider -->
+  <rect x="580" y="48" width="1" height="680" fill="#222"/>
+
+  <!-- ─────────────────────────────────── -->
+  <!-- RIGHT PREVIEW PANEL (x=581, w=619) -->
+  <!-- ─────────────────────────────────── -->
+  <rect x="581" y="48" width="619" height="680" fill="#111"/>
+
+  <!-- Preview header -->
+  <text x="601" y="78" font-size="11" fill="#555" letter-spacing="1">COLLECTION.YAML  PREVIEW</text>
+  <rect x="601" y="84" width="579" height="1" fill="#1e1e1e"/>
+
+  <!-- YAML code block -->
+  <rect x="601" y="92" width="579" height="350" rx="4" fill="#0d0d0d" stroke="#1e1e1e" stroke-width="1"/>
+
+  <!-- YAML content (syntax colored) -->
+  <text x="617" y="116" font-size="11" fill="#555">title:</text>
+  <text x="671" y="116" font-size="11" fill="#ce9178">"Lift Wind / Love Heat"</text>
+  <text x="617" y="134" font-size="11" fill="#555">author:</text>
+  <text x="671" y="134" font-size="11" fill="#ce9178">"Eleanor Voss Hartley"</text>
+  <text x="617" y="152" font-size="11" fill="#555">author_short:</text>
+  <text x="703" y="152" font-size="11" fill="#ce9178">"E.V. Hartley"</text>
+  <text x="617" y="170" font-size="11" fill="#555">year:</text>
+  <text x="671" y="170" font-size="11" fill="#b5cea8">2025</text>
+  <text x="617" y="188" font-size="11" fill="#555">language:</text>
+  <text x="679" y="188" font-size="11" fill="#ce9178">"en"</text>
+  <text x="617" y="206" font-size="11" fill="#555">publisher:</text>
+  <text x="671" y="206" font-size="11" fill="#3a3a3a" font-style="italic">~</text>
+  <text x="617" y="224" font-size="11" fill="#555">isbn:</text>
+  <text x="671" y="224" font-size="11" fill="#3a3a3a" font-style="italic">~</text>
+  <text x="617" y="242" font-size="11" fill="#555">content_dir:</text>
+  <text x="695" y="242" font-size="11" fill="#ce9178">"content"</text>
+  <text x="617" y="260" font-size="11" fill="#555">output_dir:</text>
+  <text x="687" y="260" font-size="11" fill="#ce9178">"output"</text>
+  <text x="617" y="278" font-size="11" fill="#555">lualatex_path:</text>
+  <text x="711" y="278" font-size="11" fill="#ce9178">"lualatex"</text>
+  <text x="617" y="296" font-size="11" fill="#555">draft_mode:</text>
+  <text x="695" y="296" font-size="11" fill="#569cd6">false</text>
+  <text x="617" y="314" font-size="11" fill="#555">render_config:</text>
+  <text x="617" y="332" font-size="11" fill="#555">  mainfont:</text>
+  <text x="679" y="332" font-size="11" fill="#ce9178">"Garamond Premier Pro"</text>
+  <text x="617" y="350" font-size="11" fill="#555">  fontsize:</text>
+  <text x="679" y="350" font-size="11" fill="#ce9178">"11pt"</text>
+  <text x="617" y="368" font-size="11" fill="#555">  paperwidth:</text>
+  <text x="695" y="368" font-size="11" fill="#ce9178">"5.5in"</text>
+  <text x="617" y="386" font-size="11" fill="#555">  paperheight:</text>
+  <text x="703" y="386" font-size="11" fill="#ce9178">"8.5in"</text>
+  <text x="617" y="404" font-size="11" fill="#444" font-style="italic">  ...</text>
+
+  <!-- Files to create heading -->
+  <text x="601" y="464" font-size="11" fill="#555" letter-spacing="1">FILES TO CREATE</text>
+  <rect x="601" y="470" width="579" height="1" fill="#1e1e1e"/>
+
+  <!-- File tree -->
+  <rect x="601" y="478" width="579" height="220" rx="4" fill="#0d0d0d" stroke="#1e1e1e" stroke-width="1"/>
+  <text x="617" y="502" font-size="11" fill="#888">projects/</text>
+  <text x="617" y="520" font-size="11" fill="#888">└── lift-wind-love-heat/</text>
+  <text x="617" y="538" font-size="11" fill="#40916c">    ├── collection.yaml</text>
+  <text x="617" y="556" font-size="11" fill="#666">    └── content/</text>
+  <text x="617" y="574" font-size="11" fill="#444">        ├── 01_section-one/</text>
+  <text x="617" y="592" font-size="11" fill="#444">        │   ├── _meta.yaml</text>
+  <text x="617" y="610" font-size="11" fill="#444">        │   └── _title.md</text>
+  <text x="617" y="628" font-size="11" fill="#444">        └── …</text>
+  <text x="617" y="648" font-size="11" fill="#2a2a2a" font-style="italic">    (sections added in next step)</text>
+  <text x="617" y="680" font-size="11" fill="#40916c">✓ 3 files will be created</text>
+
+  <!-- Bottom action bar -->
+  <rect x="0" y="728" width="1200" height="52" fill="#111" />
+  <rect x="0" y="728" width="1200" height="1" fill="#222"/>
+
+  <rect x="24" y="742" width="80" height="28" rx="4" fill="#1a1a1a" stroke="#333" stroke-width="1"/>
+  <text x="64" y="760" font-size="12" text-anchor="middle" fill="#666">← Cancel</text>
+
+  <rect x="1016" y="742" width="160" height="28" rx="4" fill="#131320" stroke="#3a3a7e" stroke-width="1"/>
+  <text x="1096" y="760" font-size="12" text-anchor="middle" fill="#8888cc">⬡ Setup with Agent</text>
+
+  <rect x="1088" y="742" width="0" height="0"/>
+  <rect x="1192" y="742" width="0" height="0"/>
+
+  <rect x="1100" y="742" width="76" height="28" rx="4" fill="#2d6a4f" stroke="#40916c" stroke-width="1"/>
+  <text x="1138" y="760" font-size="12" text-anchor="middle" fill="#d8f3dc">Create →</text>
+
+  <!-- Wireframe label -->
+  <text x="600" y="768" font-size="10" text-anchor="middle" fill="#333">WIREFRAME 03 — New Project Config (2a)</text>
+
+</svg>

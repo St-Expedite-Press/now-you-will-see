@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 780" font-family="'Courier New', monospace">
+
+  <rect width="1200" height="780" fill="#0f0f0f"/>
+
+  <!-- Top bar -->
+  <rect x="0" y="0" width="1200" height="56" fill="#111"/>
+  <text x="24" y="24" font-size="18" fill="#40916c">⬡</text>
+  <text x="48" y="24" font-size="16" font-weight="bold" fill="#e0e0e0">Texgraph</text>
+  <text x="48" y="40" font-size="10" fill="#555">Studio</text>
+
+  <!-- Workspace selector in top bar -->
+  <rect x="200" y="14" width="320" height="28" rx="4" fill="#1a1a1a" stroke="#2a2a2a" stroke-width="1"/>
+  <text x="212" y="32" font-size="11" fill="#666">⊞  C:\Users\rberr\Desktop\Texgraph</text>
+  <text x="506" y="32" font-size="11" fill="#444">▾</text>
+
+  <!-- User avatar -->
+  <rect x="1140" y="12" width="32" height="32" rx="16" fill="#2d6a4f" stroke="#40916c" stroke-width="1"/>
+  <text x="1156" y="33" font-size="13" font-weight="bold" text-anchor="middle" fill="#d8f3dc">R</text>
+
+  <!-- Page title row -->
+  <text x="40" y="92" font-size="11" fill="#555" letter-spacing="1">WORKSPACE</text>
+  <text x="40" y="114" font-size="13" fill="#888">C:\Users\rberr\Desktop\Texgraph  ·  2 projects</text>
+
+  <!-- Search bar -->
+  <rect x="40" y="130" width="340" height="32" rx="4" fill="#1a1a1a" stroke="#2a2a2a" stroke-width="1"/>
+  <text x="56" y="150" font-size="12" fill="#444">⌕  Search projects...</text>
+
+  <!-- Sort / filter -->
+  <rect x="396" y="130" width="110" height="32" rx="4" fill="#1a1a1a" stroke="#2a2a2a" stroke-width="1"/>
+  <text x="451" y="150" font-size="12" fill="#666" text-anchor="middle">Sort ▾</text>
+
+  <!-- Section heading -->
+  <text x="40" y="192" font-size="11" fill="#555" letter-spacing="1">PROJECTS  (2)</text>
+
+  <!-- ─────────────────────────────────── -->
+  <!-- PROJECT CARD 1 — lift-wind-love-heat -->
+  <!-- ─────────────────────────────────── -->
+  <rect x="40" y="204" width="600" height="172" rx="6" fill="#1a2a1a" stroke="#2d6a4f" stroke-width="1.5"/>
+  <!-- Left accent -->
+  <rect x="40" y="204" width="5" height="172" rx="3" fill="#40916c"/>
+  <!-- Cover thumbnail -->
+  <rect x="57" y="220" width="84" height="120" rx="4" fill="#0f2a0f" stroke="#2d6a4f" stroke-width="1"/>
+  <text x="99" y="268" font-size="9" text-anchor="middle" fill="#2d6a4f">COVER</text>
+  <text x="99" y="284" font-size="9" text-anchor="middle" fill="#2d6a4f">PREVIEW</text>
+  <!-- Info -->
+  <text x="158" y="244" font-size="15" font-weight="bold" fill="#e0e0e0">Lift Wind / Love Heat</text>
+  <text x="158" y="264" font-size="12" fill="#888">Eleanor Voss Hartley</text>
+  <text x="158" y="282" font-size="11" fill="#555">2025  ·  English</text>
+  <!-- Stats row -->
+  <text x="158" y="306" font-size="11" fill="#666">14 sections  ·  38 poems</text>
+  <!-- Build status badge -->
+  <rect x="158" y="316" width="66" height="18" rx="9" fill="#1a3a1a" stroke="#2d6a4f" stroke-width="1"/>
+  <text x="191" y="329" font-size="10" text-anchor="middle" fill="#4ade80">✓ Built</text>
+  <!-- Last built -->
+  <text x="234" y="329" font-size="10" fill="#444">2026-04-18 14:32</text>
+  <!-- Open button -->
+  <rect x="568" y="314" width="60" height="28" rx="4" fill="#2d6a4f" stroke="#40916c" stroke-width="1"/>
+  <text x="598" y="332" font-size="12" text-anchor="middle" fill="#d8f3dc">Open</text>
+
+  <!-- ─────────────────────────────────── -->
+  <!-- PROJECT CARD 2 — early-works -->
+  <!-- ─────────────────────────────────── -->
+  <rect x="40" y="394" width="600" height="172" rx="6" fill="#1e1e1e" stroke="#2a2a2a" stroke-width="1"/>
+  <rect x="40" y="394" width="5" height="172" rx="3" fill="#555"/>
+  <!-- Cover -->
+  <rect x="57" y="410" width="84" height="120" rx="4" fill="#1a1a1a" stroke="#333" stroke-width="1"/>
+  <text x="99" y="462" font-size="9" text-anchor="middle" fill="#333">COVER</text>
+  <!-- Info -->
+  <text x="158" y="434" font-size="15" font-weight="bold" fill="#ccc">Early Works: Fletcher I</text>
+  <text x="158" y="454" font-size="12" fill="#777">Fletcher Harmon (critical ed.)</text>
+  <text x="158" y="472" font-size="11" fill="#444">1922  ·  English</text>
+  <text x="158" y="496" font-size="11" fill="#555">6 sections  ·  24 poems</text>
+  <rect x="158" y="506" width="74" height="18" rx="9" fill="#2a1a0a" stroke="#7c4f1a" stroke-width="1"/>
+  <text x="195" y="519" font-size="10" text-anchor="middle" fill="#f59e0b">⊘ Not built</text>
+  <rect x="568" y="504" width="60" height="28" rx="4" fill="#1e1e1e" stroke="#444" stroke-width="1"/>
+  <text x="598" y="522" font-size="12" text-anchor="middle" fill="#888">Open</text>
+
+  <!-- ─────────────────────────────────── -->
+  <!-- NEW PROJECT CARD (right column)     -->
+  <!-- ─────────────────────────────────── -->
+  <rect x="664" y="204" width="496" height="362" rx="8" fill="#141414" stroke="#2a2a2a" stroke-width="1.5" stroke-dasharray="6,4"/>
+
+  <!-- + Icon -->
+  <text x="912" y="330" font-size="52" text-anchor="middle" fill="#2a2a2a">+</text>
+
+  <!-- Label -->
+  <text x="912" y="378" font-size="16" font-weight="bold" text-anchor="middle" fill="#444">New Project</text>
+  <text x="912" y="400" font-size="11" text-anchor="middle" fill="#383838">Start a new poetry collection</text>
+
+  <!-- Two sub-options -->
+  <rect x="700" y="424" width="210" height="40" rx="5" fill="#1a1a1a" stroke="#333" stroke-width="1"/>
+  <text x="805" y="449" font-size="12" text-anchor="middle" fill="#777">⊞ Configure manually</text>
+
+  <rect x="926" y="424" width="210" height="40" rx="5" fill="#1a1a2e" stroke="#3a3a6e" stroke-width="1"/>
+  <text x="1031" y="449" font-size="12" text-anchor="middle" fill="#8888cc">⬡ Set up with Agent</text>
+
+  <!-- Divider below projects -->
+  <rect x="40" y="586" width="1120" height="1" fill="#1e1e1e"/>
+
+  <!-- Import workspace option -->
+  <text x="40" y="614" font-size="11" fill="#555" letter-spacing="1">IMPORT</text>
+  <rect x="40" y="626" width="320" height="36" rx="4" fill="#161616" stroke="#2a2a2a" stroke-width="1"/>
+  <text x="56" y="649" font-size="12" fill="#555">⇓  Import existing project folder...</text>
+
+  <!-- Wireframe label -->
+  <text x="600" y="756" font-size="10" text-anchor="middle" fill="#333">WIREFRAME 02 — Project Selection</text>
+
+</svg>

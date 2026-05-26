@@ -1,0 +1,285 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 780" font-family="'Courier New', monospace">
+
+  <rect width="1200" height="780" fill="#0f0f0f"/>
+
+  <!-- ═══════════════════════════════════ -->
+  <!-- TOP BAR                            -->
+  <!-- ═══════════════════════════════════ -->
+  <rect x="0" y="0" width="1200" height="40" fill="#111"/>
+  <text x="16" y="25" font-size="14" fill="#40916c">⬡</text>
+  <text x="34" y="25" font-size="13" font-weight="bold" fill="#e0e0e0">Texgraph</text>
+  <text x="180" y="25" font-size="11" fill="#666">lift-wind-love-heat</text>
+
+  <!-- View toggle: Card Editor active -->
+  <rect x="700" y="7" width="270" height="27" rx="4" fill="#1a1a1a" stroke="#2a2a2a" stroke-width="1"/>
+  <rect x="701" y="8" width="88" height="25" rx="3" fill="#1a3a1a" stroke="#2d6a4f" stroke-width="1"/>
+  <text x="745" y="24" font-size="12" text-anchor="middle" fill="#4ade80">✏ Cards</text>
+  <text x="828" y="24" font-size="12" text-anchor="middle" fill="#555">⊞ Graph</text>
+  <text x="935" y="24" font-size="12" text-anchor="middle" fill="#555">▶ Build</text>
+
+  <!-- Agent + Settings -->
+  <rect x="988" y="8" width="80" height="25" rx="4" fill="#1a1a2a" stroke="#3a3a6e" stroke-width="1"/>
+  <text x="1028" y="24" font-size="12" text-anchor="middle" fill="#8888cc">⬡ Agent</text>
+  <rect x="1076" y="8" width="70" height="25" rx="4" fill="#1a1a1a" stroke="#2a2a2a" stroke-width="1"/>
+  <text x="1111" y="24" font-size="12" text-anchor="middle" fill="#555">⚙</text>
+
+  <!-- ═══════════════════════════════════ -->
+  <!-- LEFT PANEL — Card Browser (w=260)  -->
+  <!-- ═══════════════════════════════════ -->
+  <rect x="0" y="40" width="260" height="740" fill="#141414"/>
+
+  <!-- Browser header -->
+  <rect x="0" y="40" width="260" height="36" fill="#191919"/>
+  <text x="12" y="63" font-size="11" fill="#666" letter-spacing="1">CARDS</text>
+  <!-- Grid/list toggle -->
+  <rect x="186" y="48" width="22" height="22" rx="3" fill="#2a2a2a" stroke="#333"/>
+  <text x="197" y="63" font-size="11" text-anchor="middle" fill="#555">⊞</text>
+  <rect x="212" y="48" width="22" height="22" rx="3" fill="#1a3a1a" stroke="#2d6a4f"/>
+  <text x="223" y="63" font-size="11" text-anchor="middle" fill="#4ade80">≡</text>
+  <text x="240" y="63" font-size="14" fill="#444">⌕</text>
+
+  <!-- Search bar -->
+  <rect x="8" y="80" width="244" height="26" rx="4" fill="#1a1a1a" stroke="#252525" stroke-width="1"/>
+  <text x="18" y="97" font-size="11" fill="#333">Search cards...</text>
+
+  <!-- Collapsed section chips above active -->
+  <rect x="8" y="112" width="244" height="20" rx="3" fill="#161616"/>
+  <text x="16" y="126" font-size="11" fill="#444">▸  §I – VII  (collapsed)</text>
+
+  <!-- ─── §VIII section header ─── -->
+  <rect x="0" y="136" width="260" height="22" fill="#1a2a1a"/>
+  <text x="12" y="151" font-size="11" fill="#4ade80">▾  §VIII  ·  Laws, Money...</text>
+
+  <!-- Card 1: Mayday (ACTIVE) -->
+  <rect x="8" y="162" width="244" height="58" rx="4" fill="#0f2a0f" stroke="#2d6a4f" stroke-width="1.5"/>
+  <!-- Type badge -->
+  <rect x="16" y="169" width="32" height="13" rx="2" fill="#1e3a1e"/>
+  <text x="32" y="179" font-size="9" text-anchor="middle" fill="#4ade80">poem</text>
+  <!-- Version dots (3 versions) -->
+  <text x="56" y="179" font-size="10" fill="#40916c">●●●</text>
+  <!-- Order badge (right) -->
+  <text x="244" y="179" font-size="11" text-anchor="end" fill="#2d6a4f">1</text>
+  <!-- Title -->
+  <text x="16" y="196" font-size="12" font-weight="bold" fill="#d4d4d4">Mayday</text>
+  <!-- Line count -->
+  <text x="16" y="212" font-size="10" fill="#555">34 lines  ·  v3 ★</text>
+
+  <!-- Card 2: Instructions (inactive) -->
+  <rect x="8" y="226" width="244" height="58" rx="4" fill="#181818" stroke="#222" stroke-width="1"/>
+  <rect x="16" y="233" width="32" height="13" rx="2" fill="#1e1e1e"/>
+  <text x="32" y="243" font-size="9" text-anchor="middle" fill="#555">poem</text>
+  <text x="56" y="243" font-size="10" fill="#333">●</text>
+  <text x="244" y="243" font-size="11" text-anchor="end" fill="#333">2</text>
+  <text x="16" y="260" font-size="12" fill="#888">Instructions for...</text>
+  <text x="16" y="276" font-size="10" fill="#444">28 lines</text>
+
+  <!-- Card 3: breeze-palm -->
+  <rect x="8" y="290" width="244" height="58" rx="4" fill="#181818" stroke="#222" stroke-width="1"/>
+  <rect x="16" y="297" width="32" height="13" rx="2" fill="#1e1e1e"/>
+  <text x="32" y="307" font-size="9" text-anchor="middle" fill="#555">prose</text>
+  <text x="56" y="307" font-size="10" fill="#333">●●</text>
+  <text x="244" y="307" font-size="11" text-anchor="end" fill="#333">3</text>
+  <text x="16" y="324" font-size="12" fill="#888">Breeze / Palm</text>
+  <text x="16" y="340" font-size="10" fill="#444">19 lines</text>
+
+  <!-- Card 4: bones-in-her-mouth (WARNING state) -->
+  <rect x="8" y="354" width="244" height="58" rx="4" fill="#1e1a0a" stroke="#7c4f1a" stroke-width="1"/>
+  <rect x="16" y="361" width="32" height="13" rx="2" fill="#2a1e0a"/>
+  <text x="32" y="371" font-size="9" text-anchor="middle" fill="#f59e0b">poem</text>
+  <text x="56" y="371" font-size="10" fill="#7c4f1a">●●</text>
+  <text x="234" y="371" font-size="10" fill="#f59e0b">⚠</text>
+  <text x="244" y="371" font-size="11" text-anchor="end" fill="#555">4</text>
+  <text x="16" y="388" font-size="12" fill="#c8a84a">There Are Bones...</text>
+  <text x="16" y="404" font-size="10" fill="#7c4f1a">No canonical set</text>
+
+  <!-- Card 5: sonnetish -->
+  <rect x="8" y="418" width="244" height="58" rx="4" fill="#181818" stroke="#222" stroke-width="1"/>
+  <rect x="16" y="425" width="50" height="13" rx="2" fill="#1e1e1e"/>
+  <text x="41" y="435" font-size="9" text-anchor="middle" fill="#555">cycle</text>
+  <text x="244" y="435" font-size="11" text-anchor="end" fill="#333">5</text>
+  <text x="16" y="452" font-size="12" fill="#888">Sonnet(ish)</text>
+  <text x="16" y="468" font-size="10" fill="#444">42 lines  ·  5 parts</text>
+
+  <!-- Collapsed sections below -->
+  <rect x="0" y="486" width="260" height="1" fill="#222"/>
+  <rect x="8" y="492" width="244" height="20" rx="3" fill="#161616"/>
+  <text x="16" y="506" font-size="11" fill="#444">▸  §IX – XIV  (collapsed)</text>
+
+  <!-- New card button -->
+  <rect x="8" y="740" width="244" height="28" rx="4" fill="#1a3a1a" stroke="#2d6a4f" stroke-width="1"/>
+  <text x="130" y="758" font-size="12" text-anchor="middle" fill="#4ade80">+ New Card in Section</text>
+
+  <!-- Panel divider -->
+  <rect x="260" y="40" width="1" height="740" fill="#222"/>
+
+  <!-- ═══════════════════════════════════ -->
+  <!-- CENTER — Open Card (x=261, w=659)  -->
+  <!-- ═══════════════════════════════════ -->
+  <rect x="261" y="40" width="659" height="740" fill="#181818"/>
+
+  <!-- Editor tab bar -->
+  <rect x="261" y="40" width="659" height="32" fill="#141414"/>
+  <!-- Active tab -->
+  <rect x="261" y="40" width="148" height="32" fill="#181818" stroke-bottom="#1e1e1e"/>
+  <text x="275" y="60" font-size="12" fill="#e0e0e0">● mayday.md</text>
+  <text x="396" y="60" font-size="12" fill="#444">×</text>
+  <!-- Inactive tab -->
+  <text x="412" y="60" font-size="12" fill="#555">breeze-palm.md</text>
+  <text x="554" y="60" font-size="12" fill="#333">×</text>
+
+  <!-- ─── CARD FRAME ─── -->
+  <!-- Shadow -->
+  <rect x="276" y="82" width="636" height="668" rx="6" fill="#0a0a0a"/>
+  <!-- Card border — §VIII green accent -->
+  <rect x="273" y="79" width="636" height="668" rx="6" fill="#1e1e1e" stroke="#2d6a4f" stroke-width="1.5"/>
+
+  <!-- Card header strip -->
+  <rect x="273" y="79" width="636" height="42" rx="5" fill="#1a2a1a"/>
+  <!-- Round bottom corners of header -->
+  <rect x="273" y="101" width="636" height="20" fill="#1a2a1a"/>
+  <!-- Breadcrumb -->
+  <text x="289" y="100" font-size="11" fill="#555">§VIII  ›</text>
+  <text x="328" y="100" font-size="11" fill="#888">Laws, Money, Women, Land  ›</text>
+  <!-- Title in header -->
+  <text x="289" y="116" font-size="14" font-weight="bold" fill="#e0e0e0">Mayday</text>
+  <!-- Type badge -->
+  <rect x="364" y="107" width="40" height="15" rx="3" fill="#1e3a1e" stroke="#2d6a4f"/>
+  <text x="384" y="118" font-size="10" text-anchor="middle" fill="#4ade80">poem</text>
+  <!-- Version indicator -->
+  <rect x="414" y="107" width="48" height="15" rx="3" fill="#1a3a1a" stroke="#40916c"/>
+  <text x="438" y="118" font-size="10" text-anchor="middle" fill="#4ade80">v3  ★</text>
+  <!-- Menu -->
+  <text x="888" y="117" font-size="13" fill="#444">···</text>
+
+  <!-- ─── Frontmatter zone ─── -->
+  <rect x="273" y="121" width="636" height="108" fill="#191f19"/>
+  <rect x="273" y="121" width="4" height="108" fill="#2d6a4f"/>
+
+  <text x="289" y="141" font-size="11" fill="#555">1</text>
+  <text x="307" y="141" font-size="11" fill="#608b6a">---</text>
+  <text x="289" y="157" font-size="11" fill="#555">2</text>
+  <text x="307" y="157" font-size="11" fill="#9cdcfe">title</text>
+  <text x="331" y="157" font-size="11" fill="#888">:</text>
+  <text x="343" y="157" font-size="11" fill="#ce9178">"Mayday"</text>
+  <text x="289" y="173" font-size="11" fill="#555">3</text>
+  <text x="307" y="173" font-size="11" fill="#9cdcfe">type</text>
+  <text x="331" y="173" font-size="11" fill="#888">:</text>
+  <text x="343" y="173" font-size="11" fill="#d4d4d4">poem</text>
+  <text x="289" y="189" font-size="11" fill="#555">4</text>
+  <text x="307" y="189" font-size="11" fill="#9cdcfe">order</text>
+  <text x="331" y="189" font-size="11" fill="#888">:</text>
+  <text x="343" y="189" font-size="11" fill="#b5cea8">1</text>
+  <text x="289" y="205" font-size="11" fill="#555">5</text>
+  <text x="307" y="205" font-size="11" fill="#555">epigraph</text>
+  <text x="367" y="205" font-size="11" fill="#888">:</text>
+  <text x="379" y="205" font-size="11" fill="#3e3e3e" font-style="italic">(empty)</text>
+  <text x="289" y="221" font-size="11" fill="#555">6</text>
+  <text x="307" y="221" font-size="11" fill="#608b6a">---</text>
+
+  <!-- Body zone -->
+  <rect x="273" y="229" width="636" height="488" fill="#1e1e1e"/>
+
+  <text x="289" y="255" font-size="11" fill="#555">7</text>
+  <text x="289" y="273" font-size="11" fill="#555">8</text>
+  <text x="307" y="273" font-size="11" fill="#d4d4d4">The girl at the crossing won't let me pass—</text>
+  <text x="289" y="289" font-size="11" fill="#555">9</text>
+  <text x="307" y="289" font-size="11" fill="#d4d4d4">her hem red-dipped in the ditch's bleed.</text>
+  <text x="289" y="305" font-size="11" fill="#555">10</text>
+  <text x="289" y="321" font-size="11" fill="#555">11</text>
+  <text x="307" y="321" font-size="11" fill="#d4d4d4">*Mayday, mayday—* who set this fire?</text>
+  <text x="289" y="337" font-size="11" fill="#555">12</text>
+  <text x="307" y="337" font-size="11" fill="#d4d4d4">The engine red, the crossing wrong,</text>
+  <text x="289" y="353" font-size="11" fill="#555">13</text>
+  <text x="289" y="369" font-size="11" fill="#555">14</text>
+  <text x="307" y="369" font-size="11" fill="#d4d4d4">I said no. I said: not here, not now.</text>
+  <text x="289" y="385" font-size="11" fill="#555">15</text>
+  <text x="307" y="385" font-size="11" fill="#d4d4d4">She laughed like a screen door catches wind.</text>
+
+  <!-- Cursor -->
+  <rect x="306" y="388" width="2" height="13" fill="#ccc" opacity="0.8"/>
+
+  <!-- Card footer strip -->
+  <rect x="273" y="671" width="636" height="76" rx="0" fill="#161616"/>
+  <rect x="273" y="671" width="636" height="1" fill="#222"/>
+  <text x="289" y="691" font-size="10" fill="#444">34 lines  ·  892 chars  ·  UTF-8</text>
+  <text x="289" y="707" font-size="10" fill="#2d6a4f">✓ Saved  14:32:16</text>
+  <text x="780" y="691" font-size="10" fill="#444" text-anchor="end">Ln 15, Col 1</text>
+  <!-- Open in graph link -->
+  <rect x="790" y="682" width="106" height="18" rx="3" fill="#1a2a1a" stroke="#2d6a4f"/>
+  <text x="843" y="694" font-size="10" text-anchor="middle" fill="#4ade80">⊞ Open in Graph</text>
+
+  <!-- Panel divider -->
+  <rect x="920" y="40" width="1" height="740" fill="#222"/>
+
+  <!-- ═══════════════════════════════════ -->
+  <!-- RIGHT PANEL — Metadata (x=921)     -->
+  <!-- ═══════════════════════════════════ -->
+  <rect x="921" y="40" width="279" height="740" fill="#131313"/>
+
+  <!-- Header -->
+  <rect x="921" y="40" width="279" height="32" fill="#191919"/>
+  <text x="933" y="60" font-size="11" fill="#666" letter-spacing="1">METADATA</text>
+  <text x="1180" y="60" font-size="11" fill="#444" text-anchor="end">···</text>
+
+  <!-- Metadata inspector key-value pairs -->
+  <text x="933" y="90" font-size="10" fill="#555" letter-spacing="1">FRONTMATTER</text>
+
+  <!-- title -->
+  <text x="933" y="112" font-size="11" fill="#666">title</text>
+  <rect x="933" y="118" width="255" height="26" rx="3" fill="#1e1e1e" stroke="#2a2a2a"/>
+  <text x="941" y="135" font-size="12" fill="#d4d4d4">Mayday</text>
+
+  <!-- type -->
+  <text x="933" y="158" font-size="11" fill="#666">type</text>
+  <rect x="933" y="164" width="255" height="26" rx="3" fill="#1e1e1e" stroke="#2a2a2a"/>
+  <text x="941" y="181" font-size="12" fill="#d4d4d4">poem</text>
+  <text x="1178" y="181" font-size="11" fill="#555" text-anchor="end">▾</text>
+
+  <!-- order -->
+  <text x="933" y="204" font-size="11" fill="#666">order</text>
+  <rect x="933" y="210" width="80" height="26" rx="3" fill="#1e1e1e" stroke="#2a2a2a"/>
+  <text x="941" y="227" font-size="12" fill="#d4d4d4">1</text>
+
+  <!-- subtitle, epigraph (empty/optional) -->
+  <text x="933" y="250" font-size="11" fill="#666">subtitle</text>
+  <rect x="933" y="256" width="255" height="24" rx="3" fill="#1a1a1a" stroke="#222" stroke-dasharray="3,2"/>
+  <text x="941" y="272" font-size="11" fill="#333" font-style="italic">optional...</text>
+
+  <text x="933" y="294" font-size="11" fill="#666">epigraph</text>
+  <rect x="933" y="300" width="255" height="40" rx="3" fill="#1a1a1a" stroke="#222" stroke-dasharray="3,2"/>
+  <text x="941" y="322" font-size="11" fill="#333" font-style="italic">optional...</text>
+
+  <!-- Divider -->
+  <rect x="933" y="354" width="255" height="1" fill="#222"/>
+  <text x="933" y="372" font-size="10" fill="#555" letter-spacing="1">VERSIONS</text>
+
+  <!-- Version list -->
+  <rect x="933" y="378" width="255" height="20" rx="3" fill="#1a1a1a" stroke="#333"/>
+  <text x="941" y="392" font-size="11" fill="#888">v1  Draft  (32 ln)  2025-03-10</text>
+  <rect x="933" y="402" width="255" height="20" rx="3" fill="#1a1a1a" stroke="#333"/>
+  <text x="941" y="416" font-size="11" fill="#888">v2  Revised  (36 ln)  2025-03-22</text>
+  <rect x="933" y="426" width="255" height="20" rx="3" fill="#1a3a1a" stroke="#2d6a4f"/>
+  <text x="941" y="440" font-size="11" fill="#4ade80">v3  Current  (34 ln)  ★ CANON</text>
+
+  <!-- Add version -->
+  <rect x="933" y="452" width="255" height="22" rx="3" fill="#161616" stroke="#222" stroke-dasharray="3,2"/>
+  <text x="1060" y="466" font-size="11" text-anchor="middle" fill="#444">+ Add version</text>
+
+  <!-- Divider -->
+  <rect x="933" y="484" width="255" height="1" fill="#222"/>
+  <text x="933" y="502" font-size="10" fill="#555" letter-spacing="1">SECTION</text>
+  <text x="933" y="520" font-size="11" fill="#666">§VIII  ·  Laws, Money, Women, Land</text>
+  <text x="933" y="536" font-size="11" fill="#444">order 11  ·  5 poems  ·  1 warning</text>
+
+  <!-- Quick actions -->
+  <rect x="933" y="554" width="255" height="1" fill="#222"/>
+  <text x="933" y="572" font-size="10" fill="#555" letter-spacing="1">QUICK ACTIONS</text>
+  <rect x="933" y="580" width="120" height="26" rx="3" fill="#1a1a1a" stroke="#2a2a2a"/>
+  <text x="993" y="597" font-size="11" text-anchor="middle" fill="#777">⊞ Open in Graph</text>
+  <rect x="1063" y="580" width="125" height="26" rx="3" fill="#1a3a1a" stroke="#2d6a4f"/>
+  <text x="1125" y="597" font-size="11" text-anchor="middle" fill="#4ade80">▷ Render poem</text>
+
+  <!-- Wireframe label -->
+  <text x="600" y="756" font-size="10" text-anchor="middle" fill="#333">WIREFRAME 04 — Card Editor (Obsidian base)</text>
+
+</svg>

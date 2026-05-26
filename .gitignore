@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+node_modules/
+*.tsbuildinfo
+
+# Local project data — tracked example excepted
+projects/*
+!projects/spectra_poems/
+workspace.yaml
+
+# LaTeX artifacts
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+output/**/*
+machinery/studio/backend/static/
+machinery/studio/frontend/dist/
+
+# Environment - local overrides only; .env.texgraph is tracked
+.env
+.env.local
+.env.*.local
+.env.texgraph.local
+machinery/studio/backend/.env.studio
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local tooling state
+.claude/
+logs/
+=2.2.0

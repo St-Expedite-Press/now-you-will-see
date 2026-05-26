@@ -1,0 +1,8 @@
+projects:
+  - id: spectra_poems
+    path: projects/spectra_poems/typeset
+    description: "Example project: Iberian Dreams (tracked, buildable)"
+  - id: my-collection
+    path: projects/my-collection/typeset
+    description: "Local project workspace; copy this file to workspace.yaml and register your project here"
+default_project: spectra_poems

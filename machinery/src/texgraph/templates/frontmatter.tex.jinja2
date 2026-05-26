@@ -1,0 +1,146 @@
+\frontmatter
+\pagestyle{empty}
+\pagenumbering{roman}
+
+{% for page in frontmatter.pages %}
+
+{# ------------------------------------------------------------------ #}
+{# HALF-TITLE                                                           #}
+{# ------------------------------------------------------------------ #}
+{% if page.type == "halftitle" %}
+\clearpage
+\thispagestyle{empty}
+\vspace*{\fill}
+\begin{center}
+  {\normalfont\Large\itshape {{ page.content.title }}}
+\end{center}
+\vspace*{\fill}
+\clearpage
+
+{# ------------------------------------------------------------------ #}
+{# TITLE PAGE                                                           #}
+{# ------------------------------------------------------------------ #}
+{% elif page.type == "titlepage" %}
+\clearpage
+\thispagestyle{empty}
+\vspace*{2in}
+\begin{center}
+  {\normalfont\Huge\itshape {{ page.content.title }}}\\[2ex]
+  {% if page.content.subtitle %}
+  {\normalfont\large {{ page.content.subtitle }}}\\[3ex]
+  {% endif %}
+  \vspace{1in}
+  {\normalfont\large {{ page.content.author }}}
+  {% if page.content.publisher %}
+  \\[4ex]
+  \vfill
+  {\normalfont\small {{ page.content.publisher }}%
+  {% if page.content.location %}\quad\textperiodcentered\quad {{ page.content.location }}{% endif %}}
+  {% endif %}
+\end{center}
+\clearpage
+
+{# ------------------------------------------------------------------ #}
+{# COPYRIGHT                                                            #}
+{# ------------------------------------------------------------------ #}
+{% elif page.type == "copyright" %}
+\clearpage
+\thispagestyle{empty}
+\vspace*{\fill}
+\begin{flushleft}
+  \small\setlength{\parskip}{0.5\baselineskip}\setlength{\parindent}{0pt}
+  {% if page.content.notice %}
+  {{ page.content.notice }}
+  {% else %}
+  Copyright \copyright\ {{ page.content.year }} {{ page.content.author }}.
+  All rights reserved. No part of this publication may be reproduced or
+  transmitted in any form without prior written permission from the publisher.
+  {% endif %}
+  {% if page.content.isbn %}
+
+  \medskip
+  ISBN: {{ page.content.isbn }}
+  {% endif %}
+  {% if page.content.publisher %}
+
+  Published by {{ page.content.publisher }}%
+  {% if page.content.location %}, {{ page.content.location }}{% endif %}.
+  {% endif %}
+  {% if page.content.edition %}
+
+  {{ page.content.edition }}
+  {% endif %}
+  {% if page.content.credits %}
+
+  {{ page.content.credits }}
+  {% endif %}
+\end{flushleft}
+\clearpage
+
+{# ------------------------------------------------------------------ #}
+{# DEDICATION                                                           #}
+{# ------------------------------------------------------------------ #}
+{% elif page.type == "dedication" %}
+\clearpage
+\thispagestyle{empty}
+\vspace*{\fill}
+\begin{center}
+  \itshape
+  {{ page.content.text }}
+\end{center}
+\vspace*{\fill}
+\clearpage
+
+{# ------------------------------------------------------------------ #}
+{# EPIGRAPH (front-matter standalone page)                              #}
+{# ------------------------------------------------------------------ #}
+{% elif page.type == "epigraph" %}
+\clearpage
+\thispagestyle{empty}
+\vspace*{\fill}
+\begin{center}
+  \begin{minipage}{0.6\textwidth}
+    \setlength{\parindent}{0pt}
+    \itshape
+    {{ page.content.text }}
+    {% if page.content.author %}
+    \par\vspace{\baselineskip}
+    \normalfont\upshape\small\hfill ---\,{{ page.content.author }}
+    {% endif %}
+    {% if page.content.source %}
+    \par\normalfont\upshape\footnotesize\hfill \textit{{ "{" }}{{ page.content.source }}{{ "}" }}
+    {% endif %}
+  \end{minipage}
+\end{center}
+\vspace*{\fill}
+\clearpage
+
+{# ------------------------------------------------------------------ #}
+{# TABLE OF CONTENTS                                                    #}
+{# ------------------------------------------------------------------ #}
+{% elif page.type == "toc" %}
+\clearpage
+\pagestyle{plain}
+\tableofcontents
+\clearpage
+\pagestyle{empty}
+
+{# ------------------------------------------------------------------ #}
+{# PREFACE / FOREWORD / INTRODUCTION (plain prose front matter)        #}
+{# ------------------------------------------------------------------ #}
+{% elif page.type in ["preface", "foreword", "introduction"] %}
+\clearpage
+\pagestyle{plain}
+{% if page.content.title %}
+\chapter*{{ "{" }}{{ page.content.title }}{{ "}" }}
+\addcontentsline{toc}{chapter}{{ "{" }}{{ page.content.title }}{{ "}" }}
+{% else %}
+\chapter*{{ "{" }}{{ page.type | capitalize }}{{ "}" }}
+\addcontentsline{toc}{chapter}{{ "{" }}{{ page.type | capitalize }}{{ "}" }}
+{% endif %}
+{{ page.content.body }}
+\clearpage
+\pagestyle{empty}
+
+{% endif %}
+{% endfor %}

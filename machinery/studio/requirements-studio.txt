@@ -1,0 +1,30 @@
+# Texgraph Studio — FastAPI backend dependencies
+# Install alongside the main texgraph package:
+#   source .venv/Scripts/activate   (Windows)
+#   pip install -e .
+#   pip install -r requirements-studio.txt
+
+# Web framework
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0
+
+# Data validation
+pydantic>=2.6.0
+pydantic-settings>=2.2.0
+
+# File I/O
+aiofiles>=23.2.1
+python-multipart>=0.0.9
+
+# File watching (watch mode / auto-rebuild)
+watchfiles>=0.21.0
+
+# YAML + frontmatter (already in core, pinned here for studio compat)
+python-frontmatter>=1.1.0
+pyyaml>=6.0.1
+
+# Agent integration (direct Anthropic API for agent_service.py)
+anthropic>=0.28.0
+
+# Templating (already in core texgraph, pinned for studio)
+jinja2>=3.1.3

@@ -1,0 +1,46 @@
+title: "Iberian Dreams"
+subtitle: "Three Poems"
+author: "R. Berry"
+year: 2026
+publisher: "Spectra Editions"
+isbn: ""
+language: en
+content_dir: content
+output_dir: output
+lualatex_path: lualatex
+draft_mode: false
+
+render_config:
+  fontsize: 11pt
+  mainfont: EB Garamond
+  paperwidth: 5.5in
+  paperheight: 8.5in
+  top_margin: 1in
+  bottom_margin: 1in
+  inner_margin: 1in
+  outer_margin: 0.75in
+  line_spread: 1.1
+  stanza_skip: 1.2ex
+
+# Format variant examples — change render_config values to target each:
+#
+# A5 European edition:
+#   paperwidth: 148mm
+#   paperheight: 210mm
+#   inner_margin: 22mm
+#   outer_margin: 18mm
+#
+# Square chapbook:
+#   paperwidth: 5.5in
+#   paperheight: 5.5in
+#   top_margin: 0.75in
+#   bottom_margin: 0.75in
+#
+# 6" e-reader PDF (fixed-layout proof):
+#   paperwidth: 90mm
+#   paperheight: 117mm
+#   fontsize: 9pt
+#   top_margin: 6mm
+#   bottom_margin: 6mm
+#   inner_margin: 6mm
+#   outer_margin: 6mm
