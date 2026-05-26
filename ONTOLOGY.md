@@ -22,6 +22,65 @@
 
 ---
 
+## Job Classification
+
+Every request has a job type before it has a stage. Classify first, then route.
+
+### Classification tree
+
+```
+Job
+├── pipeline/                   ← artifact-producing, gate-gated
+│   ├── ingest                  → PROMOTION.yaml + ingest/raw/
+│   ├── transcribe              → PROMOTION.yaml + transcription files
+│   ├── proof                   → PROMOTION.yaml + corrections
+│   ├── typeset                 → PROMOTION.yaml + interior PDF
+│   ├── covers                  → cover files
+│   ├── front-end               → publication files
+│   └── final                   → release package
+└── non-pipeline/               ← no gate, lighter or no artifact
+    ├── conversation            → no artifact (answer, decision, or plan)
+    ├── research                → research note (candidate sources, rights) → feeds ingest
+    └── tooling                 → code/doc change (routes to machinery/)
+```
+
+### Artifact contracts
+
+| Node | Output artifact | Written to | Downstream consumer |
+|---|---|---|---|
+| `pipeline/ingest` | PROMOTION.yaml + ingest/raw/ | `projects/<id>/ingest/` | transcribe |
+| `pipeline/transcribe` | PROMOTION.yaml + transcription files | `projects/<id>/transcribe/` | proof |
+| `pipeline/proof` | PROMOTION.yaml + correction notes | `projects/<id>/proof/` | typeset / final |
+| `pipeline/typeset` | PROMOTION.yaml + interior PDF | `projects/<id>/typeset/` | covers / front-end |
+| `pipeline/covers` | Cover files | `projects/<id>/covers/` | final |
+| `pipeline/front-end` | Publication files | `projects/<id>/front-end/` | final |
+| `pipeline/final` | Release package | `projects/<id>/final/` | — |
+| `research` | `<topic>.research.md` note (optional) | `projects/<id>/ingest/` | pipeline/ingest |
+| `conversation` | None | — | — |
+| `tooling` | Code or doc change | `machinery/` or repo root | — |
+
+### Composite paths
+
+| Path | When | Transition trigger |
+|---|---|---|
+| `pipeline/<stage>` | All inputs known — rote execution | — |
+| `conversation → pipeline/<stage>` | Required inputs missing or ambiguous | User provides missing input |
+| `research → pipeline/ingest` | Source not yet identified | User approves candidate |
+| `research → conversation` | Research raises an unanswerable question | Question surfaced to user |
+| `conversation` | Planning, scoping, feedback — no execution | — |
+| `tooling` | Framework change only | User approves scope |
+| `tooling → pipeline/<stage>` | Fix a tool, then use it in the same session | Tool change complete + user confirms |
+
+### Rote vs. conversation-required
+
+A pipeline task is **rote** when all required inputs are present (project ID, stage, content type, scope). Execute immediately.
+
+A pipeline task **requires conversation** when inputs are missing or a decision must be made before execution. Ask first, collect inputs, then re-classify and execute.
+
+This is a property of the task instance, not the job type. For the full classifier decision tree, see `machinery/skills/task-classifier/SKILL.md`.
+
+---
+
 ## Directory Taxonomy
 
 ### Root-level files

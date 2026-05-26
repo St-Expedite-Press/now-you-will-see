@@ -7,9 +7,12 @@ directory taxonomy, and data schemas, read `ONTOLOGY.md`.
 
 ## Starting a Task
 
-1. Read root `AGENTS.md` — routing table, DAG, update loops.
-2. Classify the request against the routing table.
-3. Read the relevant stage `AGENTS.md`.
+1. Read root `AGENTS.md` — classification tree, routing tables, DAG, update loops.
+2. Classify the job type: `pipeline`, `research`, `conversation`, or `tooling`.
+   If composite, declare the full path before starting.
+3. If pipeline: route to the stage using the pipeline routing table and read the
+   stage `AGENTS.md`. If non-pipeline: follow the non-pipeline routing table in
+   root `AGENTS.md`. If ambiguous: load `machinery/skills/task-classifier/SKILL.md`.
 4. Load only the skill files needed for the specific task.
 5. Identify what user input is required before stage completion.
 6. Write only to `projects/<project_id>/<stage>/` unless the user approves

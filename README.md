@@ -280,6 +280,7 @@ flowchart LR
         S15[repo-maintenance]
         S16[tooling]
         S17[skill-improvement-loop]
+        S18[task-classifier]
     end
 
     style ingest fill:#1a3a1a,stroke:#4a7a4a,color:#ccc
