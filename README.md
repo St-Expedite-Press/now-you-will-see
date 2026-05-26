@@ -237,9 +237,9 @@ on-demand skills — each scoped to what it needs to know:
 directory shape, file schemas, command surface, invariants. It is not read on
 every request, only when the task requires structural navigation.
 
-**Root `AGENTS.md`** is the dispatcher. It receives the request, classifies it
-against the routing table, and routes to the correct stage. It does not execute
-stage work.
+**Root `AGENTS.md`** is the dispatcher. It classifies the request by job type
+first, resolves composite paths, then routes to the correct stage. It does not
+execute stage work.
 
 **Stage `AGENTS.md`** files are lean contracts (~40–60 lines each). Each stage
 knows its inputs, its outputs, its user gate, which skills to load, and which
@@ -249,6 +249,33 @@ commands to use. They do not repeat what is in ONTOLOGY.md.
 the task matches. A verse proof task loads `proof/skills/poetry-proof/SKILL.md`;
 a prose proof task loads `proof/skills/prose-proof/SKILL.md`. Skills encode
 judgment for reuse without bloating every request's context.
+
+### Job Classification
+
+Every request is classified before it is routed. The dispatcher recognizes four
+job types:
+
+| Job type | Signals | Produces |
+|---|---|---|
+| `pipeline/<stage>` | Changes or produces an artifact under `projects/<id>/` | Stage output + PROMOTION.yaml |
+| `research` | Finding or evaluating sources — not yet committing them | Research note (optional) |
+| `conversation` | Question, planning discussion, feedback — no artifact target | Answer or decision |
+| `tooling` | Change to CLI, infrastructure, docs, or skills | Code or doc change |
+
+Tasks can be **composite** — a single request can require more than one job type
+in sequence:
+
+| Path | Example |
+|---|---|
+| `pipeline/<stage>` | "Transcribe volume 1" — all inputs known, execute directly |
+| `conversation → pipeline` | "I want to ingest a file" — clarify inputs, then execute |
+| `research → pipeline/ingest` | "Find a public domain edition of X and add it" |
+| `tooling → pipeline` | "Fix the verify command and run it on this project" |
+| `conversation` | "How should I handle uncertain readings?" — answer only, no execution |
+
+The `task-classifier` skill in `machinery/skills/` provides a decision tree for
+ambiguous cases. See `ONTOLOGY.md § Job Classification` for the full taxonomy and
+artifact contracts.
 
 ### Skill Map
 
@@ -353,10 +380,11 @@ the content model does not.
 **`final/`** — Release packaging. Receives only user-approved artifacts from
 upstream. AGENTS.md contract in place.
 
-**`machinery/`** — Cross-stage infrastructure. Four skills: `technical-docs`
-(ONTOLOGY.md protocol, doc conventions), `repo-maintenance`, `tooling`, and
-`skill-improvement-loop`. Contains the full CLI (1,101 lines), Studio FastAPI
-backend, React frontend, and shared infrastructure.
+**`machinery/`** — Cross-stage infrastructure. Five skills: `technical-docs`
+(ONTOLOGY.md protocol, doc conventions), `repo-maintenance`, `tooling`,
+`skill-improvement-loop`, and `task-classifier` (job type decision tree for
+ambiguous requests). Contains the full CLI, Studio FastAPI backend, React
+frontend, and shared infrastructure.
 
 ### Current Workflow Gaps
 
@@ -659,6 +687,8 @@ entrypoints; prefer `texgraph` in new scripts.
 **Built and functional:**
 - Complete CLI: `texgraph build`, `watch`, `list`, `new poem`, `studio`, plus
   full editorial suite (`pdf`, `archive`, `audit`, `metadata`, `page-map`, `plan`, `scan`)
+- Job classification layer: pipeline / research / conversation / tooling with composite path routing
+- `task-classifier` skill: decision tree for ambiguous job types
 - Pipeline gate commands: `texgraph verify <stage>` and `texgraph ingest rename`
 - `promotions.py`: PROMOTION.yaml I/O and per-stage precondition checkers
 - `fletcher` compatibility alias pointing to the same CLI
