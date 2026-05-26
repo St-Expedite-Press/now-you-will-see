@@ -29,18 +29,18 @@ User gate:
 
 ## Local Skills
 
-- `skills/poem-transcription/SKILL.md`
-- `skills/source-matter/SKILL.md`
-- `skills/volume-planning/SKILL.md`
-- `skills/project-planning/SKILL.md`
+- `skills/poem-transcription/SKILL.md` — verse transcription from scan
+- `skills/prose-transcription/SKILL.md` — prose/paratext transcription from scan
+- `skills/source-matter/SKILL.md` — front and back matter, dedicatory material
+- `skills/volume-planning/SKILL.md` — volume structure and checklist scaffolding
+- `skills/project-planning/SKILL.md` — multi-volume project planning
 
 ## Tools
 
-- `tools/create_fletcher_subprojects.py`
-- `fletcher metadata projects/<project_id>/transcribe/volumes --write --check`
-- `fletcher scan projects/<project_id>/transcribe/volumes --output projects/<project_id>/transcribe/metadata/source_matter_inventory.md`
-- `fletcher plan projects/<project_id>/transcribe/project_plan/PROJECT_PLAN.md --check`
-- `fletcher page-map --offset <n> --printed "<ranges>"`
+- `texgraph metadata projects/<project_id>/transcribe/volumes --write --check`
+- `texgraph scan projects/<project_id>/transcribe/volumes --output projects/<project_id>/transcribe/metadata/source_matter_inventory.md`
+- `texgraph plan projects/<project_id>/transcribe/project_plan/PROJECT_PLAN.md --check`
+- `texgraph page-map --offset <n> --printed "<ranges>"`
 
 Transcription files belong under `projects/<project_id>/transcribe/`, which is
 local-only and ignored by Git.

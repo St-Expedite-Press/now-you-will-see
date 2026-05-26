@@ -1,6 +1,6 @@
-﻿---
+---
 name: transcription-verification
-description: Audit completed transcription work in the Fletcher scanned poetry repo. Use when checking poem/source-matter statuses, source-page spans, forbidden markup, poem counts, checklist completion, book.json consistency, temporary render cleanup, and readiness for checked or final status.
+description: Audit completed transcription work across a project. Use when checking poem/source-matter statuses, source-page spans, forbidden markup, poem counts, checklist completion, book.json consistency, temporary render cleanup, and readiness for checked or final status.
 ---
 
 # Transcription Verification
@@ -22,13 +22,13 @@ Run focused checks for:
 Use the deterministic audit helper first:
 
 ```powershell
-fletcher audit volumes\<volume>\books\<book>
+.\.venv\Scripts\texgraph.exe audit projects/<project_id>/transcribe/<volume>/books/<book>
 ```
 
 Then validate book metadata when structure or source matter changed:
 
 ```powershell
-fletcher metadata volumes --check
+.\.venv\Scripts\texgraph.exe metadata projects/<project_id>/transcribe/volumes --check
 ```
 
 ## Status Rules
@@ -42,5 +42,6 @@ counts. Verify it through `book.json` counts and direct file review.
 
 ## Cleanup
 
-Before deleting temporary renders, resolve paths under the current workspace and
-delete only the intended temporary files.
+Before deleting temporary renders, resolve paths under the current workspace
+and delete only the intended temporary files. Confirm with the user before
+bulk deletion.

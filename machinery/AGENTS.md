@@ -29,9 +29,10 @@ User gate:
 
 ## Local Skills
 
-- `skills/repo-maintenance/SKILL.md`
-- `skills/tooling/SKILL.md`
-- `skills/skill-improvement-loop/SKILL.md`
+- `skills/technical-docs/SKILL.md` — ONTOLOGY.md updates, stage docs, SKILL.md conventions
+- `skills/repo-maintenance/SKILL.md` — repo structure, git hygiene, dependency management
+- `skills/tooling/SKILL.md` — CLI and build tool development
+- `skills/skill-improvement-loop/SKILL.md` — end-of-task skills review loop
 
 ## Tools
 

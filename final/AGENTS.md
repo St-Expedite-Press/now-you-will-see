@@ -29,14 +29,14 @@ User gate:
 
 ## Local Skills
 
-No local skills yet. Use `typeset/skills/typesetting/SKILL.md` for production
-layout questions and `proof/skills/transcription-verification/SKILL.md` for
-textual verification gates.
+No local skills yet. For final production checks, read:
+- `proof/skills/transcription-verification/SKILL.md` — textual verification gate
+- `typeset/skills/poetry/SKILL.md` or `typeset/skills/prose/SKILL.md` — layout questions
 
 ## Tools
 
 - `texgraph build --project <project_id>`
-- PDF inspection tools such as `pdffonts` when available.
+- `pdffonts` (verify font embedding before submission)
 
 Final artifacts belong under `projects/<project_id>/final/`, which is
 local-only and ignored by Git.

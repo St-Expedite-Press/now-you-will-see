@@ -27,8 +27,9 @@ User gate:
 
 ## Local Skills
 
-No local skills yet. Use `typeset/skills/typesetting/SKILL.md` for typography
-regime decisions that affect covers.
+No local skills yet. For typography decisions that carry over to covers,
+read `typeset/skills/poetry/SKILL.md` or `typeset/skills/prose/SKILL.md`
+as appropriate for the content type.
 
 ## Tools
 

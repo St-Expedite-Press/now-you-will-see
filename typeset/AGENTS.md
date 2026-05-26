@@ -30,7 +30,9 @@ User gate:
 
 ## Local Skills
 
-- `skills/typesetting/SKILL.md`
+- `skills/poetry/SKILL.md` — verse layout: stanza_skip, line environment, cycles, long-line handling
+- `skills/prose/SKILL.md` — prose layout: paragraph convention, blockquote, section headings
+- `skills/typesetting/SKILL.md` — full typesetting reference (legacy; use content-type skills for new work)
 
 ## Tools
 

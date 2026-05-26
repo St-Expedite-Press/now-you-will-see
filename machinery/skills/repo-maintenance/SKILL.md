@@ -9,30 +9,29 @@ description: Maintain the staged publishing framework. Use when adding folders, 
 
 Keep the framework organized around:
 
-- `AGENTS.md` as the canonical root ontology, DAG contract, and dispatcher
-- `machinery/docs/DAG_PIPELINE.md` for stage graph and promotion rules
-- `machinery/docs/STUDIO_MODULES.md` for future frontend module-agent contracts
-- `machinery/docs/TOOL_PROPOSALS.md` for proposed deterministic tools
-- `projects/<project_id>/` as the local full-stage project body
-- `<stage>/skills/` for stage-owned reusable workflows
-- `<stage>/tools/` for deterministic helpers owned by a stage
-- `machinery/skills/` for repository-maintenance and cross-stage infrastructure workflows
-- `machinery/tools/` only for cross-stage infrastructure helpers
-- `PERSONA.md` as the example persona contract for generative and editorial work
+- `ONTOLOGY.md` — comprehensive repo reference: directory taxonomy, schemas, commands, invariants
+- `AGENTS.md` — root dispatcher: routing table, DAG, loops
+- `<stage>/AGENTS.md` — stage contract: inputs, outputs, gate, skills, tools
+- `<stage>/skills/<name>/SKILL.md` — reusable workflow programs, loaded on demand
+- `<stage>/tools/` — deterministic helpers owned by a stage
+- `machinery/skills/` — cross-stage infrastructure workflow programs
+- `machinery/tools/` — cross-stage infrastructure scripts
+- `projects/<project_id>/` — local full-stage project body (gitignored except tracked examples)
+- `PERSONA.md` — editorial voice contract template for generative prose
 
 ## Rules
 
 1. Prefer existing naming and metadata patterns.
 2. Keep unrelated edits out of the change.
 3. Do not mark a stage complete before required user inputs are satisfied.
-4. Update DAG and module docs when stage inputs, outputs, gates, or edges change.
-5. Keep `AGENTS.md` as the canonical routing guide for repo-local skills.
-6. Keep persona instructions in `PERSONA.md`; do not duplicate the whole
-   persona inside plans or metadata.
-7. Keep tool instructions in `machinery/skills/tooling/SKILL.md` and the owning stage `AGENTS.md`.
-8. Keep frontend module requirements in docs until the user explicitly approves
-   scaffolding or implementation.
-9. For new tools, document the command name, inputs, outputs, user gate, and
-   verification path before implementation.
-10. Treat empty project stage folders as valid placeholders.
+4. When directory structure, schemas, CLI commands, or pipeline edges change:
+   run `machinery/tools/ontology_check.py` and update `ONTOLOGY.md` before committing.
+5. Keep `AGENTS.md` lean — routing table and loops only. Detail lives in `ONTOLOGY.md`.
+6. Keep persona instructions in `PERSONA.md`; do not duplicate them in plans or metadata.
+7. Keep tool instructions in `machinery/skills/tooling/SKILL.md` and stage `AGENTS.md` files.
+8. For new tools, document the command name, inputs, outputs, user gate, and
+   verification path before implementation. Use `machinery/docs/TOOL_PROPOSALS.md`.
+9. Treat empty project stage folders as valid placeholders.
+10. After any significant repo change, run the ontology checker and save a new baseline
+    when `ONTOLOGY.md` has been updated. See `machinery/skills/technical-docs/SKILL.md`.
 

@@ -31,11 +31,11 @@ User gate:
 
 ## Tools
 
-- `fletcher archive files <identifier>`
-- `fletcher archive download <identifier> <filename> projects/<project_id>/ingest/raw/<bucket>/<stable>.pdf`
-- `fletcher pdf info <pdf>`
-- `fletcher pdf render <pdf> --first <n> --last <n> --prefix <prefix>`
-- `fletcher pdf text <pdf> --first <n> --last <n>`
+- `texgraph archive files <identifier>`
+- `texgraph archive download <identifier> <filename> projects/<project_id>/ingest/raw/<bucket>/<stable>.pdf`
+- `texgraph pdf info <pdf>`
+- `texgraph pdf render <pdf> --first <n> --last <n> --prefix <prefix>`
+- `texgraph pdf text <pdf> --first <n> --last <n>`
 
 Project source files belong under `projects/<project_id>/ingest/`, which is
 local-only and ignored by Git.

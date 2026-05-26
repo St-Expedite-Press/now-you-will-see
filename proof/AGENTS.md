@@ -28,13 +28,15 @@ User gate:
 
 ## Local Skills
 
-- `skills/transcription-verification/SKILL.md`
-- `skills/persona-editorial/SKILL.md`
+- `skills/poetry-proof/SKILL.md` — line-break, stanza, and indentation proof for verse
+- `skills/prose-proof/SKILL.md` — paragraph integrity and type-tag proof for prose
+- `skills/transcription-verification/SKILL.md` — cross-file status and metadata audit
+- `skills/persona-editorial/SKILL.md` — editorial voice review (load PERSONA.md first)
 
 ## Tools
 
-- `fletcher audit projects/<project_id>/transcribe/volumes/<volume>/books/<book>`
-- `fletcher metadata projects/<project_id>/transcribe/volumes --check`
+- `texgraph audit projects/<project_id>/transcribe/volumes/<volume>/books/<book>`
+- `texgraph metadata projects/<project_id>/transcribe/volumes --check`
 
 Proof artifacts belong under `projects/<project_id>/proof/`, which is
 local-only and ignored by Git.

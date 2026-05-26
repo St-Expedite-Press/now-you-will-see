@@ -1,178 +1,104 @@
-# AGENTS.md - Root Orchestrator And Project Ontology
+# AGENTS.md — Root Dispatcher
 
-This file is the canonical agent reference for the repository. Stage manuals
-live in their own directories, but the root agent owns decomposition, routing,
-project ontology, and promotion discipline.
+Read this file first. Then read `ONTOLOGY.md` for full repo detail, or read the
+relevant stage `AGENTS.md` for the task at hand.
 
 ## Prime Directive
 
-Every request becomes one or more stage jobs. A stage job has:
-
-- a stage directory
-- required inputs
-- user decisions or approvals
-- expected outputs
-- verification commands
-- downstream edges in the project DAG
-
-Do not collapse stages for convenience. Do not promote work across a stage edge
-without the required user input.
+Every request becomes one or more stage jobs. Assign each job to exactly one
+stage. Do not collapse stages. Do not promote across a stage edge without the
+required user input.
 
 ## Dispatch Rule
 
-For every request:
+For every incoming request:
 
-1. Decompose the request into stage jobs.
-2. Assign each job to exactly one stage directory.
-3. Read that stage's `AGENTS.md`.
-4. Read only the needed local `skills/` files.
-5. Use that stage's local `tools/` first.
-6. Identify the user input required before stage completion or promotion.
-7. Record outputs in the matching project stage directory.
+1. Classify the request using the routing table below.
+2. Read that stage's `AGENTS.md`.
+3. Load only the skill files relevant to the specific task.
+4. Use only that stage's tools and commands.
+5. Identify what user input is required before stage completion or promotion.
+6. Record outputs under `projects/<project_id>/<stage>/`.
 
-For mixed requests, process stage jobs in DAG order.
+For requests spanning multiple stages, process in DAG order.
 
-## Stage DAG
+## Routing Table
 
-The intended project flow is a directed acyclic graph, not a hidden linear
-automation:
+| Request involves | Stage | Read next |
+|---|---|---|
+| Finding, downloading, or registering sources | `ingest/` | `ingest/AGENTS.md` |
+| Transcribing text from source scans | `transcribe/` | `transcribe/AGENTS.md` |
+| Auditing, correcting, or writing editorial prose | `proof/` | `proof/AGENTS.md` |
+| Building PDFs, managing poems, setting layout | `typeset/` | `typeset/AGENTS.md` |
+| Cover assets or cover production | `covers/` | `covers/AGENTS.md` |
+| E-reader, web, or publication-facing output | `front-end/` | `front-end/AGENTS.md` |
+| Release packaging or delivery | `final/` | `final/AGENTS.md` |
+| CLI, Studio, tests, infrastructure, docs | `machinery/` | `machinery/AGENTS.md` |
 
-```text
-project-create
-  -> ingest
-  -> transcribe
-  -> proof
-  -> typeset
-  -> final
+## DAG
 
-typeset -> covers -> final
-typeset -> front-end -> final
-proof   -> final
+```
+project-create → ingest → transcribe → proof → typeset → [covers, front-end] → final
+                                        proof → final  (direct, for short-form work)
 ```
 
-`final/` receives only user-approved artifacts from upstream stages. Future
-automation may suggest transitions, but user decisions remain the promotion
-gates.
+Each edge requires a user gate. Gate details live in the stage's `AGENTS.md`.
 
-## Stage Jobs
+## Project Structure
 
-| Stage | Owns | Requires User Input |
-| --- | --- | --- |
-| `ingest/` | source acquisition, source naming, manifests, PDF intake | source selection, rights/provenance acceptance, naming approval |
-| `transcribe/` | transcription, source matter, volume planning, project planning | target book/section, transcription policy choices, uncertain readings |
-| `proof/` | verification, correction passes, editorial review | acceptance of corrections, unresolved textual questions, voice use |
-| `typeset/` | build inputs, layout policy, interior production | trim, format, type regime, inclusion/exclusion decisions |
-| `covers/` | cover assets, cover styles, cover production notes | visual direction, selected assets, vendor format, approval of cover proof |
-| `front-end/` | publication-facing front-end deliverables | audience, copy, release mode, desired public surfaces |
-| `final/` | release packaging, delivery manifests, print-ready handoff | final approval, vendor target, release checklist signoff |
-| `machinery/` | CLIs, Studio app, tests, shared infrastructure, repo maintenance | implementation scope, compatibility break approval, tool behavior choices |
-
-## Project Ontology
-
-Projects use the same body plan:
-
-```text
+```
 projects/<project_id>/
-  ingest/
-  transcribe/
-  proof/
-  typeset/
-  final/
-  covers/
-  front-end/
+  ingest/        ← raw sources, provenance records
+  transcribe/    ← transcription files, plans, metadata
+  proof/         ← audit reports, corrections
+  typeset/       ← collection.yaml, content/, output/   ← build root
+  covers/        ← cover assets and production files
+  front-end/     ← publication-facing assets
+  final/         ← release packages and manifests
 ```
 
-Buildable project roots are `projects/<project_id>/typeset`.
-`workspace.yaml` registers local project IDs and points each ID at its typeset
-root. `workspace.example.yaml` is the public template.
+`workspace.yaml` maps project IDs to typeset paths. See `ONTOLOGY.md §
+workspace.yaml` for the schema.
 
-## Agent Modules
+## System Invariants
 
-The future Studio interface should treat each project module as an agent:
+Three critical rules — see `ONTOLOGY.md § Key Invariants` for the full list:
 
-- Project Creation Agent
-- Ingest Agent
-- Transcribe Agent
-- Proof Agent
-- Typeset Agent
-- Covers Agent
-- Final Agent
-- Front-End Agent
-- Project Chat Agent
+- `section_id` is the directory name, not `_meta.yaml:id`.
+- Stage agents write only to `projects/<id>/<stage>/`. Cross-stage writes
+  require explicit user approval.
+- Persona prose never enters source text, YAML, manifests, audits, or command
+  output.
 
-Each module-agent may read the entire project directory and consult an external
-knowledge base when configured. Writes remain bounded to the active stage unless
-the user approves a promotion or cross-stage edit.
+## Ontology Update Loop
 
-External knowledge must be cited or recorded when it affects source facts,
-rights, editorial decisions, or production choices. External knowledge never
-overrides source evidence silently.
+After any task that changes directory structure, file formats, CLI commands,
+data schemas, or pipeline edges — run:
 
-## Repository Layout
-
-```text
-AGENTS.md
-PERSONA.md
-workspace.example.yaml
-
-ingest/AGENTS.md
-ingest/skills/
-
-transcribe/AGENTS.md
-transcribe/skills/
-transcribe/tools/
-
-proof/AGENTS.md
-proof/skills/
-
-typeset/AGENTS.md
-typeset/skills/
-
-final/AGENTS.md
-covers/AGENTS.md
-front-end/AGENTS.md
-
-machinery/AGENTS.md
-machinery/src/
-machinery/studio/
-machinery/tests/
-machinery/docs/
-machinery/skills/
-machinery/tools/
+```powershell
+.\.venv\Scripts\python.exe machinery\tools\ontology_check.py
 ```
 
-## Command Surfaces
+If it flags changes in tracked areas, update `ONTOLOGY.md` before closing.
+Then save a new baseline:
 
-The system currently exposes `texgraph` and `fletcher` as compatibility
-entrypoints. They operate on one project DAG and one stage vocabulary.
+```powershell
+.\.venv\Scripts\python.exe machinery\tools\ontology_check.py --save-baseline
+```
 
-- `texgraph`: build, project, DAG, and Studio commands.
-- `fletcher`: source, editorial, metadata, and transcription commands.
+## Skills Update Loop
 
-Future tools should use shared project/stage language even when a command lives
-under one of those entrypoints.
+At the end of every significant task:
 
-## Critical System Invariants
+1. Identify which skills were loaded and which should have been loaded.
+2. Note any friction, missing instruction, unclear boundary, or tool gap.
+3. If the fix is obvious and low-risk, update the relevant `SKILL.md` now.
+4. If the fix is speculative or broad, record it as a proposed follow-up.
+5. Never bake one-off task results into reusable skills.
 
-- `section_id` is the section directory name, not `_meta.yaml:id`.
-- Shared helpers belong in `machinery/src/texgraph/utils.py`, not in
-  `texgraph.cli`.
-- Studio backend services resolve project paths through workspace/project
-  services.
-- Version sidecars use `.slug.versions.yaml`; canonical selection must match
-  build behavior.
+Use `machinery/skills/skill-improvement-loop/SKILL.md` for full guidance.
 
-## Persona Boundary
+## Full Reference
 
-Use `PERSONA.md` only for generative, editorial, structural, or institutional
-prose. Keep literal transcription, YAML, manifests, audits, and command
-summaries neutral.
-
-## Repository Rules
-
-- Keep reusable workflow instructions in the relevant stage `skills/` directory.
-- Keep deterministic helper scripts in the relevant stage `tools/` directory.
-- Keep cross-stage code, tests, Studio, and technical docs in `machinery/`.
-- Update `machinery/docs/DAG_PIPELINE.md` when stage contracts or edges change.
-- For repository-structure work, read `machinery/skills/repo-maintenance/SKILL.md`.
-- Before final responses, review `machinery/skills/skill-improvement-loop/SKILL.md`.
+For directory taxonomy, file schemas, command surface, dependency map, and
+all invariants: read `ONTOLOGY.md`.
