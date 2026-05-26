@@ -27,6 +27,48 @@ professional-grade LuaLaTeX, e-reader files calibrated to device screen sizes,
 and the same collection body in multiple page geometries without re-authoring
 content.
 
+**New here?** Start with [QUICKSTART.md](QUICKSTART.md) for a linear path from install to first PDF.
+
+---
+
+## Who This Is For
+
+Texgraph is for **poets, translators, and small press editors** who want
+publication-grade output without InDesign and without ceding editorial control
+to a platform.
+
+The prerequisite floor is: you can run a Python virtualenv, install a TeX
+distribution, and edit YAML. You do not need to know LaTeX — the build system
+handles it. You do need to be comfortable in a terminal.
+
+**This is not the right tool if:**
+- You want a GUI-first experience from day one (Studio is planned but not finished)
+- You need EPUB or e-reader output now (the front-end rendering path is not yet built)
+- You are unwilling to install TeX Live (~4 GB)
+
+**This is the right tool if:**
+- You are producing a print collection and want PDF/X-3 output with professional typography
+- You are working from scanned historical sources and need a transcription + proof pipeline
+- You want the same collection body to target multiple trim sizes without re-authoring
+- You are working with an AI assistant and want a structured, stage-gated workflow
+
+The workflow is AI-assisted but not AI-driven. The AI orchestrates and executes
+within stage contracts; you approve every promotion between stages.
+
+---
+
+## Prerequisites
+
+| Requirement | Version | Required for | Notes |
+|---|---|---|---|
+| Python | 3.11+ | Everything | |
+| TeX Live (full) or MiKTeX | Current | Build commands | Full scheme only — minimal scheme will fail |
+| System OpenType font | Any | Build commands | EB Garamond used by example project |
+| poppler-utils | Any | `pdf`, `audit`, `scan`, `archive` commands | Not needed for build/watch/list |
+| Node.js | 18+ | Studio frontend | Not needed for CLI builds |
+
+See [QUICKSTART.md](QUICKSTART.md) for installation steps, common errors, and first-build walkthrough.
+
 ---
 
 ## What This Makes
@@ -369,76 +411,26 @@ outer_margin: 6mm
 
 ## Getting Started
 
-### Install
+See [QUICKSTART.md](QUICKSTART.md) for a full walkthrough: prerequisites,
+install, first build, and common errors.
+
+### Short path
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\pip.exe install -e .
-
-# Optional: Studio (FastAPI backend + agent service)
-.\.venv\Scripts\pip.exe install -r machinery\studio\requirements-studio.txt
-
-# Or using extras:
-.\.venv\Scripts\pip.exe install -e ".[studio]"
-```
-
-### Register a Project
-
-```powershell
 Copy-Item workspace.example.yaml workspace.yaml
+.\.venv\Scripts\texgraph.exe build --project spectra_poems --draft
 ```
 
-```yaml
-# workspace.yaml
-projects:
-  - id: my-collection
-    path: projects/my-collection/typeset
-    description: "My collection"
-default_project: my-collection
-```
-
-### Build
+### Studio (optional)
 
 ```powershell
-# Draft build (fast, skips PDF/X metadata)
-.\.venv\Scripts\texgraph.exe build --project my-collection --draft
-
-# Release build (PDF/X-3)
-.\.venv\Scripts\texgraph.exe build --project my-collection
-
-# Watch mode — rebuilds on file changes
-.\.venv\Scripts\texgraph.exe watch --project my-collection
-
-# List registered projects
-.\.venv\Scripts\texgraph.exe list
-```
-
-### Studio
-
-```powershell
+.\.venv\Scripts\pip.exe install -e ".[studio]"
 .\.venv\Scripts\texgraph.exe studio
 ```
 
-### Editorial and Source Tools
-
-`fletcher` is an alias for `texgraph`. All commands are the same entrypoint.
-
-```powershell
-# PDF inspection
-.\.venv\Scripts\texgraph.exe pdf info projects\<id>\ingest\raw\<file>.pdf
-.\.venv\Scripts\texgraph.exe pdf render <pdf> --first 1 --last 5 --prefix title_
-
-# Internet Archive acquisition
-.\.venv\Scripts\texgraph.exe archive files <identifier>
-.\.venv\Scripts\texgraph.exe archive download <identifier> <file> projects\<id>\ingest\raw\<bucket>\<stable>.pdf
-
-# Transcription metadata and audit
-.\.venv\Scripts\texgraph.exe metadata projects\<id>\transcribe\volumes --check
-.\.venv\Scripts\texgraph.exe audit projects\<id>\transcribe\volumes\<volume>\books\<book>
-
-# Page mapping
-.\.venv\Scripts\texgraph.exe page-map --offset 4 --printed "1-120"
-```
+`fletcher` is a compatibility alias for `texgraph`. Both entrypoints are identical.
 
 ---
 
