@@ -371,14 +371,27 @@ content directory can target any geometry by changing `render_config`.
 
 **`covers/`** — Visual production stage. AGENTS.md contract in place; skills and
 tools are the next build target. Studio backend has cover models and router.
+Gate: requires final PROMOTION.yaml with `cover_unlock.unlocked: true`.
 
-**`front-end/`** — Publication-facing deliverables: e-reader files, web publication,
-static generation. AGENTS.md contract in place. Intended output path (EPUB 3,
-reflowable HTML) shares the same source as typeset; the rendering target changes,
-the content model does not.
+**`front-end/`** — Two separate things share this name:
+
+*Pipeline stage* (`front-end/`) — Publication-facing output: EPUB 3, web, static assets.
+AGENTS.md contract in place; no skills or tools yet. The core missing piece is an
+EPUB 3 renderer: the parser and content model are already shared with typeset, so
+adding EPUB means a new Jinja2 render target (XHTML + OPF + NCX + CSS) and a
+`texgraph epub` CLI command, not a content model change. Estimated: 2–3 days of
+focused work. Needs `texgraph verify front-end` gate added to `promotions.py`.
+
+*Studio frontend* (`machinery/studio/frontend/`) — 47-file React/Vite/TypeScript
+application with four editor views (cards, graph, build, covers), streaming build
+and agent hooks, and a full API client layer. More built than it appears. Primary
+gaps: no pipeline gate visibility (no PROMOTION.yaml status display), no
+classification-aware agent dispatch, and the graph view (DAG with live stage status)
+is the least complete piece.
 
 **`final/`** — Release packaging. Receives only user-approved artifacts from
-upstream. AGENTS.md contract in place.
+upstream. AGENTS.md contract in place. Writes `cover_unlock.unlocked: true` to
+its PROMOTION.yaml to gate the covers stage.
 
 **`machinery/`** — Cross-stage infrastructure. Five skills: `technical-docs`
 (ONTOLOGY.md protocol, doc conventions), `repo-maintenance`, `tooling`,
@@ -390,12 +403,15 @@ frontend, and shared infrastructure.
 
 | Gap | Location | Status |
 |---|---|---|
-| E-reader rendering path | `front-end/` | Content model ready; EPUB renderer not written |
+| EPUB 3 renderer | `front-end/` | Content model + parser ready; render target not written |
+| `texgraph promote <stage>` | All stages | verify works; promote (writes approved gate) not yet built |
+| `texgraph proof-build` | `proof/` | Proof PDF generation command not yet built |
+| Studio pipeline gate visibility | `machinery/studio/frontend/` | No PROMOTION.yaml status display; no verify/promote UI |
+| Studio graph view | `machinery/studio/frontend/` | DAG with live stage status is least complete view |
 | Named format presets | `typeset/` | render_config parameterized; no preset registry |
-| Promotion records (steps 4–7) | All stages | Steps 1–3 complete; `promote`, `proof-build`, style tokens, cover payload remain |
-| Studio module-agents | `machinery/studio/` | Planned; backend/frontend scaffold in place |
 | covers/ skills and tools | `covers/` | AGENTS.md only |
 | final/ skills and packaging | `final/` | AGENTS.md only |
+| Test coverage | `machinery/tests/` | 3 files; promotions.py, verify, ingest rename untested |
 
 ---
 
@@ -546,7 +562,8 @@ The poem moves through unearned pain toward a provisional rest — "Having confe
 
 ```
 ONTOLOGY.md               comprehensive repo reference (schemas, commands, invariants)
-AGENTS.md                 root dispatcher (routing table, DAG, update loops)
+AGENTS.md                 root dispatcher (classify → route, pipeline + non-pipeline)
+HANDOFF.md                context document for session continuity and model handoff
 PERSONA.md                editorial voice contract template
 workspace.example.yaml    workspace template (copy to workspace.yaml)
 workspace.yaml            local workspace registration (gitignored)
@@ -683,6 +700,40 @@ entrypoints; prefer `texgraph` in new scripts.
 ---
 
 ## Current Standing
+
+### Project Assessments
+
+**Technical completeness (61/100):**
+
+| Axis | Score |
+|---|---|
+| Installability / first run | 7/10 |
+| Core functionality | 7/10 |
+| Documentation quality | 8/10 |
+| Test coverage | 3/10 |
+| CLI ergonomics | 6/10 |
+| Architectural clarity | 8/10 |
+| Pipeline completeness | 5/10 |
+| AI/agent workflow quality | 8/10 |
+| Error handling | 5/10 |
+| Production readiness | 4/10 |
+
+**Value (74/100):**
+
+| Axis | Score |
+|---|---|
+| Problem clarity | 8/10 |
+| Addressable audience | 5/10 |
+| Differentiation | 8/10 |
+| Workflow fit | 7/10 |
+| Intellectual integrity | 9/10 |
+| AI integration model | 8/10 |
+| Extensibility | 7/10 |
+| Long-term preservation value | 8/10 |
+| Switching cost / stickiness | 6/10 |
+| Conceptual coherence | 8/10 |
+
+The gap between value (74) and completeness (61) is the key number: the concept is stronger than the current implementation. Test coverage (3/10) and production readiness (4/10) are the lowest technical axes and the highest-leverage targets. Intellectual integrity (9/10) and architectural clarity (8/10) are the strongest axes and should be preserved as the remaining work is built.
 
 **Built and functional:**
 - Complete CLI: `texgraph build`, `watch`, `list`, `new poem`, `studio`, plus
