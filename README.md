@@ -46,7 +46,6 @@ sizes by changing those values.
 | US Trade Paperback | 5.5 in | 8.5 in | Standard US poetry collection |
 | A5 | 148 mm | 210 mm | European literary edition |
 | UK B-format | 4.25 in | 6.875 in | UK trade, literary fiction |
-| US Mass Market | 4.19 in | 6.75 in | Mass market paperback |
 | Square Chapbook | 5.5 in | 5.5 in | Contemporary chapbook |
 | US Letter (proofing) | 8.5 in | 11 in | Desktop draft review |
 
@@ -57,13 +56,13 @@ metadata for print-on-demand and offset vendors.
 ### E-Reader Formats
 
 E-reader output (EPUB 3, Kindle) is the intended product of the `front-end/`
-stage. That stage is currently a stub — the content model, content parser, and
-Jinja2 template infrastructure are all in place; what remains is the rendering
-path that converts the same Markdown/YAML source into semantic HTML with CSS
-tuned to device reflowable constraints.
+stage. That stage is currently a stub — the content model, parser, and Jinja2
+template infrastructure are in place; what remains is the rendering path that
+converts the same Markdown/YAML source into semantic HTML with CSS tuned to
+device reflowable constraints.
 
-Until that path exists, a PDF targeted to a 90 mm × 117 mm viewport (6-inch
-e-ink screen) can stand in as a fixed-layout proof.
+Until that path exists, a PDF targeted to a 90 mm × 117 mm viewport can stand
+in as a fixed-layout proof.
 
 **E-reader target geometries (for PDF proofing):**
 
@@ -132,8 +131,7 @@ flowchart TD
 ### Promotion Gates
 
 Each DAG edge requires explicit user input before an artifact crosses it. The
-system does not auto-promote. The table below shows what the user must approve
-at each transition:
+system does not auto-promote.
 
 | Transition | Required User Decision |
 |---|---|
@@ -141,116 +139,184 @@ at each transition:
 | ingest → transcribe | source naming, intake manifest approval |
 | transcribe → proof | transcription policy, uncertain readings |
 | proof → typeset | accepted corrections, proof status sign-off |
-| typeset → covers | trim, type regime, interior proof approval |
+| typeset → covers | trim, interior proof approval |
 | typeset → front-end | format target, output mode |
 | covers/front-end → final | vendor format, visual direction, copy approval |
-| → final | final release checklist sign-off |
 
 ---
 
-## Agentic Workflow Assessment
+## Agentic Workflow Architecture
 
-### Architecture
+### Three-Layer Context System
 
-The agent system has three tiers:
+The agent framework has three layers — root dispatcher, stage contracts, and
+on-demand skills — each scoped to what it needs to know:
 
 ```
-┌─────────────────────────────────────────────────────┐
-│               ROOT ORCHESTRATOR                      │
-│  AGENTS.md  —  decompose · classify · dispatch       │
-│  Reads request → breaks into stage jobs → routes     │
-└──────────────────────────┬──────────────────────────┘
-                           │
-         ┌─────────────────┼─────────────────┐
-         ▼                 ▼                 ▼
-  ┌────────────┐   ┌────────────┐   ┌────────────────┐
-  │   STAGE    │   │   STAGE    │   │    STAGE       │
-  │  AGENTS.md │   │  AGENTS.md │   │   AGENTS.md    │
-  │  ingest    │   │ transcribe │   │ typeset / …    │
-  └──────┬─────┘   └─────┬──────┘   └───────┬────────┘
-         │               │                  │
-    ┌────▼────┐     ┌────▼────┐        ┌────▼────┐
-    │ skills/ │     │ skills/ │        │ skills/ │
-    │ tools/  │     │ tools/  │        │ tools/  │
-    └─────────┘     └─────────┘        └─────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                       ONTOLOGY.md                             │
+│   Comprehensive repo reference: directory taxonomy, all       │
+│   schemas, command surface, dependency map, key invariants    │
+│   Read by agents when they need to navigate the repo.        │
+└──────────────────────────────────────────────────────────────┘
+                              │
+         ┌────────────────────┼──────────────────────┐
+         ▼                    ▼                       ▼
+┌─────────────────┐  ┌────────────────┐  ┌──────────────────────┐
+│    AGENTS.md    │  │  <stage>/      │  │  <stage>/            │
+│  Root dispatch  │  │  AGENTS.md     │  │  AGENTS.md           │
+│  Routing table  │  │  Contract:     │  │  Contract:           │
+│  DAG summary    │  │  gate · skills │  │  gate · skills       │
+│  Update loops   │  │  tools         │  │  tools               │
+└─────────────────┘  └───────┬────────┘  └──────────┬───────────┘
+                             │                       │
+                   ┌─────────┴──────────┐    ┌──────┴──────┐
+                   ▼                    ▼    ▼             ▼
+             SKILL.md            SKILL.md  SKILL.md   SKILL.md
+             (loaded             (loaded   (loaded    (loaded
+             on demand)          on demand) on demand) on demand)
 ```
 
-**Tier 1 — Root orchestrator** (`AGENTS.md`): Receives any request. Decomposes
-it into one or more stage jobs. Assigns each job to exactly one stage. Does not
-execute stage work; it routes.
+**ONTOLOGY.md** is the map. Agents read it when they need repo-wide context —
+directory shape, file schemas, command surface, invariants. It is not read on
+every request, only when the task requires structural navigation.
 
-**Tier 2 — Stage agents** (`<stage>/AGENTS.md`): Knows its stage's truth
-standard, owns its artifacts, defines what user approval looks like before
-promotion. Each is an independent contract.
+**Root `AGENTS.md`** is the dispatcher. It receives the request, classifies it
+against the routing table, and routes to the correct stage. It does not execute
+stage work.
 
-**Tier 3 — Skills and tools** (`<stage>/skills/`, `<stage>/tools/`):
-- Skills are repeatable instruction programs — judgment encoded for reuse
-  (e.g., `typeset/skills/typesetting/SKILL.md` specifies the full typesetting
-  regime: font selection, leading, margin calculation, stanza handling).
-- Tools are deterministic scripts — mechanical execution with no judgment
-  (e.g., `transcribe/tools/create_fletcher_subprojects.py`).
+**Stage `AGENTS.md`** files are lean contracts (~40–60 lines each). Each stage
+knows its inputs, its outputs, its user gate, which skills to load, and which
+commands to use. They do not repeat what is in ONTOLOGY.md.
+
+**SKILL.md files** are on-demand workflow programs. They are loaded only when
+the task matches. A verse proof task loads `proof/skills/poetry-proof/SKILL.md`;
+a prose proof task loads `proof/skills/prose-proof/SKILL.md`. Skills encode
+judgment for reuse without bloating every request's context.
+
+### Skill Map
+
+```mermaid
+flowchart LR
+    subgraph ingest["ingest/"]
+        S1[source-intake]
+    end
+    subgraph transcribe["transcribe/"]
+        S2[poem-transcription]
+        S3[prose-transcription]
+        S4[source-matter]
+        S5[volume-planning]
+        S6[project-planning]
+    end
+    subgraph proof["proof/"]
+        S7[poetry-proof]
+        S8[prose-proof]
+        S9[transcription-verification]
+        S10[persona-editorial]
+    end
+    subgraph typeset["typeset/"]
+        S11[poetry]
+        S12[prose]
+        S13[typesetting]
+    end
+    subgraph machinery["machinery/"]
+        S14[technical-docs]
+        S15[repo-maintenance]
+        S16[tooling]
+        S17[skill-improvement-loop]
+    end
+
+    style ingest fill:#1a3a1a,stroke:#4a7a4a,color:#ccc
+    style transcribe fill:#1a3a1a,stroke:#4a7a4a,color:#ccc
+    style proof fill:#1a2a3a,stroke:#4a6a8a,color:#ccc
+    style typeset fill:#3a2a1a,stroke:#8a6a4a,color:#ccc
+    style machinery fill:#2d2d2d,stroke:#888,color:#ccc
+```
+
+**Content-type routing within stages:**
+
+| Content type | Transcribe skill | Proof skill | Typeset skill |
+|---|---|---|---|
+| Verse (lyric, formal, free) | `poem-transcription` | `poetry-proof` | `poetry` |
+| Prose (preface, essay, fiction) | `prose-transcription` | `prose-proof` | `prose` |
+| Source paratext (dedications, colophons) | `source-matter` | `transcription-verification` | `prose` |
+| Infrastructure / docs | — | — | `technical-docs` (machinery) |
+
+### Ontology Update Loop
+
+The `ontology_check.py` tool tracks which repo changes require `ONTOLOGY.md`
+review. After any task that changes directory structure, file formats, CLI
+commands, data schemas, or pipeline edges:
+
+```powershell
+.\.venv\Scripts\python.exe machinery\tools\ontology_check.py
+```
+
+The tool compares the current git state against a stored baseline, categorizes
+changed files by impact area, and reports which sections of ONTOLOGY.md to
+review. When review is complete:
+
+```powershell
+.\.venv\Scripts\python.exe machinery\tools\ontology_check.py --save-baseline
+```
 
 ### Stage-by-Stage Assessment
 
-**`ingest/`** — Source acquisition and provenance. Establishes what exists, where
-it came from, and whether it can be used. The fletcher CLI (`fletcher archive`,
-`fletcher pdf`) provides mechanical intake. Skills cover source-intake workflow.
-This stage is the evidentiary foundation; nothing that happens downstream can
-contradict it without explicit source evidence.
+**`ingest/`** — Source acquisition and provenance. Establishes what exists, what
+can be used, and where it came from. The `texgraph archive` and `texgraph pdf`
+commands provide mechanical intake. Nothing downstream can contradict source
+evidence without a formal source resolution.
 
-**`transcribe/`** — Poem text from source. The most labor-intensive stage. Skills
-cover poem-transcription, source-matter handling, volume planning, and project
-planning. The fletcher audit CLI (`fletcher audit`) provides machine-assisted
-verification against source scans. Uncertain readings require user resolution
-before promotion.
+**`transcribe/`** — Poem and prose text from source. The most labor-intensive
+stage. Five skills cover the full range: verse transcription, prose/paratext
+transcription, source matter, volume planning, and project planning. The `texgraph
+audit` command provides machine-assisted verification. Uncertain readings require
+user resolution before proof promotion.
 
-**`proof/`** — Two workflows in one: transcription verification (evidence-based,
-neutral) and editorial review (voice-led, governed by `PERSONA.md`). The
-persona boundary is sharp: editorial prose may surround the edition; source
-text, YAML, manifests, and audits stay factual. This stage is where the
-collection's argumentative frame is built.
+**`proof/`** — Four skills in two tracks. The verification track (`poetry-proof`,
+`prose-proof`, `transcription-verification`) is evidence-based and neutral. The
+editorial track (`persona-editorial`) is voice-led and governed by `PERSONA.md`.
+The persona boundary is the critical discipline: editorial prose may surround
+the edition; source text, YAML, manifests, and audits stay factual.
 
-**`typeset/`** — The most mechanically complex stage. The skills file specifies a
-complete typesetting regime: font hierarchy, leading tables, margin systems,
-verse environment handling, PDF/X compliance. Execution goes through the
-`texgraph build` CLI, which chains: parse Markdown/YAML → render Jinja2 LaTeX
-templates → compile LuaLaTeX → report. The render_config system allows the same
-content to target multiple geometries.
+**`typeset/`** — Three skills: `poetry` (stanza environment, indentation, cycles),
+`prose` (paragraph convention, blockquote, mixed content), and `typesetting` (render_config,
+build verification, PDF/X compliance, vendor submission). Builds chain: parse
+Markdown/YAML → render Jinja2 LaTeX → compile LuaLaTeX → report. The same
+content directory can target any geometry by changing `render_config`.
 
-**`covers/`** — Visual production stage. Currently a stub with AGENTS.md defining
-the scope. No skills or tools yet. The Studio backend has cover models and a
-covers router in place.
+**`covers/`** — Visual production stage. AGENTS.md contract in place; skills and
+tools are the next build target. Studio backend has cover models and router.
 
-**`front-end/`** — Publication-facing deliverables: e-reader files, web
-publication, static generation. Currently a stub. The intended output path
-(EPUB 3, reflowable HTML) shares the same source content as the typeset stage;
-the rendering target changes but the content model does not.
+**`front-end/`** — Publication-facing deliverables: e-reader files, web publication,
+static generation. AGENTS.md contract in place. Intended output path (EPUB 3,
+reflowable HTML) shares the same source as typeset; the rendering target changes,
+the content model does not.
 
-**`final/`** — Release packaging and delivery manifests. Currently a stub.
-Receives only user-approved artifacts from upstream.
+**`final/`** — Release packaging. Receives only user-approved artifacts from
+upstream. AGENTS.md contract in place.
 
-**`machinery/`** — Cross-stage infrastructure. Contains the full build system
-(`texgraph`, `fletcher` CLIs), the Studio FastAPI backend, the React frontend,
-tests, and shared infrastructure. This is where code lives; stages carry
-instructions.
+**`machinery/`** — Cross-stage infrastructure. Four skills: `technical-docs`
+(ONTOLOGY.md protocol, doc conventions), `repo-maintenance`, `tooling`, and
+`skill-improvement-loop`. Contains the full CLI (1,101 lines), Studio FastAPI
+backend, React frontend, and shared infrastructure.
 
 ### Current Workflow Gaps
 
-| Gap | Location | Notes |
+| Gap | Location | Status |
 |---|---|---|
-| E-reader rendering path | `front-end/` | Content model ready; EPUB renderer not yet written |
-| Multiple geometry presets | `typeset/` | Parameterized in render_config but no named presets |
-| Promotion records | All stages | User approvals are honored but not formally recorded |
+| E-reader rendering path | `front-end/` | Content model ready; EPUB renderer not written |
+| Named format presets | `typeset/` | render_config parameterized; no preset registry |
+| Promotion records | All stages | User approvals honored but not formally recorded |
 | Studio module-agents | `machinery/studio/` | Planned; backend/frontend scaffold in place |
-| Stage chat | `machinery/studio/` | Not yet implemented |
-| covers/ skills | `covers/` | AGENTS.md only; no workflows defined |
-| final/ skills | `final/` | AGENTS.md only; no workflows defined |
+| covers/ skills and tools | `covers/` | AGENTS.md only |
+| final/ skills and packaging | `final/` | AGENTS.md only |
 
 ---
 
 ## Output Formats: render_config Reference
 
-Every `collection.yaml` file can include a `render_config` block controlling all
+Every `collection.yaml` includes a `render_config` block controlling all
 typographic and geometric parameters. The same Markdown source compiles to any
 target by changing this block.
 
@@ -260,12 +326,12 @@ render_config:
   mainfont: EB Garamond     # OpenType font name (must be installed)
   paperwidth: 5.5in         # Page width
   paperheight: 8.5in        # Page height
-  top_margin: 1in           # Top margin
-  bottom_margin: 1in        # Bottom margin
+  top_margin: 1in
+  bottom_margin: 1in
   inner_margin: 1in         # Inner (gutter) margin
   outer_margin: 0.75in      # Outer margin
   line_spread: 1.1          # Leading multiplier
-  stanza_skip: 1.0ex        # Vertical space between stanzas
+  stanza_skip: 1.2ex        # Vertical space between stanzas
 ```
 
 **Named geometry examples:**
@@ -306,19 +372,17 @@ outer_margin: 6mm
 ### Install
 
 ```powershell
-# From repo root — install texgraph and fletcher CLIs
+python -m venv .venv
 .\.venv\Scripts\pip.exe install -e .
-```
 
-Or with Make:
+# Optional: Studio (FastAPI backend + agent service)
+.\.venv\Scripts\pip.exe install -r machinery\studio\requirements-studio.txt
 
-```powershell
-make install
+# Or using extras:
+.\.venv\Scripts\pip.exe install -e ".[studio]"
 ```
 
 ### Register a Project
-
-Copy the workspace template and edit it:
 
 ```powershell
 Copy-Item workspace.example.yaml workspace.yaml
@@ -339,11 +403,11 @@ default_project: my-collection
 # Draft build (fast, skips PDF/X metadata)
 .\.venv\Scripts\texgraph.exe build --project my-collection --draft
 
-# Release build
+# Release build (PDF/X-3)
 .\.venv\Scripts\texgraph.exe build --project my-collection
 
 # Watch mode — rebuilds on file changes
-.\.venv\Scripts\texgraph.exe watch --project my-collection --draft
+.\.venv\Scripts\texgraph.exe watch --project my-collection
 
 # List registered projects
 .\.venv\Scripts\texgraph.exe list
@@ -352,38 +416,39 @@ default_project: my-collection
 ### Studio
 
 ```powershell
-# Launch the web UI (FastAPI + React, opens browser)
 .\.venv\Scripts\texgraph.exe studio
 ```
 
-### Editorial Tools
+### Editorial and Source Tools
+
+`fletcher` is an alias for `texgraph`. All commands are the same entrypoint.
 
 ```powershell
-# Inspect a source PDF
-.\.venv\Scripts\fletcher.exe pdf info projects\<id>\ingest\raw\<file>.pdf
+# PDF inspection
+.\.venv\Scripts\texgraph.exe pdf info projects\<id>\ingest\raw\<file>.pdf
+.\.venv\Scripts\texgraph.exe pdf render <pdf> --first 1 --last 5 --prefix title_
 
-# Check transcription metadata
-.\.venv\Scripts\fletcher.exe metadata projects\<id>\transcribe\volumes --check
+# Internet Archive acquisition
+.\.venv\Scripts\texgraph.exe archive files <identifier>
+.\.venv\Scripts\texgraph.exe archive download <identifier> <file> projects\<id>\ingest\raw\<bucket>\<stable>.pdf
 
-# Run transcription audit against source
-.\.venv\Scripts\fletcher.exe audit projects\<id>\transcribe\volumes\<volume>\books\<book>
+# Transcription metadata and audit
+.\.venv\Scripts\texgraph.exe metadata projects\<id>\transcribe\volumes --check
+.\.venv\Scripts\texgraph.exe audit projects\<id>\transcribe\volumes\<volume>\books\<book>
+
+# Page mapping
+.\.venv\Scripts\texgraph.exe page-map --offset 4 --printed "1-120"
 ```
 
 ---
 
 ## Example Project: spectra_poems
 
-`spectra_poems` is a tracked example project in this repository. It contains
-three poems forming a sequence called "Iberian Dreams": a Renaissance-inflected
-sonnet, a dialogue poem mixing English and Spanish, and a lyric meditation on
-distance and the image. The project is fully buildable and demonstrates the
-content format, section structure, and render_config system.
+`spectra_poems` is a tracked example project. It contains three poems forming a
+sequence called "Iberian Dreams": a Renaissance-inflected sonnet, a dialogue poem
+mixing English and Spanish, and a lyric meditation on distance and the image.
 
-**Project path:** `projects/spectra_poems/typeset/`
-
-**Registered in:** `workspace.yaml`
-
-### Build the Example
+**Build it:**
 
 ```powershell
 .\.venv\Scripts\texgraph.exe build --project spectra_poems --draft
@@ -407,8 +472,6 @@ projects/spectra_poems/
 
 ### Poem File Format
 
-Each poem is a Markdown file with YAML front matter:
-
 ```markdown
 ---
 title: "In Response, A Sonnet"
@@ -417,13 +480,13 @@ order: 1
 ---
 
 Watch hunters draw the elephant to die,
-in love with some false woman they have made,
+    in love with some false woman they have made,
 ...
 ```
 
-Stanzas are separated by blank lines. The `type` field can be `poem`, `prose`,
-`poem-cycle`, or `poem-screenplay`. The `order` field controls sequencing within
-the section.
+Stanzas are separated by blank lines. Leading spaces produce indentation in the
+verse environment. The `type` field can be `poem`, `prose`, `poem-cycle`, or
+`poem-screenplay`.
 
 ### The Poems
 
@@ -436,40 +499,54 @@ animal not as pathos but as argument: this is what beauty does to wit.
 figure, the cowherd girl encountered in the mountain pass. The poem refuses the
 comparison of women to spring ("Loose habit. / Dead speech.") and lets the woman
 speak for herself in both languages: _esa moza no quiere / saber nada de amores_.
-She meant, in fact said: go back to your saddle.
 
 **"The Marques Dreams of Her"** — A lyric in six stanzas. The image of the beloved
 appears twice: as Dido at Carthage, as a woman buying carnations in California.
-The dart that wounds also blesses. The poem moves through unearned pain toward a
-provisional rest — "Having confessed, / I can almost rest."
+The poem moves through unearned pain toward a provisional rest — "Having confessed,
+/ I can almost rest."
 
 ---
 
 ## Repository Layout
 
 ```
-AGENTS.md                 root orchestrator
-PERSONA.md                editorial voice contract
+ONTOLOGY.md               comprehensive repo reference (schemas, commands, invariants)
+AGENTS.md                 root dispatcher (routing table, DAG, update loops)
+PERSONA.md                editorial voice contract template
 workspace.example.yaml    workspace template (copy to workspace.yaml)
 workspace.yaml            local workspace registration (gitignored)
-Makefile                  build tasks
+pyproject.toml            Python package, dependencies, scripts
+requirements.txt          consolidated pip manifest
+Makefile                  build task shortcuts
 
 ingest/                   source acquisition stage
-  AGENTS.md
+  AGENTS.md               stage contract
   skills/
+    source-intake/        source PDF verification and provenance
 
 transcribe/               transcription stage
   AGENTS.md
   skills/
-  tools/
+    poem-transcription/   verse transcription from scan
+    prose-transcription/  prose and paratext transcription
+    source-matter/        front/back matter: dedications, colophons, etc.
+    volume-planning/      poem order, page maps, batch planning
+    project-planning/     multi-volume publication plans
 
 proof/                    verification and editorial stage
   AGENTS.md
   skills/
+    poetry-proof/         line-break, stanza, indentation verification
+    prose-proof/          paragraph integrity, type-tag, punctuation
+    transcription-verification/  cross-file status and metadata audit
+    persona-editorial/    editorial voice review (load PERSONA.md first)
 
 typeset/                  layout and PDF production stage
   AGENTS.md
   skills/
+    poetry/               verse layout: stanza_skip, cycles, long lines
+    prose/                prose layout: paragraphs, blockquotes, headings
+    typesetting/          render_config reference, build verification, vendor checks
 
 covers/                   cover design stage
   AGENTS.md
@@ -482,137 +559,109 @@ final/                    release and delivery stage
 
 machinery/                CLIs, Studio, tests, shared infrastructure
   src/texgraph/           Markdown → LaTeX → PDF build system
-  src/fletcher/           editorial and transcription helpers
-  studio/backend/         FastAPI services (projects, builds, covers, previews)
+  src/fletcher/           compatibility shim (alias → texgraph.cli:app)
+  studio/backend/         FastAPI services (projects, builds, covers, agent)
   studio/frontend/        React + Vite + TypeScript studio interface
-  tests/                  regression tests
-  docs/                   technical reference
+  tests/                  regression test suite
+  docs/                   technical reference documents
+  skills/
+    technical-docs/       ONTOLOGY.md protocol, doc conventions
+    repo-maintenance/     repo structure, git hygiene
+    tooling/              CLI and build tool development
+    skill-improvement-loop/  end-of-task skill review
+  tools/
+    ontology_check.py     git-diff based ONTOLOGY.md change tracker
 
-projects/                 local project workspaces
-  spectra_poems/          tracked example project
-  lift-wind-love-heat/    primary live collection (local content, gitignored)
+projects/                 local project workspaces (gitignored)
+  spectra_poems/          tracked example project (in git)
 ```
 
 ---
 
-## Stage Reference
+## CLI Reference
 
-### ingest/
+`texgraph` and `fletcher` are aliases for the same CLI. Both are valid
+entrypoints; prefer `texgraph` in new scripts.
 
-Owns source acquisition, source naming, provenance records, PDF intake manifests.
-Nothing downstream can contradict source evidence without a formal source
-resolution.
+### Build and workspace
 
-Commands: `fletcher archive`, `fletcher pdf`, `fletcher scan`
+| Command | What it does |
+|---|---|
+| `texgraph build [--project <id>] [--draft]` | Parse → render → compile PDF |
+| `texgraph watch [--project <id>]` | Auto-rebuild on file changes |
+| `texgraph list` | List registered projects |
+| `texgraph new poem "Title" [--section <id>]` | Scaffold a poem file |
+| `texgraph studio` | Launch FastAPI + React Studio |
 
-### transcribe/
+### Editorial and source
 
-Owns poem text from source. Every transcription decision must be traceable to
-source evidence. Uncertain readings are flagged and held for user resolution.
+| Command | What it does |
+|---|---|
+| `texgraph pdf info <pdf>` | Metadata via pdfinfo |
+| `texgraph pdf text <pdf> --first N --last N` | Extract text via pdftotext |
+| `texgraph pdf render <pdf> --first N --last N --prefix P` | Pages to PNG |
+| `texgraph archive files <identifier>` | List Internet Archive files |
+| `texgraph archive download <id> <file> <dest>` | Download from IA |
+| `texgraph audit <volume>` | Audit transcription book directory |
+| `texgraph metadata <target> [--write] [--check]` | Book.json metadata |
+| `texgraph page-map --offset N --printed "<ranges>"` | Page number mapping |
+| `texgraph plan <document> [--check]` | Plan heading structure |
+| `texgraph scan <target> --output <path>` | PDF front/back matter scan |
 
-Commands: `fletcher metadata`, `fletcher pagemap`, `fletcher plan`
+### Studio API (default: http://localhost:8765)
 
-Skills: `poem-transcription`, `project-planning`, `source-matter`, `volume-planning`
-
-### proof/
-
-Two tracks: transcription verification (evidence-based, neutral) and editorial
-review (governed by `PERSONA.md`). The persona boundary is the critical
-discipline of this stage: editorial voice enters only when explicitly requested
-and only in prose that surrounds the source text, never in it.
-
-Commands: `fletcher audit`
-
-Skills: `transcription-verification`, `persona-editorial`
-
-### typeset/
-
-Owns build inputs, layout policy, and interior production. The typesetting skill
-defines a complete regime: font hierarchy, leading tables, margin systems, verse
-environment handling. Builds run via `texgraph build`.
-
-Commands: `texgraph build`, `texgraph watch`, `texgraph new poem`
-
-Skills: `typesetting` (see `typeset/skills/typesetting/SKILL.md` for the full
-typesetting regime specification)
-
-### covers/, front-end/, final/
-
-Currently defined by AGENTS.md contracts. Skills and mechanical tools are the
-next build target for each.
+| Route | Purpose |
+|---|---|
+| `GET /api/projects` | List workspace projects |
+| `POST /api/projects` | Create a project |
+| `GET /api/projects/{id}/sections/{sid}/poems` | List poems in section |
+| `POST /api/projects/{id}/build` | Trigger build |
+| `GET /api/projects/{id}/preview` | Generate preview |
+| `POST /api/agent` | Agent endpoints |
+| `GET/POST /api/covers` | Cover management |
 
 ---
 
-## Machinery
-
-### texgraph CLI
-
-```
-texgraph build     Markdown + YAML → LaTeX → PDF
-texgraph watch     Auto-rebuild on file changes
-texgraph list      Show workspace projects
-texgraph new poem  Scaffold a new poem file
-texgraph studio    Launch Studio (FastAPI + React)
-```
-
-### fletcher CLI
-
-```
-fletcher archive   PDF/file acquisition
-fletcher audit     Transcription verification against source
-fletcher metadata  Metadata validation
-fletcher pagemap   Page mapping utilities
-fletcher pdf       PDF inspection
-fletcher plan      Project planning
-fletcher scan      Source scanning
-```
-
-### Studio
-
-The Studio is a FastAPI backend with a React/Vite/TypeScript frontend. It
-provides a web interface for project navigation, poem editing, build triggering,
-and preview generation. Launch with `texgraph studio`.
-
-API routes: `/api/projects`, `/api/projects/{id}/sections`,
-`/api/projects/{id}/sections/{sid}/poems`, `/api/projects/{id}/build`,
-`/api/projects/{id}/preview`, `/api/agent`, `/api/covers`
-
-### Key Source Files
+## Key Source Files
 
 | File | Purpose |
 |---|---|
-| `machinery/src/texgraph/cli.py` | All CLI commands (774 lines) |
+| `machinery/src/texgraph/cli.py` | All CLI commands (1,101 lines) |
 | `machinery/src/texgraph/config.py` | CollectionConfig, WorkspaceConfig, ProjectRef |
 | `machinery/src/texgraph/parser.py` | Markdown/YAML poem parsing |
 | `machinery/src/texgraph/renderer.py` | Jinja2 → LaTeX rendering with smart escaping |
-| `machinery/src/texgraph/compiler.py` | LuaLaTeX subprocess invocation and log parsing |
+| `machinery/src/texgraph/compiler.py` | LuaLaTeX invocation and log parsing |
 | `machinery/src/texgraph/templates/collection.tex.jinja2` | Main document template |
 | `machinery/src/texgraph/templates/base_preamble.tex.jinja2` | LaTeX preamble |
 | `machinery/studio/backend/app/main.py` | FastAPI entry point |
-| `machinery/studio/frontend/src/` | React components |
+| `machinery/tools/ontology_check.py` | ONTOLOGY.md change tracker |
+| `ONTOLOGY.md` | Comprehensive repo reference |
 
 ---
 
 ## Current Standing
 
 **Built and functional:**
-- Complete CLI (`texgraph build`, `watch`, `list`, `new poem`, `studio`)
-- Markdown/YAML poem parsing (poem, prose, poem-cycle, poem-screenplay types)
+- Complete CLI: `texgraph build`, `watch`, `list`, `new poem`, `studio`, plus
+  full editorial suite (`pdf`, `archive`, `audit`, `metadata`, `page-map`, `plan`, `scan`)
+- `fletcher` compatibility alias pointing to the same CLI
+- Markdown/YAML poem parsing (`poem`, `prose`, `poem-cycle`, `poem-screenplay`)
 - Jinja2 LaTeX rendering with smart-quote and escape handling
 - LuaLaTeX compiler with log parsing and error reporting
 - Workspace/project registration and resolution
-- FastAPI Studio backend with full project/poem/section/build API
+- FastAPI Studio backend with full project/poem/section/build/covers API
 - React/Vite/TypeScript Studio frontend scaffold
-- Full stage AGENTS.md contracts (ingest, transcribe, proof, typeset, covers, front-end, final)
-- Typesetting skill with complete typographic regime
-- Example project: spectra_poems (tracked, buildable)
+- ONTOLOGY.md: comprehensive repo reference (schemas, commands, invariants, directory taxonomy)
+- 17 skills across all active stages, organized by content type (verse/prose/paratext)
+- `ontology_check.py`: git-diff based change tracker with baseline management
+- `pyproject.toml` studio optional-dependency group (`pip install -e ".[studio]"`)
+- Example project `spectra_poems` (tracked, buildable, three poems)
 
 **Next work:**
 - E-reader rendering path in `front-end/` (EPUB 3 from existing content model)
 - Named format presets in render_config (trade, A5, chapbook, e-reader)
 - Promotion records: formal artifact of user approval at each stage gate
 - Studio module-agents: per-stage interactive agents in the web interface
-- Stage chat: conversational access to each stage from Studio
 - covers/ skills and tools
 - final/ skills and packaging tools
 - Smoke test coverage across build/watch/list/new-poem flows
