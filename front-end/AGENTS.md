@@ -10,7 +10,7 @@ Owns publication-facing front-end deliverables.
 ## DAG Contract
 
 Inputs:
-- approved project metadata
+- approved project metadata and typeset output
 - public copy
 - approved covers/media
 - release or preorder mode
@@ -20,6 +20,7 @@ Outputs:
 - publication-facing site/app/static assets
 - launch notes
 - public metadata
+- `projects/<project_id>/front-end/PROMOTION.yaml` — gate pending implementation
 
 User gate:
 - user approves copy, media, public state, and launch path before final

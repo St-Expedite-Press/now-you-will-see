@@ -16,10 +16,9 @@ Inputs:
 - naming policy or stable-title preference
 
 Outputs:
-- raw sources under `projects/<project_id>/ingest/`
-- provenance records
-- source manifest updates
-- page counts and inspection notes
+- renamed source files under `projects/<project_id>/ingest/raw/`
+- provenance records (`<stable_name>.provenance.yaml`)
+- `projects/<project_id>/ingest/PROMOTION.yaml` — written by `texgraph ingest rename`; approved by user
 
 User gate:
 - user approves the source set, rights/access status, and stable naming before
@@ -31,8 +30,10 @@ User gate:
 
 ## Tools
 
+- `texgraph ingest rename <file> --author A --year Y --title T [--source S] [--project <id>]`
+- `texgraph verify ingest [--project <id>]` — check ingest PROMOTION.yaml
 - `texgraph archive files <identifier>`
-- `texgraph archive download <identifier> <filename> projects/<project_id>/ingest/raw/<bucket>/<stable>.pdf`
+- `texgraph archive download <identifier> <filename> projects/<project_id>/ingest/raw/<stable>.pdf`
 - `texgraph pdf info <pdf>`
 - `texgraph pdf render <pdf> --first <n> --last <n> --prefix <prefix>`
 - `texgraph pdf text <pdf> --first <n> --last <n>`

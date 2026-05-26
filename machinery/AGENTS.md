@@ -33,6 +33,7 @@ User gate:
 - `skills/repo-maintenance/SKILL.md` — repo structure, git hygiene, dependency management
 - `skills/tooling/SKILL.md` — CLI and build tool development
 - `skills/skill-improvement-loop/SKILL.md` — end-of-task skills review loop
+- `skills/task-classifier/SKILL.md` — job type decision tree for ambiguous requests
 
 ## Tools
 
@@ -45,3 +46,8 @@ compatibility entrypoints into one project DAG and one stage vocabulary.
 When changing Python package structure, update `pyproject.toml`. When changing
 Studio paths, update `machinery/src/texgraph/cli.py`, backend service path
 injection, frontend docs, and verification commands together.
+
+Job classification (pipeline / research / conversation / tooling) is defined in
+root `AGENTS.md` and documented in `ONTOLOGY.md § Job Classification`. The
+`task-classifier` skill provides the ambiguity decision tree. Changes to the
+classification taxonomy require updates to both files.

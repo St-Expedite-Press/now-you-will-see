@@ -259,7 +259,27 @@ The package was not installed into the venv. Run `.\.venv\Scripts\pip.exe instal
 ## Next Steps
 
 - `ONTOLOGY.md` — comprehensive reference for directory structure, all file schemas, command surface, key invariants
-- `AGENTS.md` — how to route tasks through the pipeline with AI assistance
+- `AGENTS.md` — how to classify and route tasks through the pipeline with AI assistance
+- `machinery/docs/DAG_PIPELINE.md` — full pipeline graph with node contracts and gate commands
 - `typeset/skills/poetry/SKILL.md` — verse-specific layout decisions
 - `typeset/skills/prose/SKILL.md` — prose layout decisions
 - `machinery/docs/PROCEDURES.md` — verification and workflow procedures
+
+### Pipeline gate commands
+
+Once you have a project and want to carry it through the full pipeline:
+
+```powershell
+# Rename an ingested source to its stable name and register it
+.\.venv\Scripts\texgraph.exe ingest rename <file> --author "keats" --year 1820 --title "lamia-and-other-poems" --project my-collection
+
+# Check that the upstream stage is ready before starting the next stage
+.\.venv\Scripts\texgraph.exe verify transcribe --project my-collection
+.\.venv\Scripts\texgraph.exe verify proof --project my-collection
+.\.venv\Scripts\texgraph.exe verify typeset --project my-collection
+.\.venv\Scripts\texgraph.exe verify final --project my-collection
+```
+
+`texgraph verify` exits 0 when the upstream gate is clear and 1 with a list of
+blocking issues when it is not. Each stage writes a `PROMOTION.yaml` file when
+the user approves it; downstream stages check this file before starting work.

@@ -11,6 +11,7 @@ Owns proofing, verification, correction passes, and editorial voice review.
 ## DAG Contract
 
 Inputs:
+- approved transcribe PROMOTION.yaml — run `texgraph verify proof [--project <id>]` before beginning
 - transcribed project text
 - source scans or PDFs
 - metadata and page-span records
@@ -21,6 +22,7 @@ Outputs:
 - correction records
 - unresolved textual question list
 - proof status notes
+- `projects/<project_id>/proof/PROMOTION.yaml` — written on user approval
 
 User gate:
 - user accepts corrections, decides unresolved textual questions, and approves
@@ -35,6 +37,7 @@ User gate:
 
 ## Tools
 
+- `texgraph verify proof [--project <id>]` — check transcribe gate before starting
 - `texgraph audit projects/<project_id>/transcribe/volumes/<volume>/books/<book>`
 - `texgraph metadata projects/<project_id>/transcribe/volumes --check`
 

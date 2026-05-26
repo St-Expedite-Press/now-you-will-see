@@ -1,7 +1,7 @@
 # DAG Pipeline Contract
 
-This document defines the intended end-to-end publishing graph. The graph exists
-so a project can move from first source intake to final release without hiding
+This document defines the end-to-end publishing graph. The graph exists so a
+project can move from first source intake to final release without hiding
 stage-specific decisions inside one opaque command.
 
 ## Principle
@@ -25,6 +25,30 @@ typeset -> covers -> final
 typeset -> front-end -> final
 proof   -> final
 ```
+
+## Promotion Records
+
+Each stage gate is enforced by a `PROMOTION.yaml` file at
+`projects/<project_id>/<stage>/PROMOTION.yaml`. A stage may not begin work
+until the upstream stage's PROMOTION.yaml exists and passes `texgraph verify`.
+
+**Implemented gates** (upstream → stage):
+
+| Upstream | Stage | Command |
+|---|---|---|
+| ingest | transcribe | `texgraph verify transcribe` |
+| transcribe | proof | `texgraph verify proof` |
+| proof | typeset | `texgraph verify typeset` |
+| typeset | final | `texgraph verify final` |
+| final | covers | `texgraph verify covers` (requires `cover_unlock.unlocked: true`) |
+
+**Pending gates** (not yet implemented):
+- front-end stage has no formal verify gate yet
+- `texgraph promote <stage>` command (writes approved PROMOTION.yaml) — step 5 of gate plan
+- `texgraph proof-build` command — step 4 of gate plan
+
+See `ONTOLOGY.md § Data Schemas` for full PROMOTION.yaml schemas per stage.
+See `machinery/src/texgraph/promotions.py` for the verification implementation.
 
 ## Node Contracts
 
@@ -50,7 +74,7 @@ User gate:
 
 ### ingest
 
-Purpose: acquire and document source material.
+Purpose: acquire, rename, and document source material.
 
 Inputs:
 - source identifiers or files
@@ -58,9 +82,13 @@ Inputs:
 - naming policy
 
 Outputs:
-- raw source files under `projects/<project_id>/ingest/`
-- source manifest entries
-- page counts and provenance notes
+- renamed source files under `projects/<project_id>/ingest/raw/` — stable name: `<author>_<year>_<title>_<source>.<ext>`
+- provenance records (`<stable_name>.provenance.yaml`)
+- `projects/<project_id>/ingest/PROMOTION.yaml`
+
+Commands:
+- `texgraph ingest rename <file> --author A --year Y --title T`
+- `texgraph verify ingest`
 
 User gate:
 - approve source set and rights/provenance status
@@ -70,6 +98,7 @@ User gate:
 Purpose: convert source material into documentary project text.
 
 Inputs:
+- approved ingest PROMOTION.yaml (`texgraph verify transcribe`)
 - approved source files
 - target volume/book/section
 - transcription policy
@@ -79,6 +108,7 @@ Outputs:
 - transcribed text under `projects/<project_id>/transcribe/`
 - source matter files
 - metadata and planning updates
+- `projects/<project_id>/transcribe/PROMOTION.yaml`
 
 User gate:
 - accept transcription policy and resolve uncertain readings or mark them open
@@ -88,6 +118,7 @@ User gate:
 Purpose: verify text against source evidence and record corrections.
 
 Inputs:
+- approved transcribe PROMOTION.yaml (`texgraph verify proof`)
 - transcribed text
 - source images or PDFs
 - metadata
@@ -98,6 +129,7 @@ Outputs:
 - correction lists
 - proof notes
 - verified or blocked status markers
+- `projects/<project_id>/proof/PROMOTION.yaml`
 
 User gate:
 - accept corrections, decide unresolved textual questions, approve proof status
@@ -107,6 +139,7 @@ User gate:
 Purpose: prepare buildable book interiors.
 
 Inputs:
+- approved proof PROMOTION.yaml (`texgraph verify typeset`)
 - proofed text
 - collection metadata
 - trim size
@@ -118,6 +151,7 @@ Outputs:
 - content directories
 - draft/final TeX/PDF artifacts
 - build logs and layout notes
+- `projects/<project_id>/typeset/PROMOTION.yaml`
 
 User gate:
 - approve format, type regime, draft proof, and final interior
@@ -127,6 +161,7 @@ User gate:
 Purpose: produce and verify cover assets.
 
 Inputs:
+- approved final PROMOTION.yaml with `cover_unlock.unlocked: true` (`texgraph verify covers`)
 - title/author/metadata
 - trim and page count from typeset
 - cover assets
@@ -166,9 +201,9 @@ User gate:
 Purpose: collect approved artifacts for release or handoff.
 
 Inputs:
-- proof approval
+- approved typeset PROMOTION.yaml (`texgraph verify final`)
 - interior approval
-- cover approval
+- cover approval (if covers stage complete)
 - optional front-end approval
 - vendor target
 
@@ -178,26 +213,7 @@ Outputs:
 - delivery manifest
 - upload checklist
 - final notes
+- `projects/<project_id>/final/PROMOTION.yaml` with `cover_unlock.unlocked: true`
 
 User gate:
 - final signoff
-
-## Promotion Records
-
-Each promotion should eventually leave a machine-readable record:
-
-```yaml
-from_stage: proof
-to_stage: typeset
-project_id: example-project
-approved_by: user
-approved_at: 2026-05-26T00:00:00Z
-inputs:
-  - path: projects/example-project/transcribe
-outputs:
-  - path: projects/example-project/typeset
-notes: ""
-```
-
-The current repo documents this contract. It does not yet implement automated
-promotion records.

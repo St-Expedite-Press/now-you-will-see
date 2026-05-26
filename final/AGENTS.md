@@ -11,9 +11,9 @@ Owns release packaging and delivery checks.
 ## DAG Contract
 
 Inputs:
-- proof approval
-- approved interior files
-- approved cover files
+- approved typeset PROMOTION.yaml — run `texgraph verify final [--project <id>]` before beginning
+- approved interior files from typeset
+- approved cover files (if covers stage complete)
 - optional approved front-end deliverables
 - vendor/release target
 
@@ -23,6 +23,7 @@ Outputs:
 - checksums
 - upload checklist
 - final notes
+- `projects/<project_id>/final/PROMOTION.yaml` — includes `cover_unlock.unlocked: true` to gate covers stage
 
 User gate:
 - user gives final signoff for the package and target.
@@ -35,6 +36,7 @@ No local skills yet. For final production checks, read:
 
 ## Tools
 
+- `texgraph verify final [--project <id>]` — check typeset gate before starting
 - `texgraph build --project <project_id>`
 - `pdffonts` (verify font embedding before submission)
 
