@@ -1,7 +1,9 @@
 ﻿# Texgraph Studio â€” backend dependencies
-# Install into the project venv:
-#   pip install -r machinery/studio/backend/requirements.txt
-# (This extends requirements-studio.txt at the repo root with pydantic-settings)
+# Canonical setup lives in machinery/docs/STUDIO_FRONTEND.md:
+#   pip install -e ".[studio]"
+#
+# Keep this manifest only for backend-only hosts that require a flat
+# requirements file.
 
 fastapi>=0.110.0
 uvicorn[standard]>=0.27.0

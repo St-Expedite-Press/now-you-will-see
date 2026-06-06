@@ -147,6 +147,37 @@ requires_user_gate: true
 Module agents may read the full project directory. Writes should stay in the
 active stage unless the user approves a cross-stage edit or promotion.
 
+## Studio Product Readiness Audit
+
+Implemented API contract:
+
+```text
+POST /api/audit/run
+```
+
+The audit is read-only and returns an `AuditRun` envelope:
+
+```yaml
+id: audit-<opaque>
+created_at: 2026-06-06T00:00:00+00:00
+repo_root: C:/path/to/Texgraph
+persona: burned_out_bay_area_engineer
+frontend_framework: react
+mode: read_only
+target: texgraph_current_system
+status: complete
+subagents: []
+report: null
+```
+
+Subagents return `AuditSubagentResult` objects with `findings`, `evidence`, and
+`open_questions`. Evidence kinds are `file`, `command`, `test`, `doc`, `api`,
+and `ui`. Findings use `critical`, `high`, `medium`, or `low` severity.
+
+This audit is a product-readiness inspection of Texgraph itself. It is not a
+pipeline proof artifact and must not write to source text, YAML manifests, or
+project stage directories.
+
 ## Stage Skills
 
 Skills are stage-owned:

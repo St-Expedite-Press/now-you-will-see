@@ -125,6 +125,14 @@ Open it. You should see three poems ("In Response, A Sonnet", "No Serrana",
 
 ---
 
+## 4a. Optional: Run Studio and the audit dashboard
+
+Studio is the local React/FastAPI interface. It is not required for CLI builds.
+Use `machinery/docs/STUDIO_FRONTEND.md` for the Studio frontend setup, route
+checks, and audit dashboard smoke tests.
+
+---
+
 ## 5. Add your own poem
 
 ```powershell
@@ -260,6 +268,7 @@ The package was not installed into the venv. Run `.\.venv\Scripts\pip.exe instal
 
 - `ONTOLOGY.md` — comprehensive reference for directory structure, all file schemas, command surface, key invariants
 - `AGENTS.md` — how to classify and route tasks through the pipeline with AI assistance
+- `machinery/docs/STUDIO_FRONTEND.md` — Studio frontend setup, routes, and smoke tests
 - `machinery/docs/DAG_PIPELINE.md` — full pipeline graph with node contracts and gate commands
 - `typeset/skills/poetry/SKILL.md` — verse-specific layout decisions
 - `typeset/skills/prose/SKILL.md` — prose layout decisions

@@ -9,5 +9,5 @@ Run scripts through the repo venv from the repository root:
 .\.venv\Scripts\python.exe transcribe\tools\<script>.py
 ```
 
-Use stable system CLI commands first when they exist. Some transcription and
-source helpers still use the `fletcher` compatibility entrypoint.
+Use `texgraph` CLI commands first when they exist. Fall back to these scripts
+only for operations the CLI does not cover.

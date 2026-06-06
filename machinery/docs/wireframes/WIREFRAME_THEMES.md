@@ -1,7 +1,8 @@
 # Texgraph Studio — Wireframe Themes
 
 Post-corporate / Pre-Raphaelite / Indie aesthetic concept document.
-All generated images are in `docs/wireframes/new/`. See INDEX.md for the full list.
+Current checked-in wireframe references live under `machinery/docs/wireframes/`.
+The implemented Studio frontend direction lives in `machinery/docs/STUDIO_FRONTEND.md`.
 
 ---
 

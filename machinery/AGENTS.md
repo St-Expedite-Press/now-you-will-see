@@ -40,8 +40,7 @@ User gate:
 Stage-specific tools live in each stage's `tools/` directory. Put only
 cross-stage infrastructure helpers in `tools/`.
 
-Keep command names stable: `texgraph` and `fletcher`. Treat them as
-compatibility entrypoints into one project DAG and one stage vocabulary.
+Keep command names stable: `texgraph` is the project CLI entrypoint.
 
 When changing Python package structure, update `pyproject.toml`. When changing
 Studio paths, update `machinery/src/texgraph/cli.py`, backend service path

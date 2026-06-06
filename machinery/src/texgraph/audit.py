@@ -4,8 +4,8 @@ import argparse
 import json
 from pathlib import Path
 
-from fletcher.env import repo_root, resolve_in_repo
-from fletcher.models import parse_front_matter
+from texgraph.env import repo_root, resolve_in_repo
+from texgraph.models import parse_front_matter
 
 FORBIDDEN = ["```", "&nbsp;", "<br", "page-break", "PAGE BREAK"]
 
@@ -80,7 +80,7 @@ def _run(args: argparse.Namespace) -> int:
 
 
 def register(sub: argparse._SubParsersAction) -> None:  # type: ignore[type-arg]
-    p = sub.add_parser("audit", help="Audit a Fletcher transcription book directory.")
+    p = sub.add_parser("audit", help="Audit a transcription book directory.")
     p.add_argument(
         "volume",
         help="Example: volumes/01_early_works/books/02_the_dominant_city_1911_1912",

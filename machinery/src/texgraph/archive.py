@@ -6,7 +6,7 @@ import shutil
 import urllib.request
 from pathlib import Path
 
-from fletcher.env import resolve_in_repo
+from texgraph.env import resolve_in_repo
 
 _BASE = "https://archive.org"
 

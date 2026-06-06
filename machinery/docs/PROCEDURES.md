@@ -53,6 +53,9 @@ default_project: my-project
 # Auto-rebuild on file changes
 .\.venv\Scripts\texgraph.exe watch --project <id>
 
+# Build proof artifact tree and proof PDF
+.\.venv\Scripts\texgraph.exe proof-build --project <id>
+
 # List registered projects
 .\.venv\Scripts\texgraph.exe list
 ```
@@ -112,35 +115,6 @@ With a registered project:
 
 ---
 
-## Run Studio
-
-```powershell
-# Install studio dependencies first if not already done
-.\.venv\Scripts\pip.exe install -e ".[studio]"
-
-# Launch (opens browser)
-.\.venv\Scripts\texgraph.exe studio
-
-# Launch without opening browser
-.\.venv\Scripts\texgraph.exe studio --no-open
-```
-
-Backend import check:
-
-```powershell
-.\.venv\Scripts\python.exe -c "import sys; from pathlib import Path; sys.path.insert(0, str(Path('machinery/studio/backend').resolve())); import app.main; print('backend-import-ok')"
-```
-
-Frontend checks (requires Node.js 18+):
-
-```powershell
-cd machinery\studio\frontend
-npm run typecheck
-npm run build
-```
-
----
-
 ## Verify Font Embedding (Before Vendor Submission)
 
 ```powershell
@@ -161,8 +135,9 @@ git ls-files projects
 git ls-files workspace.yaml
 ```
 
-Both should return empty (except the tracked `spectra_poems` example).
-`workspace.yaml` should never be committed.
+`workspace.yaml` should return empty. `projects/` may show tracked exception
+workspaces such as `spectra_poems` and `fletcher-complete-original-collections`;
+raw ingest files and generated PDFs should not be tracked.
 
 ---
 

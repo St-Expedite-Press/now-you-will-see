@@ -243,7 +243,9 @@ def build(
         raise typer.Exit(code=1)
 
     out_dir = cfg.ensure_output_dir()
-    tex_file = out_dir / f"{_slugify(cfg.title)}.tex"
+    tex_dir = out_dir / "tex"
+    tex_dir.mkdir(exist_ok=True)
+    tex_file = tex_dir / f"{_slugify(cfg.title)}.tex"
     tex_file.write_text(tex_source, encoding="utf-8")
     console.print(f"  LaTeX written → [bold]{tex_file}[/bold]")
 
@@ -290,6 +292,221 @@ def build(
     if verbose and result.warnings:
         console.print("\n[bold yellow]Warnings:[/bold yellow]")
         for warn in result.warnings[:20]:  # cap at 20 to avoid flooding
+            console.print(f"  [yellow]△[/yellow] {warn}")
+
+    if verbose and result.log_path and result.log_path.exists():
+        console.print(f"\n  Full log: [dim]{result.log_path}[/dim]")
+
+    raise typer.Exit(code=0 if result.success else 1)
+
+
+# ---------------------------------------------------------------------------
+# proof-build command
+# ---------------------------------------------------------------------------
+
+@app.command(name="proof-build")
+def proof_build(
+    project: Optional[str] = typer.Option(
+        None,
+        "--project",
+        "-p",
+        help="Project ID from [bold]workspace.yaml[/bold].",
+    ),
+    verbose: bool = typer.Option(
+        False,
+        "--verbose",
+        "-v",
+        help="Show lualatex log output after compilation.",
+    ),
+) -> None:
+    """Build the proof artifact tree from the typeset manuscript.
+
+    Each content unit — frontmatter pages, section title pages, dedications,
+    poems, and backmatter chapters — is rendered as its own [bold].tex[/bold]
+    fragment under [bold]proof/output/tex/<section>/[/bold].
+
+    A shared [bold]preamble.tex[/bold] and a master document that assembles all
+    fragments via [bold]\\\\input{}[/bold] are also written.  The master is
+    compiled to produce [bold]proof/output/<slug>.pdf[/bold].
+
+    Fragment artifacts are tracked in git; the PDF is gitignored.
+
+    Examples
+    --------
+
+        texgraph proof-build --project fletcher-complete-original-collections
+    """
+    from texgraph.compiler import Compiler
+    from texgraph.parser import PoetryParser
+    from texgraph.renderer import LaTeXRenderer
+
+    console.rule("[bold cyan]Texgraph Proof Build[/bold cyan]")
+
+    try:
+        cfg = _resolve_config(Path("collection.yaml"), project)
+    except typer.Exit:
+        raise
+    except (ValueError, FileNotFoundError) as exc:
+        console.print(f"[red]Config error:[/red] {exc}")
+        raise typer.Exit(code=1)
+
+    cfg.draft_mode = True
+
+    typeset_root = cfg.project_root
+    project_root = typeset_root.parent
+    proof_out = project_root / "proof" / "output"
+    tex_out = proof_out / "tex"
+    tex_out.mkdir(parents=True, exist_ok=True)
+
+    console.print(
+        f"  [bold]Collection:[/bold] {cfg.title}"
+        + (f" — {cfg.subtitle}" if cfg.subtitle else "")
+    )
+    console.print(f"  [bold]Author:[/bold]      {cfg.author}")
+    console.print(f"  [bold]Proof output:[/bold] {proof_out}")
+
+    # --- Parse --------------------------------------------------------------
+    parser = PoetryParser()
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+        transient=True,
+    ) as progress:
+        task = progress.add_task("Parsing content…", total=None)
+        try:
+            sections = parser.scan_collection(cfg.resolved_content_dir)
+        except FileNotFoundError as exc:
+            console.print(f"[red]Parse error:[/red] {exc}")
+            raise typer.Exit(code=1)
+        progress.update(task, description="Parsing complete.")
+
+    unit_count = sum(len(s.poems) for s in sections)
+    console.print(
+        f"  Parsed [bold]{unit_count}[/bold] unit(s) "
+        f"across [bold]{len(sections)}[/bold] section(s)."
+    )
+
+    # --- Render fragments ---------------------------------------------------
+    renderer = LaTeXRenderer()
+    raw_config = cfg.as_dict()
+
+    frontmatter_paths: list[str] = []
+    main_paths: list[str] = []
+    backmatter_paths: list[str] = []
+    fragment_count = 0
+    errors: list[str] = []
+
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+        transient=True,
+    ) as progress:
+        task = progress.add_task("Rendering fragments…", total=None)
+
+        for section in sections:
+            section_type = section.meta.get("type", "section")
+            section_dir = tex_out / section.path.name
+            section_dir.mkdir(exist_ok=True)
+
+            prev_part = ""
+            for poem in section.poems:
+                current_part = str(poem.meta.get("part") or "")
+                include_part_heading = bool(current_part and current_part != prev_part)
+                if current_part:
+                    prev_part = current_part
+
+                frag_name = poem.path.stem
+                frag_path = section_dir / f"{frag_name}.tex"
+                rel_input = f"{section.path.name}/{frag_name}"
+
+                try:
+                    frag_src = renderer.render_fragment(
+                        poem, section, raw_config,
+                        include_part_heading=include_part_heading,
+                    )
+                except Exception as exc:
+                    errors.append(f"{rel_input}: {exc}")
+                    continue
+
+                frag_path.write_text(frag_src, encoding="utf-8")
+                fragment_count += 1
+
+                if section_type == "frontmatter":
+                    frontmatter_paths.append(rel_input)
+                elif section_type == "backmatter":
+                    backmatter_paths.append(rel_input)
+                else:
+                    main_paths.append(rel_input)
+
+        progress.update(task, description="Fragments done.")
+
+    if errors:
+        console.print(f"[red]{len(errors)} fragment render error(s):[/red]")
+        for e in errors[:10]:
+            console.print(f"  [red]✗[/red] {e}")
+        raise typer.Exit(code=1)
+
+    console.print(f"  Rendered [bold]{fragment_count}[/bold] fragment(s).")
+
+    # --- Preamble -----------------------------------------------------------
+    preamble_path = tex_out / "preamble.tex"
+    preamble_path.write_text(
+        renderer.render_proof_preamble(raw_config), encoding="utf-8"
+    )
+
+    # --- Master document ----------------------------------------------------
+    slug = _slugify(cfg.title)
+    master_path = tex_out / f"{slug}.tex"
+    master_path.write_text(
+        renderer.render_proof_master(
+            raw_config, frontmatter_paths, main_paths, backmatter_paths
+        ),
+        encoding="utf-8",
+    )
+    console.print(
+        f"  preamble → [bold]proof/output/tex/preamble.tex[/bold]\n"
+        f"  master   → [bold]proof/output/tex/{slug}.tex[/bold]"
+    )
+
+    # --- Compile master (2 passes for TOC) ----------------------------------
+    compiler = Compiler(lualatex_path=cfg.lualatex_path)
+
+    if not compiler.check_available():
+        console.print("[yellow]Warning:[/yellow] lualatex not found — skipping compilation.")
+        raise typer.Exit(code=0)
+
+    console.print("  Compiling master (2 lualatex passes for TOC)…")
+
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+        transient=True,
+    ) as progress:
+        task = progress.add_task("Running lualatex…", total=None)
+        # draft=False so the compiler runs 2 passes; pdfx is skipped because
+        # cfg.draft_mode=True means the template omits \usepackage{pdfx}
+        result = compiler.compile(master_path, proof_out, runs=2, draft=False)
+        progress.update(task, description="Compilation done.")
+
+    if result.success:
+        rel_pdf = result.pdf_path.relative_to(project_root)
+        console.print(
+            Panel(
+                f"[bold green]Success![/bold green]  PDF → [bold]{result.pdf_path}[/bold]\n"
+                f"\n[dim]proof_pdf for PROMOTION.yaml:  {rel_pdf}[/dim]",
+                border_style="green",
+            )
+        )
+    else:
+        console.print(Panel("[bold red]Proof build failed.[/bold red]", border_style="red"))
+        for err in result.errors:
+            console.print(f"  [red]✗[/red] {err}")
+
+    if verbose and result.warnings:
+        for warn in result.warnings[:20]:
             console.print(f"  [yellow]△[/yellow] {warn}")
 
     if verbose and result.log_path and result.log_path.exists():
@@ -676,7 +893,9 @@ def _run_build_programmatic(
         return
 
     out_dir = cfg.ensure_output_dir()
-    tex_file = out_dir / f"{_slugify(cfg.title)}.tex"
+    tex_dir = out_dir / "tex"
+    tex_dir.mkdir(exist_ok=True)
+    tex_file = tex_dir / f"{_slugify(cfg.title)}.tex"
     tex_file.write_text(tex_source, encoding="utf-8")
 
     compiler = Compiler(lualatex_path=cfg.lualatex_path)
@@ -789,7 +1008,7 @@ def pdf_info(
     if not shutil.which("pdfinfo"):
         console.print("[red]pdfinfo not found on PATH.[/red]  Install poppler-utils.")
         raise typer.Exit(code=1)
-    from fletcher.env import resolve_in_repo
+    from texgraph.env import resolve_in_repo
     result = subprocess.run(
         ["pdfinfo", str(resolve_in_repo(pdf))],
         check=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -828,15 +1047,16 @@ def pdf_text(
     if not shutil.which("pdftotext"):
         console.print("[red]pdftotext not found on PATH.[/red]  Install poppler-utils.")
         raise typer.Exit(code=1)
-    from fletcher.env import resolve_in_repo
+    from texgraph.env import resolve_in_repo
     result = subprocess.run(
         ["pdftotext", "-f", str(first), "-l", str(last), "-layout", str(resolve_in_repo(pdf)), "-"],
-        check=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     )
+    text = result.stdout.decode("utf-8", errors="replace")
     if output:
-        resolve_in_repo(output).write_text(result.stdout, encoding="utf-8")
+        resolve_in_repo(output).write_text(text, encoding="utf-8")
     else:
-        print(result.stdout, end="")
+        print(text, end="")
 
 
 @_pdf_app.command("render")
@@ -854,7 +1074,7 @@ def pdf_render(
     if not shutil.which("pdftoppm"):
         console.print("[red]pdftoppm not found on PATH.[/red]  Install poppler-utils.")
         raise typer.Exit(code=1)
-    from fletcher.env import repo_root, resolve_in_repo
+    from texgraph.env import repo_root, resolve_in_repo
     prefix_path = resolve_in_repo(prefix)
     prefix_path.parent.mkdir(parents=True, exist_ok=True)
     subprocess.run(
@@ -904,7 +1124,7 @@ def archive_download(
     import shutil
     import urllib.request
 
-    from fletcher.env import resolve_in_repo
+    from texgraph.env import resolve_in_repo
     dest = resolve_in_repo(output)
     if dest.exists():
         console.print(f"[red]Refusing to overwrite existing file:[/red] {dest}")
@@ -931,8 +1151,8 @@ def audit(
     """Audit a transcription book directory for completeness and correctness."""
     import json as _json
 
-    from fletcher.audit import audit_book
-    from fletcher.env import resolve_in_repo
+    from texgraph.audit import audit_book
+    from texgraph.env import resolve_in_repo
 
     result = audit_book(resolve_in_repo(volume))
     if as_json:
@@ -964,8 +1184,8 @@ def metadata(
     """Generate or validate per-book book.json metadata."""
     import json as _json
 
-    from fletcher.env import repo_root, resolve_in_repo
-    from fletcher.metadata import book_dirs, build_metadata
+    from texgraph.env import repo_root, resolve_in_repo
+    from texgraph.metadata import book_dirs, build_metadata
 
     tgt = resolve_in_repo(target)
     books = book_dirs(tgt)
@@ -1014,7 +1234,7 @@ def page_map(
     printed: str = typer.Option(..., "--printed", help='Page range spec, e.g. "7-10,14,18".'),
 ) -> None:
     """Map printed page numbers to scan page numbers via a fixed offset."""
-    from fletcher.pagemap import expand_pages
+    from texgraph.pagemap import expand_pages
 
     try:
         pages = expand_pages(printed)
@@ -1038,8 +1258,8 @@ def plan(
     """Inspect project plan heading structure and index readiness."""
     import re as _re
 
-    from fletcher.env import resolve_in_repo
-    from fletcher.plan import headings
+    from texgraph.env import resolve_in_repo
+    from texgraph.plan import headings
 
     path = resolve_in_repo(document)
     if not path.exists():
@@ -1086,9 +1306,9 @@ def scan(
     back_pages: int = typer.Option(12, "--back-pages", help="Pages to scan at back of source.", show_default=True),
 ) -> None:
     """Scan source PDFs for front/back matter keyword signals."""
-    from fletcher.env import resolve_in_repo
-    from fletcher.metadata import book_dirs, build_metadata
-    from fletcher.scan import _write_markdown, scan_book
+    from texgraph.env import resolve_in_repo
+    from texgraph.metadata import book_dirs, build_metadata
+    from texgraph.scan import _write_markdown, scan_book
 
     tgt = resolve_in_repo(target)
     books = book_dirs(tgt)

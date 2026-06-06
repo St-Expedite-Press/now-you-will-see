@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import type { PoemDetail } from '@/types/poem'
 import type { SectionDetail, SectionSummary } from '@/types/section'
 
-export type ViewMode = 'cards' | 'graph' | 'build' | 'covers'
+export type ViewMode = 'cards' | 'graph' | 'build' | 'covers' | 'audit'
 
 interface EditorStore {
   activeSection: SectionSummary | SectionDetail | null

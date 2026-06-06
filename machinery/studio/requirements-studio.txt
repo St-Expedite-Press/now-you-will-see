@@ -1,8 +1,9 @@
 # Texgraph Studio — FastAPI backend dependencies
-# Install alongside the main texgraph package:
+# Canonical setup lives in machinery/docs/STUDIO_FRONTEND.md:
 #   source .venv/Scripts/activate   (Windows)
-#   pip install -e .
-#   pip install -r requirements-studio.txt
+#   pip install -e ".[studio]"
+#
+# Keep this manifest only for environments that require a flat requirements file.
 
 # Web framework
 fastapi>=0.110.0

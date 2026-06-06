@@ -8,6 +8,7 @@ import PropertiesPanel from '@/components/properties/PropertiesPanel'
 import GraphCanvas from '@/components/graph/GraphCanvas'
 import BuildPanel from '@/components/build/BuildPanel'
 import CoverStudio from '@/pages/CoverStudio'
+import AuditDashboard from '@/pages/AuditDashboard'
 import AgentPanel from '@/components/agent/AgentPanel'
 import { useAgentStore } from '@/store/useAgentStore'
 import { useEditorStore } from '@/store/useEditorStore'
@@ -65,6 +66,8 @@ export default function ProjectEditor() {
         {view === 'build' && <BuildPanel projectId={projectId!} />}
 
         {view === 'covers' && <CoverStudio projectId={projectId!} />}
+
+        {view === 'audit' && <AuditDashboard projectId={projectId!} />}
 
         {agentOpen && (
           <div className="absolute right-0 top-0 bottom-0 w-80 border-l border-border z-10">

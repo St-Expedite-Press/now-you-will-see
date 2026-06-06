@@ -18,7 +18,7 @@ If `.venv` is missing, create it with `python -m venv .venv` then install:
 
 ```powershell
 .\.venv\Scripts\pip.exe install -e .
-.\.venv\Scripts\pip.exe install -r machinery\studio\requirements-studio.txt
+.\.venv\Scripts\pip.exe install -e ".[studio]"
 ```
 
 Keep tools standard-library unless a dependency is clearly needed; record

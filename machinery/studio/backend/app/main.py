@@ -11,7 +11,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
 from app.core.exceptions import AgentError, BuildError, ConflictError, NotFoundError, ValidationError
-from app.routers import agent, build, covers, poems, preview, projects, render_config, sections, versions
+from app.routers import audit, agent, build, covers, poems, preview, projects, render_config, sections, versions
 
 app = FastAPI(
     title=settings.app_title,
@@ -66,6 +66,7 @@ app.include_router(render_config.router, prefix="/api/projects/{project_id}/rend
 app.include_router(build.router, prefix="/api/projects/{project_id}/build", tags=["build"])
 app.include_router(preview.router, prefix="/api/projects/{project_id}/preview", tags=["preview"])
 app.include_router(agent.router, prefix="/api/agent", tags=["agent"])
+app.include_router(audit.router, prefix="/api/audit", tags=["audit"])
 app.include_router(covers.router, prefix="/api/covers", tags=["covers"])
 
 # --- Health check ---

@@ -4,7 +4,7 @@ import argparse
 import json
 import shutil
 
-from fletcher.env import repo_root, resolve_in_repo, run_checked
+from texgraph.env import repo_root, resolve_in_repo, run_checked
 
 
 def _require_binary(name: str) -> str:

@@ -1,5 +1,5 @@
 import pytest
-from fletcher.pagemap import expand_pages
+from texgraph.pagemap import expand_pages
 
 
 def test_single_page():

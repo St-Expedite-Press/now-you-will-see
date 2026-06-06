@@ -1,4 +1,4 @@
-from fletcher.audit import FORBIDDEN, forbidden_tokens
+from texgraph.audit import FORBIDDEN, forbidden_tokens
 
 
 def test_clean_poem():

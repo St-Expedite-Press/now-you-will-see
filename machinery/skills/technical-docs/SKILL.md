@@ -70,7 +70,7 @@ Do not save a new baseline until `ONTOLOGY.md` has been updated.
 
 - **Directory Taxonomy**: add/remove/rename any directory or file type
 - **Data Schemas**: add/remove/rename any YAML field; new file type conventions
-- **Command Surface**: any `texgraph` or `fletcher` command change (new, renamed, removed)
+- **Command Surface**: any `texgraph` command change (new, renamed, removed)
 - **Pipeline Architecture**: new stage, changed DAG edge, new gate requirement
 - **Key Invariants**: new must-be-true fact, or removal of a constraint
 - **Dependency Map**: new Python package, removed package, new external binary

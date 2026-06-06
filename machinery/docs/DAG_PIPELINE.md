@@ -11,6 +11,10 @@ can prepare outputs for the next stage, but promotion requires explicit user
 input. The system may recommend, validate, or package; it does not silently
 decide.
 
+Studio's Product Readiness Audit is deliberately outside this graph. It audits
+the system and Studio surface; it does not promote project artifacts and does
+not write `PROMOTION.yaml`.
+
 ## Graph
 
 ```text
@@ -45,7 +49,10 @@ until the upstream stage's PROMOTION.yaml exists and passes `texgraph verify`.
 **Pending gates** (not yet implemented):
 - front-end stage has no formal verify gate yet
 - `texgraph promote <stage>` command (writes approved PROMOTION.yaml) — step 5 of gate plan
-- `texgraph proof-build` command — step 4 of gate plan
+
+Implemented support command:
+- `texgraph proof-build` renders a proof artifact tree and proof PDF from the
+  typeset manuscript.
 
 See `ONTOLOGY.md § Data Schemas` for full PROMOTION.yaml schemas per stage.
 See `machinery/src/texgraph/promotions.py` for the verification implementation.

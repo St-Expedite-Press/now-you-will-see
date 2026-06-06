@@ -88,6 +88,7 @@ This is a property of the task instance, not the job type. For the full classifi
 | File | Purpose |
 |---|---|
 | `AGENTS.md` | Root dispatcher: routing table, DAG, invariants, loops |
+| `CLAUDE.md` | Session startup protocol for Claude/Codex work |
 | `ONTOLOGY.md` | This file — comprehensive repo reference |
 | `PERSONA.md` | Editorial voice contract template for generative prose |
 | `workspace.example.yaml` | Template for local workspace registration |
@@ -104,6 +105,7 @@ owns contracts and reusable workflows — not project data.
 ```
 <stage>/
   AGENTS.md              ← stage contract: inputs, outputs, gate, skills, tools
+  RUNBOOK.md             ← operator guide: concrete commands, paths, failure modes
   skills/
     <skill-name>/
       SKILL.md           ← reusable workflow program, loaded on demand
@@ -121,13 +123,12 @@ All executable code and cross-stage infrastructure.
 ```
 machinery/
   src/
-    texgraph/            ← build system: CLI, config, parser, renderer, compiler
-    fletcher/            ← editorial tools: audit, metadata, PDF, archive, scan
+    texgraph/            ← build system and editorial tools: CLI, config, parser, renderer, compiler, audit, metadata, PDF, archive, scan
   studio/
     backend/             ← FastAPI services (projects, builds, covers, previews)
     frontend/            ← React + Vite + TypeScript Studio interface
   tests/                 ← regression test suite
-  docs/                  ← technical reference documents
+  docs/                  ← technical reference documents; Studio frontend dev lives in STUDIO_FRONTEND.md
   skills/                ← cross-stage infrastructure workflow programs
   tools/                 ← cross-stage infrastructure scripts
 ```
@@ -186,6 +187,9 @@ registers each project ID and its typeset path.
 | `.ontology-baseline` | Stored git hash for ontology_check.py comparisons. Gitignored. |
 | `PROMOTION.yaml` | Stage gate record at `projects/<id>/<stage>/PROMOTION.yaml`. Written by `texgraph ingest rename` / `texgraph promote`. Read by `texgraph verify`. |
 | `<stable_name>.provenance.yaml` | Source provenance record beside the renamed ingest file. Documents origin, rights, SHA-256 checksum, ingested_at timestamp, and notes. |
+| `RUNBOOK.md` | Operator guide at a stage root (`ingest/RUNBOOK.md`, etc.). Concrete commands, expected outputs, failure modes, and a walkthrough example. Complements `AGENTS.md`. |
+| `RUN_REPORT.md` | Session log at `projects/<id>/RUN_REPORT.md`. Records what was executed, what was found, what was corrected, and what remains. Persists across sessions. |
+| `STUDIO_FRONTEND.md` | Canonical Studio frontend development reference: scope, routes, current UI status, setup, and tests. |
 
 ---
 
@@ -347,6 +351,53 @@ cover_unlock:
 
 Gate condition for `covers`: `status == approved`, `final_pdf` exists on disk, `cover_unlock.unlocked`.
 
+### Studio AuditRun
+
+Returned by `POST /api/audit/run`. This is a read-only product readiness audit
+contract for Studio, not a pipeline artifact and not a source-text audit.
+
+```yaml
+id: audit-<opaque>
+created_at: "2026-06-06T00:00:00+00:00"
+repo_root: C:/path/to/Texgraph
+persona: burned_out_bay_area_engineer
+frontend_framework: react
+mode: read_only
+target: texgraph_current_system
+status: complete                    # pending | running | complete | failed
+subagents:
+  - id: pipeline-gates
+    name: Pipeline/Gate Auditor
+    category: Pipeline and gates
+    status: warn                    # pass | warn | fail | blocked
+    score: 6
+    max_score: 10
+    findings:
+      - severity: high              # critical | high | medium | low
+        claim: "Finding summary"
+        evidence_refs: ["gate-code"]
+        product_risk: "Risk to product readiness"
+        recommended_next_step: "Next concrete action"
+    evidence:
+      - id: gate-code
+        kind: file                  # file | command | test | doc | api | ui
+        path: machinery/src/texgraph/promotions.py
+        command: null
+        observed: "Evidence summary"
+    open_questions: []
+report:
+  one_sentence_product: "..."
+  specific_user: "..."
+  works_today_without_founder: []
+  breaks_first: []
+  next_risk_reducing_milestone: "..."
+  verdict: promising_not_ready      # not_ready | promising_not_ready | narrowly_usable | ready_for_limited_users | product_ready
+  category_scores: {}
+  executive_summary: "..."
+  highest_risk_assumption: "..."
+  priority_findings: []
+```
+
 ### Book manifest front matter (transcription projects)
 
 ```yaml
@@ -438,13 +489,14 @@ When the task involves specific content types, load the matching sub-skill:
 
 ## Command Surface
 
-Both `texgraph` and `fletcher` invoke the same CLI. `fletcher` is an alias.
+The CLI is invoked as `texgraph`.
 
 ### Build and workspace commands
 
 | Command | Stage | What it does |
 |---|---|---|
 | `texgraph build [--project <id>] [--draft]` | typeset | Parse → render → compile PDF |
+| `texgraph proof-build [--project <id>]` | proof/typeset | Render proof fragment tree and proof PDF from the typeset manuscript |
 | `texgraph watch [--project <id>]` | typeset | Auto-rebuild on file changes |
 | `texgraph list` | workspace | List registered projects |
 | `texgraph new poem "Title" [--section <id>]` | typeset | Scaffold poem file |
@@ -482,8 +534,22 @@ Both `texgraph` and `fletcher` invoke the same CLI. `fletcher` is an alias.
 | `POST /api/projects/{id}/build` | Trigger build |
 | `GET /api/projects/{id}/preview` | Generate preview |
 | `POST /api/agent` | Agent endpoints |
+| `POST /api/audit/run` | Run read-only product readiness audit |
 | `GET/POST /api/covers` | Cover management |
 | `GET /health` | Health check |
+
+### Studio frontend routes
+
+The canonical Studio frontend reference is `machinery/docs/STUDIO_FRONTEND.md`.
+
+| Route | Purpose |
+|---|---|
+| `/` | Studio entry |
+| `/ingest` | Ingest project picker |
+| `/projects` | Continue Project |
+| `/projects/new` | Create Project |
+| `/projects/{id}/ingest` | Project-scoped Ingest Documents wireframe |
+| `/projects/{id}` | Project editor |
 
 ---
 
@@ -500,10 +566,10 @@ Both `texgraph` and `fletcher` invoke the same CLI. `fletcher` is an alias.
 | `rich` | cli.py | Terminal output formatting |
 | `watchdog` | cli.py (watch) | File system event monitoring |
 | `python-dotenv` | config.py | .env file loading |
-| `pydantic` | fletcher/models.py, studio | Data validation |
+| `pydantic` | texgraph/models.py, studio | Data validation |
 | `mistune` | (available, not active) | Markdown parsing |
 
-### Python packages (studio — requirements-studio.txt)
+### Python packages (studio — `pyproject.toml` extra: `.[studio]`)
 
 | Package | Used by | Purpose |
 |---|---|---|
@@ -558,11 +624,11 @@ These must always be true. Violating any of them breaks the system.
 
 9. **`.env` is never committed**. It is gitignored and contains live credentials.
 
-10. **`projects/` is gitignored** except explicitly tracked example projects
-    listed in `.gitignore` as negation rules (e.g., `!projects/spectra_poems/`).
+10. **`projects/` is gitignored** except explicitly tracked project exceptions
+    listed in `.gitignore` as negation rules. Current tracked exception:
+    `projects/spectra_poems/`.
 
-11. **`texgraph` and `fletcher` are aliases for the same CLI**. Keep command
-    names stable; treat both as compatibility entrypoints.
+11. **`texgraph` is the sole CLI entrypoint**. Keep the command name stable.
 
 12. **`PROMOTION.yaml` is the machine-readable gate**. A stage does not begin
     work unless the upstream PROMOTION.yaml exists and passes `texgraph verify`.
@@ -585,7 +651,7 @@ These must always be true. Violating any of them breaks the system.
 # Create venv and install all dependencies
 python -m venv .venv
 .\.venv\Scripts\pip.exe install -e .
-.\.venv\Scripts\pip.exe install -r machinery\studio\requirements-studio.txt
+.\.venv\Scripts\pip.exe install -e ".[studio]"
 
 # Copy workspace template
 Copy-Item workspace.example.yaml workspace.yaml

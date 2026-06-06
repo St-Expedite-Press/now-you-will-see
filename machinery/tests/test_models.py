@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from fletcher.models import PoemFrontMatter, first_heading, parse_front_matter
+from texgraph.models import PoemFrontMatter, first_heading, parse_front_matter
 
 _VALID_POEM = """\
 ---

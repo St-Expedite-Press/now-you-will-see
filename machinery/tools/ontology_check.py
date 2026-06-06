@@ -43,7 +43,6 @@ TRACKED: dict[str, list[str]] = {
     ],
     "infrastructure": [
         "machinery/src/texgraph/*.py",
-        "machinery/src/fletcher/*.py",
         "machinery/studio/backend/app/routers/*.py",
     ],
     "dependencies": [

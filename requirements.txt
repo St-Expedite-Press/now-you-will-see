@@ -3,12 +3,13 @@
 #
 #   pip install -e .
 #
-# For Studio (FastAPI backend + Anthropic agent service):
+# For Studio (FastAPI backend + Anthropic agent service), use the optional
+# dependency group documented in machinery/docs/STUDIO_FRONTEND.md:
 #
-#   pip install -r machinery/studio/requirements-studio.txt
+#   pip install -e ".[studio]"
 #
-# This file lists everything explicitly for environments that prefer a flat
-# requirements file over pyproject.toml.
+# This file lists everything explicitly for environments that require a flat
+# requirements file instead of pyproject.toml extras.
 
 # ── Core build and editorial tools ─────────────────────────────────────────
 python-frontmatter>=1.1.0

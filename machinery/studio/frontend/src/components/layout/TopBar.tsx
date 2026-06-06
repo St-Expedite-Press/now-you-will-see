@@ -1,4 +1,4 @@
-import { BookOpenText, Bot, Boxes, Hammer, Palette, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
+import { BookOpenText, Bot, Boxes, FileSearch, Hammer, Palette, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import type { ViewMode } from '@/store/useEditorStore'
 import { useAgentStore } from '@/store/useAgentStore'
 import { useEditorStore } from '@/store/useEditorStore'
@@ -15,6 +15,7 @@ const VIEWS: { id: ViewMode; label: string; icon: typeof BookOpenText }[] = [
   { id: 'graph', label: 'Graph', icon: Boxes },
   { id: 'build', label: 'Build', icon: Hammer },
   { id: 'covers', label: 'Covers', icon: Palette },
+  { id: 'audit', label: 'Audit', icon: FileSearch },
 ]
 
 export default function TopBar({ view, onViewChange, projectId }: Props) {

@@ -58,6 +58,27 @@ _LATEX_ESCAPE_MAP: list[tuple[str, str]] = [
     ("]",  r"{]}"),
 ]
 
+# ---------------------------------------------------------------------------
+# Leading-space indentation helper
+# ---------------------------------------------------------------------------
+
+def _indent_prefix(line: str) -> tuple[str, str]:
+    """Split leading spaces from *line*; return (latex_hspace, stripped_line).
+
+    Two leading spaces = 1em of verse indentation, matching the transcription
+    convention of 2-space indent levels.  Returns an empty prefix string when
+    there is no indentation.  Tabs are treated as 4 spaces each.
+    """
+    expanded = line.replace("\t", "    ")
+    stripped = expanded.lstrip(" ")
+    count = len(expanded) - len(stripped)
+    if count == 0:
+        return "", stripped
+    em = count * 0.5
+    em_str = str(int(em)) if em == int(em) else f"{em:.1f}"
+    return rf"\hspace{{{em_str}em}}", stripped
+
+
 # Fancy quotes — only convert straight ASCII double-quote pairs.
 # Unicode curly single/double quotes are handled in _DASH_MAP above.
 # Single-quote pairs are NOT converted here because the regex greedily
@@ -276,6 +297,99 @@ class LaTeXRenderer:
     # Context construction
     # ------------------------------------------------------------------
 
+    # ------------------------------------------------------------------
+    # Proof-stage fragment rendering
+    # ------------------------------------------------------------------
+
+    def render_fragment(
+        self,
+        poem: Poem,
+        section: Section,
+        config: dict[str, Any],
+        template_name: str = "proof_fragment.tex.jinja2",
+        **extras: Any,
+    ) -> str:
+        """Render one content unit as a standalone LaTeX fragment.
+
+        Parameters
+        ----------
+        poem:
+            The content unit to render.
+        section:
+            The section this unit belongs to (needed for section-title and
+            context-dependent prose rendering).
+        config:
+            Raw (unescaped) collection config dict from
+            :meth:`~texgraph.config.CollectionConfig.as_dict`.
+        template_name:
+            Fragment template to use.
+        **extras:
+            Additional template variables, e.g. ``include_part_heading=True``.
+        """
+        template = self._env.get_template(template_name)
+        escaped_config = self._escape_config_dict(config)
+        section_ctx = {
+            "title": escape_latex(section.title),
+            "meta": {k: escape_latex(str(v)) if isinstance(v, str) else v
+                     for k, v in section.meta.items()},
+        }
+        return template.render(
+            poem=self._process_poem(poem),
+            section=section_ctx,
+            config=escaped_config,
+            rc=config.get("render_config") or {},
+            escape_latex=escape_latex,
+            **{"include_part_heading": False, **extras},
+        )
+
+    def render_proof_preamble(
+        self,
+        config: dict[str, Any],
+        template_name: str = "proof_preamble.tex.jinja2",
+    ) -> str:
+        """Render the shared LaTeX preamble fragment (no \\documentclass)."""
+        template = self._env.get_template(template_name)
+        return template.render(
+            config=self._escape_config_dict(config),
+            rc=config.get("render_config") or {},
+        )
+
+    def render_proof_master(
+        self,
+        config: dict[str, Any],
+        frontmatter_paths: list[str],
+        main_paths: list[str],
+        backmatter_paths: list[str],
+        template_name: str = "proof_master.tex.jinja2",
+    ) -> str:
+        """Render the master document that \\input{}'s all proof fragments."""
+        template = self._env.get_template(template_name)
+        return template.render(
+            config=self._escape_config_dict(config),
+            rc=config.get("render_config") or {},
+            frontmatter_paths=frontmatter_paths,
+            main_paths=main_paths,
+            backmatter_paths=backmatter_paths,
+        )
+
+    # ------------------------------------------------------------------
+    # Context construction
+    # ------------------------------------------------------------------
+
+    def _escape_config_dict(self, config: dict[str, Any]) -> dict[str, Any]:
+        """Escape all string values in a config dict for LaTeX output."""
+        return {
+            k: (
+                dict(v)
+                if k == "render_config" and isinstance(v, dict)
+                else {rk: escape_latex(str(rv), smart_quotes=False) if isinstance(rv, str) else rv
+                      for rk, rv in v.items()}
+                if isinstance(v, dict)
+                else escape_latex(str(v)) if isinstance(v, str) else v
+            )
+            for k, v in config.items()
+        }
+
     def _build_context(self, collection_data: dict[str, Any]) -> dict[str, Any]:
         """Build the full Jinja2 template context from *collection_data*.
 
@@ -286,21 +400,10 @@ class LaTeXRenderer:
         config: dict[str, Any] = collection_data.get("config", {})
         sections: list[Section] = collection_data.get("sections", [])
 
-        escaped_config = {
-            k: (
-                dict(v)
-                if k == "render_config" and isinstance(v, dict)
-                else {rk: escape_latex(str(rv), smart_quotes=False) if isinstance(rv, str) else rv for rk, rv in v.items()}
-                if isinstance(v, dict)
-                else escape_latex(str(v)) if isinstance(v, str) else v
-            )
-            for k, v in config.items()
-        }
-
         processed_sections = [self._process_section(s) for s in sections]
 
         return {
-            "config": escaped_config,
+            "config": self._escape_config_dict(config),
             "sections": processed_sections,
             "raw_config": config,
             "escape_latex": escape_latex,
@@ -411,7 +514,8 @@ class LaTeXRenderer:
                         raw = line[2:] if line.startswith("> ") else line[1:]
                     else:
                         raw = line
-                    escaped = _md_inline_to_latex(raw.rstrip())
+                    indent, raw_stripped = _indent_prefix(raw.rstrip())
+                    escaped = indent + _md_inline_to_latex(raw_stripped)
                     if i < len(stanza.lines) - 1:
                         escaped += r" \\"
                     rendered_lines.append(escaped)
@@ -444,7 +548,8 @@ class LaTeXRenderer:
                     raw = line[2:] if line.startswith("> ") else line[1:]
                 else:
                     raw = line
-                esc = _md_inline_to_latex(raw.rstrip())
+                indent, raw_stripped = _indent_prefix(raw.rstrip())
+                esc = indent + _md_inline_to_latex(raw_stripped)
                 if i < len(stanza.lines) - 1:
                     esc += r" \\"
                 rendered_lines.append(esc)

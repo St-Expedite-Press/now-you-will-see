@@ -20,11 +20,15 @@ Before editing poem files, read:
 
 1. When asked to transcribe a volume, fill the poem Markdown files. Do not stop
    at a plan unless the user explicitly asks only for a plan.
-2. Render or open the relevant scan page before editing. Prefer the deterministic
-   wrapper: `fletcher pdf render ...`.
-3. Use OCR only to navigate or check readings. Prefer
-   `fletcher pdf text ...`. Do not paste unchecked OCR as the
-   final text.
+2. Render or open the relevant scan page before editing:
+   ```powershell
+   .\.venv\Scripts\texgraph.exe pdf render <pdf> --first <n> --last <n> --prefix <prefix>
+   ```
+3. Use OCR only to navigate or check readings:
+   ```powershell
+   .\.venv\Scripts\texgraph.exe pdf text <pdf> --first <n> --last <n> --output <file>
+   ```
+   Do not paste unchecked OCR as the final text.
 4. Transcribe into the existing poem file.
 5. Use YAML front matter with the repository's standard fields.
 6. Use one `# Title` heading.

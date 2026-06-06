@@ -4,7 +4,7 @@ import argparse
 import re
 from pathlib import Path
 
-from fletcher.env import resolve_in_repo
+from texgraph.env import resolve_in_repo
 
 _HEADING_RE = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
 _STALE_CITE_RE = re.compile(r"(?:cite[^\n]{0,40}turn\d+)|turn\d+(?:view|search|news|reddit)\d+")

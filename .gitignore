@@ -14,12 +14,12 @@ build/
 node_modules/
 *.tsbuildinfo
 
-# Local project data — tracked example excepted
+# Local project data — tracked examples excepted
 projects/*
 !projects/spectra_poems/
 workspace.yaml
 
-# LaTeX artifacts
+# LaTeX build artifacts (ephemeral)
 *.aux
 *.log
 *.out
@@ -27,7 +27,10 @@ workspace.yaml
 *.synctex.gz
 *.fdb_latexmk
 *.fls
-output/**/*
+# Output directory: PDFs and metadata are ephemeral; tex files in output/tex/ are artifacts
+**/output/*.pdf
+**/output/*.xmpi
+# output/tex/*.tex is intentionally NOT ignored — those are tracked artifacts
 machinery/studio/backend/static/
 machinery/studio/frontend/dist/
 

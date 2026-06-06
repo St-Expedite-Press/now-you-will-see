@@ -5,8 +5,8 @@ import json
 from pathlib import Path
 from typing import Any
 
-from fletcher.env import repo_root, resolve_in_repo
-from fletcher.models import BookFrontMatter, VolumeFrontMatter, first_heading, parse_front_matter
+from texgraph.env import repo_root, resolve_in_repo
+from texgraph.models import BookFrontMatter, VolumeFrontMatter, first_heading, parse_front_matter
 
 _SERIES_DEFAULT = "John Gould Fletcher: The Complete Original Collections"
 
