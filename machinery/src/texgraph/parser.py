@@ -417,6 +417,39 @@ def _section_markdown_files(section_dir: Path) -> list[Path]:
 # Main parser class
 # ---------------------------------------------------------------------------
 
+_READING_SECTION_RE = re.compile(
+    r"^## (Original Lineation|Editorial Relineation|Context Notes)[ \t]*$",
+    re.MULTILINE,
+)
+
+
+def _split_reading_sections(body: str) -> tuple[str, str]:
+    """Split a reading-edition poem body into typeset text and context notes.
+
+    Reading-edition files (see the project's manuscript EDITORIAL_PROCEDURE.md)
+    hold up to three literal H2 sections: ``Original Lineation`` (the
+    documentary witness), ``Editorial Relineation`` (line- and stanza-break
+    decisions only), and ``Context Notes`` (editorial prose).  The Editorial
+    Relineation is typeset when present, else the Original Lineation; Context
+    Notes are returned separately for apparatus use and never typeset inline.
+    Section boundaries are these three literal headings only — any other
+    heading (e.g. a poem's internal ``## I`` movements) stays inside its
+    section.  Bodies without the section headings pass through unchanged.
+    """
+    matches = list(_READING_SECTION_RE.finditer(body))
+    if not matches:
+        return body, ""
+    sections: dict[str, str] = {}
+    for i, m in enumerate(matches):
+        end = matches[i + 1].start() if i + 1 < len(matches) else len(body)
+        sections.setdefault(m.group(1), body[m.end():end].strip("\n"))
+    text = sections.get("Editorial Relineation") or sections.get("Original Lineation")
+    notes = sections.get("Context Notes", "")
+    if text is None:
+        return body, notes
+    return text, notes
+
+
 class PoetryParser:
     """Parse individual poem files and whole collection directory trees.
 
@@ -469,7 +502,11 @@ class PoetryParser:
         if self._strip_html_comments:
             body = self._html_comment_re.sub("", body)
 
+        body, context_notes = _split_reading_sections(body)
+
         meta: dict[str, Any] = dict(post.metadata)
+        if context_notes:
+            meta.setdefault("context_notes", context_notes)
 
         # Detect type early (before Poem construction) so we can choose
         # the right parsing strategy.

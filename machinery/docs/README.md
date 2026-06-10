@@ -16,6 +16,7 @@ This directory is the canonical documentation shelf for Texgraph.
 - `DATA_DICTIONARY.md` — stable public data contracts
 - `PROCEDURES.md` — operator procedures from repo root
 - `MODULE_REFACTOR_STATUS.md` — current modular-refactor audit status
+- `REPO_STRUCTURE_PLAN.md` — phased restructure plan and target tree
 - `TOOL_PROPOSALS.md` — proposed future commands and helpers
 - `STUDIO_FRONTEND.md` — Studio frontend setup, routes, and smoke tests
 

@@ -118,6 +118,19 @@ LEGACY_MODULE_MIGRATION: dict[str, str] = {
     "covers": "covers",
 }
 
+# Sub-path moves applied after the top-level module renames.  Paths are
+# expressed in canonical (post-rename) module terms; planning also finds the
+# pre-rename legacy location.  Rationale: hand-curated text never lives under
+# a directory a build writes, and build output never lives in manuscript.
+LEGACY_SUBPATH_MIGRATION: tuple[tuple[str, str, str], ...] = (
+    ("interior/content", "manuscript/reading",
+     "reading edition is manuscript-owned, builds consume it read-only"),
+    ("interior/EDITORIAL_PROCEDURE.md", "manuscript/EDITORIAL_PROCEDURE.md",
+     "editorial procedure travels with the reading edition"),
+    ("manuscript/output", "interior/output/legacy-proof",
+     "superseded build output belongs under interior, not manuscript"),
+)
+
 
 def load_modules(root: Path | None = None) -> list[ModuleDef]:
     """Load canonical modules from ``modules/*/module.yaml`` with built-in fallback."""
@@ -245,6 +258,24 @@ def plan_module_migration(project_id: str, start: Path | None = None) -> ModuleM
         else:
             steps.append(ModuleMigrationStep(old_name, new_name, old_path, new_path, "missing"))
 
+    for canonical_sub, new_sub, reason in LEGACY_SUBPATH_MIGRATION:
+        found = _existing_subpath_variant(project_root, canonical_sub)
+        new_path = project_root / new_sub
+        # The apply step runs after the top-level renames, so the source is
+        # always addressed at its canonical (post-rename) location.
+        old_path = project_root / canonical_sub
+        if found is None:
+            steps.append(ModuleMigrationStep(
+                canonical_sub, new_sub, old_path, new_path, "missing", reason))
+        elif new_path.exists():
+            msg = f"both {canonical_sub} and {new_sub} exist"
+            conflicts.append(msg)
+            steps.append(ModuleMigrationStep(
+                canonical_sub, new_sub, old_path, new_path, "conflict", msg))
+        else:
+            steps.append(ModuleMigrationStep(
+                canonical_sub, new_sub, old_path, new_path, "move", reason))
+
     updated_path = _updated_workspace_path(ref.path)
     return ModuleMigrationPlan(
         project_id=project_id,
@@ -264,10 +295,19 @@ def apply_module_migration(plan: ModuleMigrationPlan) -> None:
         joined = "; ".join(plan.conflicts)
         raise RuntimeError(f"Refusing migration due to conflicts: {joined}")
 
+    moved_reading = False
     for step in plan.steps:
         if step.action == "move":
             step.new_path.parent.mkdir(parents=True, exist_ok=True)
             step.old_path.rename(step.new_path)
+            if step.new_name == "manuscript/reading":
+                moved_reading = True
+
+    if moved_reading:
+        _rewrite_collection_content_dir(
+            plan.project_root / "interior" / "collection.yaml",
+            "../manuscript/reading",
+        )
 
     if plan.workspace_project_path != plan.updated_workspace_project_path:
         _rewrite_workspace_project_path(
@@ -314,6 +354,39 @@ def _module_from_manifest(data: dict[str, Any], manifest: Path) -> ModuleDef | N
         description=str(data.get("description") or (builtin.description if builtin else "")),
         source=str(manifest),
     )
+
+
+def _existing_subpath_variant(project_root: Path, canonical_sub: str) -> Path | None:
+    """Find *canonical_sub* under the project at its canonical or legacy location."""
+
+    parts = Path(canonical_sub).parts
+    candidates = [project_root / canonical_sub]
+    for legacy, canon in LEGACY_MODULE_MIGRATION.items():
+        if canon == parts[0] and legacy != parts[0]:
+            candidates.append(project_root / Path(legacy, *parts[1:]))
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return None
+
+
+def _rewrite_collection_content_dir(collection_yaml: Path, content_dir: str) -> None:
+    """Point ``content_dir`` in *collection_yaml* at the relocated reading edition.
+
+    Edits the line in place to preserve the file's ordering and comments.
+    """
+
+    if not collection_yaml.exists():
+        return
+    import re as _re
+
+    text = collection_yaml.read_text(encoding="utf-8")
+    new_line = f"content_dir: {content_dir}"
+    if _re.search(r"^content_dir:.*$", text, _re.MULTILINE):
+        text = _re.sub(r"^content_dir:.*$", new_line, text, count=1, flags=_re.MULTILINE)
+    else:
+        text = text.rstrip("\n") + "\n" + new_line + "\n"
+    collection_yaml.write_text(text, encoding="utf-8")
 
 
 def _normalize(value: str) -> str:
