@@ -18,12 +18,12 @@ verification, or production output — not content-type-specific formatting:
 - Preparing vendor submission specs
 
 For verse layout decisions (stanza_skip, indentation, cycles), load
-`modules/interior/skills/poetry/SKILL.md`. For prose layout, load
-`modules/interior/skills/prose/SKILL.md`.
+`typeset/skills/poetry/SKILL.md`. For prose layout, load
+`typeset/skills/prose/SKILL.md`.
 
 ## Required Reads
 
-- `projects/<project_id>/interior/collection.yaml` — current render_config
+- `projects/<project_id>/typeset/collection.yaml` — current render_config
 - `ONTOLOGY.md § Data Schemas` — full collection.yaml and render_config schema
 - `ONTOLOGY.md § Command Surface` — build and watch commands
 
@@ -89,7 +89,7 @@ IngramSpark minimum inside margins by page count:
 .\.venv\Scripts\texgraph.exe watch --project <id>
 ```
 
-Output goes to `projects/<project_id>/interior/output/`.
+Output goes to `projects/<project_id>/typeset/output/`.
 
 ## Draft Mode vs. Production Build
 
@@ -114,7 +114,7 @@ Use the exact name as shown by `fc-list`.
 After a production build, verify font embedding:
 
 ```powershell
-pdffonts projects/<project_id>/interior/output/<output>.pdf
+pdffonts projects/<project_id>/typeset/output/<output>.pdf
 ```
 
 All fonts must show `emb: yes`. Partial embedding or missing fonts fail most

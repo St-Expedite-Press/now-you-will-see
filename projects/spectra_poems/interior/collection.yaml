@@ -5,7 +5,7 @@ year: 2026
 publisher: "Spectra Editions"
 isbn: ""
 language: en
-content_dir: content
+content_dir: ../manuscript/reading
 output_dir: output
 lualatex_path: lualatex
 draft_mode: false

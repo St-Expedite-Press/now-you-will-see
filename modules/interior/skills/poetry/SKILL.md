@@ -22,7 +22,7 @@ Do not use for: prose sections (`type: prose`), cover assets, or e-reader output
 
 Before making layout decisions, read:
 
-- `projects/<project_id>/interior/collection.yaml` — active `render_config` values
+- `projects/<project_id>/typeset/collection.yaml` — active `render_config` values
 - `ONTOLOGY.md § Data Schemas` — `collection.yaml` and poem front matter fields
 - `ONTOLOGY.md § Command Surface` — build and watch commands
 
@@ -95,7 +95,7 @@ entries in the source.
 .\.venv\Scripts\texgraph.exe watch --project <id>
 ```
 
-Verify output in `projects/<project_id>/interior/output/`.
+Verify output in `projects/<project_id>/typeset/output/`.
 
 ## Guardrails
 

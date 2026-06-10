@@ -23,10 +23,10 @@ editorial apparatus, also load `proof/skills/transcription-verification`.
 ## Required Reads
 
 - `AGENTS.md`
-- `modules/manuscript/AGENTS.md`
+- `proof/AGENTS.md`
 - `ONTOLOGY.md § Data Schemas` — poem Markdown front matter spec
 - The poem source scan (open via `texgraph pdf render` or equivalent)
-- The poem file at `projects/<project_id>/interior/content/<section>/<file>.md`
+- The poem file at `projects/<project_id>/typeset/content/<section>/<file>.md`
 
 ## Proof Checklist
 
@@ -96,7 +96,7 @@ Set `status: final` only with explicit user approval.
 The `texgraph audit` command reports `status` values across a volume:
 
 ```powershell
-.\.venv\Scripts\texgraph.exe audit projects/<project_id>/transcription/<volume> --json
+.\.venv\Scripts\texgraph.exe audit projects/<project_id>/transcribe/<volume> --json
 ```
 
 Use this to identify poems not yet at `checked` status.
@@ -107,6 +107,5 @@ Use this to identify poems not yet at `checked` status.
 - Proof is a fidelity check against the source. Editorial improvements belong in
   a subsequent editorial pass with explicit user direction.
 - Do not change `type:` for typographic convenience — `type:` is a content classification.
-- When this checklist is used inside the manuscript module, corrections may
-  modify manuscript/interior content files only as part of an approved
-  correction pass.
+- When this checklist is used inside the typeset stage, corrections may modify
+  typeset manuscript files only as part of an approved correction pass.

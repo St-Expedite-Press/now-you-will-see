@@ -21,7 +21,7 @@ infrastructure documentation.
 ## Required Reads
 
 - `AGENTS.md`
-- `modules/manuscript/AGENTS.md`
+- `proof/AGENTS.md`
 - `ONTOLOGY.md § Data Schemas` — source matter front matter spec, poem front matter spec
 - The prose source scan (open via `texgraph pdf render`)
 - The file being proofed
