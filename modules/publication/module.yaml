@@ -1,0 +1,10 @@
+id: publication
+legacy_ids:
+  - front-end
+artifact_dir: projects/<project_id>/publication
+upstream:
+  - interior
+promotion_schema: projects/<project_id>/publication/PROMOTION.yaml
+commands:
+  - texgraph verify front-end
+agent_doc: modules/publication/AGENTS.md

@@ -1,0 +1,43 @@
+# Model configuration for Texgraph Studio agent
+# Provider: OpenRouter (openrouter.ai) — OpenAI-compatible API
+# API key is read from OPENROUTER_API_KEY in .env
+
+provider: openrouter
+base_url: https://openrouter.ai/api/v1
+api_key_env: OPENROUTER_API_KEY
+
+default: anthropic/claude-sonnet-4-6
+
+models:
+  # --- Anthropic via OpenRouter ---
+  - id: anthropic/claude-sonnet-4-6
+    label: Claude Sonnet 4.6
+    max_tokens: 8192
+    temperature: 0.3
+
+  - id: anthropic/claude-haiku-4-5
+    label: Claude Haiku 4.5
+    max_tokens: 8192
+    temperature: 0.3
+
+  - id: anthropic/claude-opus-4-8
+    label: Claude Opus 4.8
+    max_tokens: 8192
+    temperature: 0.3
+
+  # --- Google via OpenRouter ---
+  - id: google/gemini-2.0-flash-001
+    label: Gemini 2.0 Flash
+    max_tokens: 8192
+    temperature: 0.3
+
+  # --- OpenAI via OpenRouter ---
+  - id: openai/gpt-4o
+    label: GPT-4o
+    max_tokens: 8192
+    temperature: 0.3
+
+  - id: openai/gpt-4.1-mini
+    label: GPT-4.1 Mini
+    max_tokens: 8192
+    temperature: 0.3

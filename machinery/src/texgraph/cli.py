@@ -41,6 +41,10 @@ app = typer.Typer(
 )
 new_app = typer.Typer(help="Scaffold new collection items.")
 app.add_typer(new_app, name="new")
+modules_app = typer.Typer(help="Inspect canonical pipeline modules.")
+app.add_typer(modules_app, name="modules")
+migrate_app = typer.Typer(help="Run compatibility migrations.")
+app.add_typer(migrate_app, name="migrate")
 
 console = Console(stderr=True)
 
@@ -319,17 +323,17 @@ def proof_build(
         help="Show lualatex log output after compilation.",
     ),
 ) -> None:
-    """Build the proof artifact tree from the typeset manuscript.
+    """Build the proof-draft artifact tree from the interior manuscript.
 
     Each content unit — frontmatter pages, section title pages, dedications,
     poems, and backmatter chapters — is rendered as its own [bold].tex[/bold]
-    fragment under [bold]proof/output/tex/<section>/[/bold].
+    fragment under [bold]interior/output/proof/tex/<section>/[/bold].
 
     A shared [bold]preamble.tex[/bold] and a master document that assembles all
     fragments via [bold]\\\\input{}[/bold] are also written.  The master is
-    compiled to produce [bold]proof/output/<slug>.pdf[/bold].
+    compiled to produce [bold]interior/output/proof/<slug>.pdf[/bold].
 
-    Fragment artifacts are tracked in git; the PDF is gitignored.
+    Fragment artifacts are retained for later operation; the PDF is gitignored.
 
     Examples
     --------
@@ -352,9 +356,9 @@ def proof_build(
 
     cfg.draft_mode = True
 
-    typeset_root = cfg.project_root
-    project_root = typeset_root.parent
-    proof_out = project_root / "proof" / "output"
+    interior_root = cfg.project_root
+    project_root = interior_root.parent
+    proof_out = interior_root / "output" / "proof"
     tex_out = proof_out / "tex"
     tex_out.mkdir(parents=True, exist_ok=True)
 
@@ -363,7 +367,7 @@ def proof_build(
         + (f" — {cfg.subtitle}" if cfg.subtitle else "")
     )
     console.print(f"  [bold]Author:[/bold]      {cfg.author}")
-    console.print(f"  [bold]Proof output:[/bold] {proof_out}")
+    console.print(f"  [bold]Proof draft output:[/bold] {proof_out}")
 
     # --- Parse --------------------------------------------------------------
     parser = PoetryParser()
@@ -465,9 +469,15 @@ def proof_build(
         ),
         encoding="utf-8",
     )
+    try:
+        proof_display = proof_out.relative_to(project_root)
+        tex_display = tex_out.relative_to(project_root)
+    except ValueError:
+        proof_display = proof_out
+        tex_display = tex_out
     console.print(
-        f"  preamble → [bold]proof/output/tex/preamble.tex[/bold]\n"
-        f"  master   → [bold]proof/output/tex/{slug}.tex[/bold]"
+        f"  preamble -> [bold]{tex_display}/preamble.tex[/bold]\n"
+        f"  master   -> [bold]{tex_display}/{slug}.tex[/bold]"
     )
 
     # --- Compile master (2 passes for TOC) ----------------------------------
@@ -496,7 +506,7 @@ def proof_build(
         console.print(
             Panel(
                 f"[bold green]Success![/bold green]  PDF → [bold]{result.pdf_path}[/bold]\n"
-                f"\n[dim]proof_pdf for PROMOTION.yaml:  {rel_pdf}[/dim]",
+                f"\n[dim]draft_proof_pdf path:  {rel_pdf}[/dim]",
                 border_style="green",
             )
         )
@@ -513,6 +523,140 @@ def proof_build(
         console.print(f"\n  Full log: [dim]{result.log_path}[/dim]")
 
     raise typer.Exit(code=0 if result.success else 1)
+
+
+# ---------------------------------------------------------------------------
+# modules commands
+# ---------------------------------------------------------------------------
+
+
+@modules_app.command("list")
+def modules_list() -> None:
+    """List canonical modules and their legacy aliases."""
+    from texgraph.modules import load_modules
+
+    console.rule("[bold cyan]Texgraph Modules[/bold cyan]")
+    table = Table(show_header=True, header_style="bold cyan", box=None, padding=(0, 2))
+    table.add_column("Module", style="bold", no_wrap=True)
+    table.add_column("Path")
+    table.add_column("Upstream")
+    table.add_column("Legacy aliases")
+    table.add_column("Source", style="dim")
+
+    for module in load_modules():
+        table.add_row(
+            module.id,
+            module.path,
+            ", ".join(module.upstream),
+            ", ".join(module.legacy_aliases),
+            module.source,
+        )
+    console.print(table)
+
+
+@modules_app.command("verify")
+def modules_verify(
+    module_name: str = typer.Argument(..., metavar="MODULE", help="Module id or legacy alias."),
+) -> None:
+    """Verify a module registry entry and alias resolution."""
+    from texgraph.modules import get_module, load_modules, upstream_for
+
+    try:
+        module = get_module(module_name)
+    except KeyError as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(code=1)
+
+    aliases_seen: dict[str, str] = {}
+    issues: list[str] = []
+    for item in load_modules():
+        for alias in item.aliases:
+            normalized = alias.lower().replace("_", "-")
+            owner = aliases_seen.setdefault(normalized, item.id)
+            if owner != item.id:
+                issues.append(f"alias '{alias}' is shared by {owner} and {item.id}")
+
+    if module.upstream:
+        try:
+            upstream_for(module.id)
+        except KeyError as exc:
+            issues.append(str(exc))
+
+    console.rule(f"[bold cyan]Texgraph Module Verify - {module_name}[/bold cyan]")
+    console.print(f"  Module:   [bold]{module.id}[/bold]")
+    console.print(f"  Path:     {module.path}")
+    console.print(f"  Aliases:  {', '.join(module.legacy_aliases) or '(none)'}")
+    console.print(f"  Upstream: {', '.join(module.upstream) or '(none)'}")
+
+    if issues:
+        console.print(f"\n[bold red]FAILED[/bold red] {len(issues)} issue(s):")
+        for issue in issues:
+            console.print(f"  [red]x[/red] {issue}")
+        raise typer.Exit(code=1)
+
+    console.print("\n[bold green]OK[/bold green] module registry entry is valid.")
+
+
+# ---------------------------------------------------------------------------
+# migrate commands
+# ---------------------------------------------------------------------------
+
+
+@migrate_app.command("modules")
+def migrate_modules(
+    project: str = typer.Option(..., "--project", "-p", help="Project ID from workspace.yaml."),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Print planned moves without changing files."),
+    apply: bool = typer.Option(False, "--apply", help="Apply the module directory migration."),
+) -> None:
+    """Migrate legacy project stage directories to canonical module directories."""
+    from texgraph.modules import apply_module_migration, plan_module_migration
+
+    if dry_run == apply:
+        console.print("[red]Choose exactly one:[/red] --dry-run or --apply")
+        raise typer.Exit(code=1)
+
+    try:
+        plan = plan_module_migration(project, Path.cwd())
+    except (FileNotFoundError, KeyError, ValueError) as exc:
+        console.print(f"[red]Migration error:[/red] {exc}")
+        raise typer.Exit(code=1)
+
+    console.rule("[bold cyan]Texgraph Module Migration[/bold cyan]")
+    console.print(f"  Project:   [bold]{plan.project_id}[/bold]")
+    console.print(f"  Root:      [dim]{plan.project_root}[/dim]")
+    console.print(f"  Workspace: [dim]{plan.workspace_path}[/dim]\n")
+
+    table = Table(show_header=True, header_style="bold cyan", box=None, padding=(0, 2))
+    table.add_column("From")
+    table.add_column("To")
+    table.add_column("Action")
+    table.add_column("Reason")
+    for step in plan.steps:
+        table.add_row(step.old_name, step.new_name, step.action, step.reason)
+    console.print(table)
+
+    if plan.workspace_project_path != plan.updated_workspace_project_path:
+        console.print(
+            f"\n  workspace path: [bold]{plan.workspace_project_path}[/bold] -> "
+            f"[bold]{plan.updated_workspace_project_path}[/bold]"
+        )
+
+    if plan.conflicts:
+        console.print("\n[bold red]Refusing migration due to conflicts:[/bold red]")
+        for conflict in plan.conflicts:
+            console.print(f"  [red]x[/red] {conflict}")
+        raise typer.Exit(code=1)
+
+    if dry_run:
+        console.print("\n[yellow]Dry run only.[/yellow] No files changed.")
+        raise typer.Exit(code=0)
+
+    try:
+        apply_module_migration(plan)
+    except RuntimeError as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(code=1)
+    console.print("\n[bold green]Applied.[/bold green] Module directories migrated.")
 
 
 # ---------------------------------------------------------------------------
@@ -1328,6 +1472,7 @@ def _resolve_stage_root(project: Optional[str]) -> Path:
     typeset directory (``projects/<id>/typeset``); the stage root is one
     level up.
     """
+    from texgraph.modules import LEGACY_MODULE_MIGRATION, load_modules
     from texgraph.workspace import find_workspace, load_workspace
 
     workspace_path = find_workspace(Path.cwd())
@@ -1355,7 +1500,9 @@ def _resolve_stage_root(project: Optional[str]) -> Path:
 
     # ref.path is relative to workspace root, pointing at the typeset dir.
     # Stage root is one level above.
-    stage_root = (workspace_path.parent / ref.path).resolve().parent
+    resolved_ref = (workspace_path.parent / ref.path).resolve()
+    module_dir_names = {module.path for module in load_modules()} | set(LEGACY_MODULE_MIGRATION)
+    stage_root = resolved_ref.parent if resolved_ref.name in module_dir_names else resolved_ref
     return stage_root
 
 
@@ -1387,31 +1534,43 @@ def verify(
 
         texgraph verify proof --project my-collection
     """
-    from texgraph.promotions import UPSTREAM, verify_stage
+    from texgraph.modules import get_module, upstream_for, valid_module_aliases
+    from texgraph.promotions import verify_stage
 
     console.rule(f"[bold cyan]Texgraph Verify — {stage}[/bold cyan]")
 
-    if stage not in UPSTREAM:
+    try:
+        module = get_module(stage)
+    except KeyError:
         console.print(
             f"[red]Unknown stage:[/red] '{stage}'  "
-            f"Valid: {', '.join(UPSTREAM)}"
+            f"Valid: {', '.join(valid_module_aliases())}"
         )
+        raise typer.Exit(code=1)
+    upstream = upstream_for(module.id)
+    if not upstream:
+        console.print(f"[red]Module has no upstream gate:[/red] '{module.id}'")
         raise typer.Exit(code=1)
 
     stage_root = _resolve_stage_root(project)
-    upstream = UPSTREAM[stage]
 
     console.print(f"  Project root:   [dim]{stage_root}[/dim]")
-    console.print(f"  Checking:       [bold]{upstream}/PROMOTION.yaml[/bold]")
+    console.print(f"  Module:         [bold]{module.id}[/bold]")
+    if module.id != stage:
+        console.print(f"  Alias:          [dim]{stage}[/dim]")
+    console.print(
+        "  Checking:       "
+        + ", ".join(f"[bold]{item.path}/PROMOTION.yaml[/bold]" for item in upstream)
+    )
     console.print()
 
-    ok, issues = verify_stage(stage_root, stage)
+    ok, issues = verify_stage(stage_root, module.id)
 
     if ok:
         console.print(
             f"[bold green]OK[/bold green]  "
-            f"{upstream}/PROMOTION.yaml passes all preconditions.  "
-            f"[bold]{stage}[/bold] is unlocked."
+            f"{', '.join(item.path for item in upstream)}/PROMOTION.yaml passes all preconditions.  "
+            f"[bold]{module.id}[/bold] is unlocked."
         )
         raise typer.Exit(code=0)
 
@@ -1421,9 +1580,89 @@ def verify(
     console.print()
     console.print(
         f"Resolve the issues above, then re-run:  "
-        f"[bold]texgraph verify {stage}[/bold]"
+        f"[bold]texgraph verify {module.id}[/bold]"
     )
     raise typer.Exit(code=1)
+
+
+# ---------------------------------------------------------------------------
+# promote command
+# ---------------------------------------------------------------------------
+
+@app.command()
+def promote(
+    stage: str = typer.Argument(
+        ...,
+        help="Module to promote (e.g. sources, transcription, interior).",
+    ),
+    project: Optional[str] = typer.Option(
+        None, "--project", "-p",
+        help="Project ID from workspace.yaml.  Uses default when omitted.",
+    ),
+    yes: bool = typer.Option(
+        False, "--yes", "-y",
+        help="Skip the confirmation prompt.",
+    ),
+) -> None:
+    """Approve a pipeline module by writing status: approved to its PROMOTION.yaml.
+
+    The PROMOTION.yaml must already exist (written by the module's commands or
+    created manually).  This command flips status to approved so downstream
+    modules can proceed.
+
+    Examples
+    --------
+
+        texgraph promote sources --project my-collection
+
+        texgraph promote interior --yes
+    """
+    from texgraph.modules import get_module, valid_module_aliases
+    from texgraph.promotions import promotion_path, read_promotion, write_promotion
+
+    console.rule(f"[bold cyan]Texgraph Promote — {stage}[/bold cyan]")
+
+    try:
+        module = get_module(stage)
+    except KeyError:
+        console.print(
+            f"[red]Unknown module:[/red] '{stage}'  "
+            f"Valid: {', '.join(valid_module_aliases())}"
+        )
+        raise typer.Exit(code=1)
+
+    stage_root = _resolve_stage_root(project)
+    promo = read_promotion(stage_root, module.id)
+
+    if promo is None:
+        console.print(
+            f"[red]{module.path}/PROMOTION.yaml not found.[/red]\n"
+            f"Complete {module.id} work first, then create the PROMOTION.yaml "
+            f"before running promote."
+        )
+        raise typer.Exit(code=1)
+
+    if promo.get("status") == "approved":
+        console.print(
+            f"[yellow]{module.path}/PROMOTION.yaml is already approved.[/yellow]"
+        )
+        raise typer.Exit(code=0)
+
+    promo_file = promotion_path(stage_root, module.id)
+    console.print(f"  Module:   [bold]{module.id}[/bold]")
+    console.print(f"  File:     [dim]{promo_file}[/dim]")
+    console.print(f"  Status:   {promo.get('status', '(unset)')} -> [bold green]approved[/bold green]")
+    console.print()
+
+    if not yes:
+        confirmed = typer.confirm(f"Approve {module.id}?")
+        if not confirmed:
+            console.print("[yellow]Cancelled.[/yellow]")
+            raise typer.Exit(code=0)
+
+    promo["status"] = "approved"
+    write_promotion(stage_root, module.id, promo)
+    console.print(f"\n[bold green]Promoted.[/bold green]  {promo_file} updated.")
 
 
 # ---------------------------------------------------------------------------
@@ -1468,10 +1707,10 @@ def ingest_rename(
 ) -> None:
     """Move a source file into the project and register it under the stable naming schema.
 
-    The file is MOVED (not copied) to ``projects/<id>/ingest/raw/<stable_name>.<ext>``.
+    The file is MOVED (not copied) to ``projects/<id>/sources/raw/<stable_name>.<ext>``.
     A provenance record is written alongside it.  The project's
-    ``ingest/PROMOTION.yaml`` is created or updated with the new source entry
-    (status: pending — run ``texgraph promote ingest`` after all sources are registered
+    ``sources/PROMOTION.yaml`` is created or updated with the new source entry
+    (status: pending — run ``texgraph promote sources`` after all sources are registered
     and access is confirmed).
 
     Stable naming schema: <author>_<year>_<title>_<source>.<ext>
@@ -1515,7 +1754,7 @@ def ingest_rename(
 
     # --- Resolve project stage root -----------------------------------------
     stage_root = _resolve_stage_root(project)
-    raw_dir = stage_root / "ingest" / "raw"
+    raw_dir = stage_root / "sources" / "raw"
     raw_dir.mkdir(parents=True, exist_ok=True)
     dest = raw_dir / stable_name
 
@@ -1563,8 +1802,8 @@ def ingest_rename(
     )
     console.print(f"  Provenance: {provenance_path.relative_to(stage_root)}")
 
-    # --- Update ingest/PROMOTION.yaml --------------------------------------
-    existing = read_promotion(stage_root, "ingest") or {}
+    # --- Update sources/PROMOTION.yaml -------------------------------------
+    existing = read_promotion(stage_root, "sources") or {}
     sources: list[dict] = existing.get("sources") or []
 
     # Remove any prior entry with the same stable_name (idempotent re-run)
@@ -1584,7 +1823,7 @@ def ingest_rename(
     sources.append(source_entry)
 
     promotion: dict = {
-        "stage": "ingest",
+        "stage": "sources",
         "project_id": stage_root.name,
         "status": existing.get("status", "pending"),
         "naming_schema_version": 1,
@@ -1593,7 +1832,7 @@ def ingest_rename(
     if "approved_at" in existing:
         promotion["approved_at"] = existing["approved_at"]
 
-    promo_path = write_promotion(stage_root, "ingest", promotion)
+    promo_path = write_promotion(stage_root, "sources", promotion)
     console.print(f"  Promotion:  {promo_path.relative_to(stage_root)}")
 
     # --- Summary ------------------------------------------------------------
@@ -1605,7 +1844,7 @@ def ingest_rename(
     console.print(
         f"\n[bold green]Registered:[/bold green] {stable_name}\n"
         f"  Rights: {rights}  |  {access_note}\n"
-        f"  Status: [yellow]pending[/yellow] — run [bold]texgraph promote ingest[/bold] "
+        f"  Status: [yellow]pending[/yellow] — run [bold]texgraph promote sources[/bold] "
         f"once all sources are registered and access is confirmed."
     )
 

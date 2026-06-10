@@ -14,6 +14,24 @@ from app.core.config import settings
 from app.core.exceptions import ConflictError, NotFoundError, ValidationError
 from app.models.project import CollectionMeta, ProjectCreate, ProjectDetail, ProjectRef, WorkspaceInfo
 
+SEMANTIC_MODULE_DIRS = (
+    "sources",
+    "transcription",
+    "manuscript",
+    "interior",
+    "covers",
+    "publication",
+    "release",
+)
+
+LEGACY_STAGE_ALIASES = {
+    "ingest": "sources",
+    "transcribe": "transcription",
+    "typeset": "interior",
+    "front-end": "publication",
+    "final": "release",
+}
+
 # Add src/ to path so texgraph package is importable from the Studio backend
 _src = Path(__file__).parents[4] / "src"
 if str(_src) not in sys.path:
@@ -134,12 +152,26 @@ def _write_collection_yaml(project_dir: Path, meta: CollectionMeta) -> None:
 
 
 def _ensure_project_stage_dirs(project_dir: Path) -> None:
-    """Create sibling stage folders for canonical projects/<id>/typeset layouts."""
-    if project_dir.name != "typeset":
-        return
-    project_root = project_dir.parent
-    for stage in ("ingest", "transcribe", "proof", "final", "covers", "front-end"):
-        (project_root / stage).mkdir(parents=True, exist_ok=True)
+    """Create semantic module folders plus legacy aliases where needed."""
+    if project_dir.name not in {"interior", "typeset"}:
+        project_root = project_dir
+    else:
+        project_root = project_dir.parent
+
+    for dirname in SEMANTIC_MODULE_DIRS:
+        (project_root / dirname).mkdir(parents=True, exist_ok=True)
+
+    for legacy_dir, semantic_dir in LEGACY_STAGE_ALIASES.items():
+        if legacy_dir == "typeset" and project_dir.name == "typeset":
+            continue
+        legacy_path = project_root / legacy_dir
+        semantic_path = project_root / semantic_dir
+        if legacy_path.exists():
+            continue
+        try:
+            legacy_path.symlink_to(semantic_path, target_is_directory=True)
+        except OSError:
+            legacy_path.mkdir(parents=True, exist_ok=True)
 
 
 def _cfg_to_detail(project_id: str, cfg: object) -> ProjectDetail:

@@ -19,7 +19,7 @@ const VIEWS: { id: ViewMode; label: string; icon: typeof BookOpenText }[] = [
 ]
 
 export default function TopBar({ view, onViewChange, projectId }: Props) {
-  const { activeProject } = useProjectStore()
+  const { activeProject, modules } = useProjectStore()
   const { activeSection, activePoem } = useEditorStore()
   const { isOpen, setOpen } = useAgentStore()
 
@@ -90,6 +90,26 @@ export default function TopBar({ view, onViewChange, projectId }: Props) {
           Agent
         </button>
       </div>
+      {modules.length > 0 && (
+        <div className="mt-3 flex min-w-0 flex-wrap items-center gap-2 border-t border-border pt-3">
+          {modules.map((module) => (
+            <span
+              key={module.id}
+              className={`inline-flex items-center gap-1.5 rounded-lg border px-2 py-1 text-[11px] ${
+                module.workspace_alias
+                  ? 'border-accent/35 bg-accent/10 text-accent'
+                  : 'border-border text-text-muted'
+              }`}
+              title={module.path}
+            >
+              {module.label}
+              <span className="font-mono text-[10px] opacity-70">
+                {module.path.split(/[\\/]/).pop()}
+              </span>
+            </span>
+          ))}
+        </div>
+      )}
     </header>
   )
 }

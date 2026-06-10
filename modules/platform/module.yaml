@@ -1,0 +1,10 @@
+id: platform
+legacy_ids:
+  - machinery
+  - texgraph
+artifact_dir: machinery/src/texgraph
+upstream: []
+promotion_schema: null
+commands:
+  - texgraph
+agent_doc: modules/platform/AGENTS.md

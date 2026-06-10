@@ -5,7 +5,7 @@ import { projectsApi } from '@/api/projects'
 import { useProjectStore } from '@/store/useProjectStore'
 
 const steps = ['Identity', 'Metadata', 'Output targets', 'Preview']
-const stageDirs = ['ingest', 'transcribe', 'proof', 'typeset', 'covers', 'front-end', 'final']
+const moduleDirs = ['sources', 'transcription', 'manuscript', 'interior', 'covers', 'publication', 'release']
 
 export default function ProjectConfig() {
   const navigate = useNavigate()
@@ -22,7 +22,7 @@ export default function ProjectConfig() {
     isbn: '',
     publicationType: 'poetry_collection',
     outputTargets: 'print_pdf',
-    initialStage: 'ingest',
+    initialStage: 'sources',
   })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -31,8 +31,9 @@ export default function ProjectConfig() {
     loadWorkspace()
   }, [loadWorkspace])
 
-  const effectivePath = form.path || (form.id ? `projects/${form.id}/typeset` : 'projects/<project-id>/typeset')
+  const effectivePath = form.path || (form.id ? `projects/${form.id}/interior` : 'projects/<project-id>/interior')
   const valid = Boolean(form.id && form.title && form.author)
+  const projectBodyPath = effectivePath.replace(/[\\/]?(interior|typeset)$/, '')
 
   const collectionPreview = useMemo(() => {
     return [
@@ -155,14 +156,14 @@ export default function ProjectConfig() {
               </Select>
               <Select label="Output target" value={form.outputTargets} onChange={set('outputTargets')}>
                 <option value="print_pdf">print_pdf</option>
-                <option value="proof_pdf">proof_pdf</option>
+                <option value="reader_preview">reader_preview</option>
                 <option value="epub_later">epub_later</option>
                 <option value="web_later">web_later</option>
               </Select>
-              <Select label="Initial stage" value={form.initialStage} onChange={set('initialStage')}>
-                <option value="ingest">ingest</option>
-                <option value="typeset">typeset</option>
-                <option value="proof">proof</option>
+              <Select label="Initial module" value={form.initialStage} onChange={set('initialStage')}>
+                <option value="sources">sources</option>
+                <option value="transcription">transcription</option>
+                <option value="interior">interior</option>
               </Select>
             </div>
 
@@ -180,9 +181,11 @@ export default function ProjectConfig() {
                 Project body
               </div>
               <div className="mt-3 font-mono text-[11px] leading-5 text-[#b8b0a1]">
-                <div>{effectivePath.replace(/\/typeset$/, '')}/</div>
-                {stageDirs.map((stage) => (
-                  <div key={stage} className="pl-3">{stage}/</div>
+                <div>{projectBodyPath}/</div>
+                {moduleDirs.map((moduleDir) => (
+                  <div key={moduleDir} className="pl-3">
+                    {moduleDir}/{moduleDir === 'interior' ? '  # workspace path' : ''}
+                  </div>
                 ))}
               </div>
             </section>

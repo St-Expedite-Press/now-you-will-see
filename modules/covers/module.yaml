@@ -1,0 +1,11 @@
+id: covers
+legacy_ids:
+  - covers
+artifact_dir: projects/<project_id>/covers
+upstream:
+  - interior
+promotion_schema: projects/<project_id>/covers/PROMOTION.yaml
+commands:
+  - texgraph verify covers
+agent_doc: modules/covers/AGENTS.md
+

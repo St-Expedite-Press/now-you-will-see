@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-ontology_check.py — Flag repo changes that may require ONTOLOGY.md updates.
+ontology_check.py — Flag repo changes that may require ontology updates.
 
 Compares the current git state against a stored baseline (or HEAD~1) and
 categorizes changed files by ontology impact. Exits 0 if no review needed,
-exits 1 if ONTOLOGY.md review is recommended.
+exits 1 if the canonical ontology review is recommended.
 
 Usage:
     python machinery/tools/ontology_check.py
@@ -35,6 +35,7 @@ TRACKED: dict[str, list[str]] = {
     "structure": [
         "AGENTS.md",
         "ONTOLOGY.md",
+        "machinery/docs/ONTOLOGY.md",
         "*/AGENTS.md",
         ".gitignore",
     ],
@@ -147,13 +148,13 @@ def check(root: Path, since: str | None) -> int:
     categories = _categorize(changed)
 
     if not categories:
-        print(f"{len(changed)} file(s) changed — no ONTOLOGY.md-tracked areas affected.")
+        print(f"{len(changed)} file(s) changed — no ontology-tracked areas affected.")
         for f in changed:
             print(f"  {f}")
         return 0
 
     # Report
-    print(f"ONTOLOGY.md REVIEW RECOMMENDED\n")
+    print(f"ONTOLOGY REVIEW RECOMMENDED\n")
     print(f"{len(changed)} file(s) changed since {ref[:12]}:\n")
 
     for cat, paths in categories.items():
@@ -175,6 +176,7 @@ def check(root: Path, since: str | None) -> int:
         print()
 
     print("When review is complete:")
+    print("  Update machinery/docs/ONTOLOGY.md, then run:")
     print("  python machinery/tools/ontology_check.py --save-baseline")
     return 1
 
@@ -183,7 +185,7 @@ def check(root: Path, since: str | None) -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check for ONTOLOGY.md-relevant repo changes.",
+        description="Check for ontology-relevant repo changes.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )

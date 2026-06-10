@@ -1,0 +1,9 @@
+id: studio
+legacy_ids:
+  - studio
+artifact_dir: machinery/studio
+upstream: []
+promotion_schema: null
+commands:
+  - texgraph studio
+agent_doc: modules/studio/AGENTS.md

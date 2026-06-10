@@ -335,7 +335,10 @@ class WorkspaceConfig:
         """Load the :class:`CollectionConfig` for *project_id*.
 
         Resolves the project directory relative to :attr:`workspace_root`,
-        then reads ``collection.yaml`` inside that directory.
+        then reads ``collection.yaml`` inside that directory. During the
+        module migration window, ``path`` may point at either the canonical
+        ``interior`` module root, the legacy ``typeset`` root, or the project
+        root itself.
 
         Parameters
         ----------
@@ -343,7 +346,8 @@ class WorkspaceConfig:
             ID of the project to load.
         """
         ref = self.get_project(project_id)
-        collection_yaml = self.workspace_root / ref.path / "collection.yaml"
+        declared = (self.workspace_root / ref.path).resolve()
+        collection_yaml = _collection_yaml_for_project_path(declared)
         if not collection_yaml.exists():
             raise FileNotFoundError(
                 f"collection.yaml not found for project '{project_id}': {collection_yaml}"
@@ -353,3 +357,26 @@ class WorkspaceConfig:
     def list_projects(self) -> list[ProjectRef]:
         """Return all declared projects in workspace order."""
         return list(self.projects)
+
+
+def _collection_yaml_for_project_path(path: Path) -> Path:
+    """Return the best collection.yaml candidate for a workspace project path."""
+    direct = path / "collection.yaml"
+    if direct.exists():
+        return direct
+
+    for child in ("interior", "typeset"):
+        candidate = path / child / "collection.yaml"
+        if candidate.exists():
+            return candidate
+
+    if path.name == "typeset":
+        migrated = path.parent / "interior" / "collection.yaml"
+        if migrated.exists():
+            return migrated
+    elif path.name == "interior":
+        legacy = path.parent / "typeset" / "collection.yaml"
+        if legacy.exists():
+            return legacy
+
+    return direct

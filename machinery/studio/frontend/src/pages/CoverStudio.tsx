@@ -159,7 +159,7 @@ export default function CoverStudio({ projectId }: { projectId: string }) {
             {visibleAssets.length === 0 ? (
               <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-16 text-center">
                 <ImageIcon className="mb-3 h-8 w-8 text-text-muted" />
-                <p className="text-sm text-text-muted">No cover assets found in this project's covers stage.</p>
+                <p className="text-sm text-text-muted">No cover assets found in this project's covers module.</p>
                 <p className="mt-1 text-xs text-text-muted">
                   Add PNG files following the naming schema: {'{author}_{book}_{role}_{variant}.png'}
                 </p>

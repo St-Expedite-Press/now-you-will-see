@@ -1,0 +1,14 @@
+id: manuscript
+legacy_ids:
+  - proof
+  - typeset-content
+artifact_dir: projects/<project_id>/manuscript
+upstream:
+  - transcription
+promotion_schema: null
+commands:
+  - texgraph audit
+  - texgraph metadata
+  - texgraph plan
+  - texgraph new poem
+agent_doc: modules/manuscript/AGENTS.md

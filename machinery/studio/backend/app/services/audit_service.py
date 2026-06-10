@@ -33,6 +33,14 @@ def _read(path: Path) -> str:
         return ""
 
 
+def _read_doc(root: Path, name: str) -> str:
+    """Read canonical docs from machinery/docs, falling back to root stubs."""
+    canonical_name = "PROJECT_OVERVIEW.md" if name == "README.md" else name
+    docs_path = root / "machinery" / "docs" / canonical_name
+    text = _read(docs_path)
+    return text or _read(root / name)
+
+
 def _exists(root: Path, rel: str) -> bool:
     return (root / rel).exists()
 
@@ -124,9 +132,9 @@ def run_audit(command_runner: CommandRunner | None = None) -> AuditRun:
 
 def _product_definition(root: Path) -> AuditSubagentResult:
     docs = {
-        "README.md": _read(root / "README.md"),
-        "QUICKSTART.md": _read(root / "QUICKSTART.md"),
-        "HANDOFF.md": _read(root / "HANDOFF.md"),
+        "machinery/docs/PROJECT_OVERVIEW.md": _read_doc(root, "README.md"),
+        "machinery/docs/QUICKSTART.md": _read_doc(root, "QUICKSTART.md"),
+        "machinery/docs/HANDOFF.md": _read_doc(root, "HANDOFF.md"),
         "machinery/docs/STUDIO_FRONTEND.md": _read(root / "machinery/docs/STUDIO_FRONTEND.md"),
     }
     evidence = [
@@ -134,7 +142,7 @@ def _product_definition(root: Path) -> AuditSubagentResult:
             "product-docs",
             "doc",
             f"Found {sum(1 for value in docs.values() if value)} of 4 product-definition documents.",
-            path="README.md",
+            path="machinery/docs/README.md",
         )
     ]
     findings: list[Finding] = []
@@ -147,7 +155,7 @@ def _product_definition(root: Path) -> AuditSubagentResult:
                 "current-vs-planned",
                 "doc",
                 "Docs explicitly distinguish built functionality from planned Studio/front-end work.",
-                path="README.md",
+                path="machinery/docs/PROJECT_OVERVIEW.md",
             )
         )
     else:
@@ -162,13 +170,13 @@ def _product_definition(root: Path) -> AuditSubagentResult:
             )
         )
 
-    if "poets, translators, and small press editors" in docs["README.md"]:
+    if "poets, translators, and small press editors" in docs["machinery/docs/PROJECT_OVERVIEW.md"]:
         evidence.append(
             _evidence(
                 "specific-user",
                 "doc",
                 "README names poets, translators, and small press editors as the intended user.",
-                path="README.md",
+                path="machinery/docs/PROJECT_OVERVIEW.md",
             )
         )
     else:
@@ -216,14 +224,14 @@ def _workflow(root: Path, runner: CommandRunner) -> AuditSubagentResult:
             )
         )
 
-    quickstart = _read(root / "QUICKSTART.md")
+    quickstart = _read_doc(root, "QUICKSTART.md")
     if "Build the example project" in quickstart:
         evidence.append(
             _evidence(
                 "workflow-doc",
                 "doc",
                 "QUICKSTART includes a linear path to building the example project.",
-                path="QUICKSTART.md",
+                path="machinery/docs/QUICKSTART.md",
             )
         )
 
@@ -515,7 +523,7 @@ def _maintainability(root: Path, runner: CommandRunner) -> AuditSubagentResult:
 
 
 def _operations_security(root: Path) -> AuditSubagentResult:
-    quickstart = _read(root / "QUICKSTART.md")
+    quickstart = _read_doc(root, "QUICKSTART.md")
     config = _read(root / "machinery/studio/backend/app/core/config.py")
     gitignore = _read(root / ".gitignore")
     evidence = [
@@ -525,7 +533,7 @@ def _operations_security(root: Path) -> AuditSubagentResult:
             "QUICKSTART documents Python, TeX, font, poppler-utils, and Node.js prerequisites."
             if all(token in quickstart for token in ("Python", "TeX", "Node.js"))
             else "QUICKSTART prerequisites appear incomplete.",
-            path="QUICKSTART.md",
+            path="machinery/docs/QUICKSTART.md",
         ),
         _evidence(
             "env-boundary",
@@ -561,20 +569,20 @@ def _operations_security(root: Path) -> AuditSubagentResult:
 
 
 def _commercial_wedge(root: Path) -> AuditSubagentResult:
-    readme = _read(root / "README.md")
-    handoff = _read(root / "HANDOFF.md")
+    readme = _read_doc(root, "README.md")
+    handoff = _read_doc(root, "HANDOFF.md")
     evidence = [
         _evidence(
             "wedge-readme",
             "doc",
             "README positions Texgraph as a staged publishing pipeline for literary production.",
-            path="README.md",
+            path="machinery/docs/PROJECT_OVERVIEW.md",
         ),
         _evidence(
             "wedge-handoff",
             "doc",
             "HANDOFF says concept is stronger than implementation and Studio/front-end/final work remains.",
-            path="HANDOFF.md",
+            path="machinery/docs/HANDOFF.md",
         ),
     ]
     score = 7

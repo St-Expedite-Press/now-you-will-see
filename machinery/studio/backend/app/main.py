@@ -11,7 +11,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
 from app.core.exceptions import AgentError, BuildError, ConflictError, NotFoundError, ValidationError
-from app.routers import audit, agent, build, covers, poems, preview, projects, render_config, sections, versions
+from app.routers import audit, agent, build, covers, modules, poems, preview, projects, render_config, sections, versions
 
 app = FastAPI(
     title=settings.app_title,
@@ -59,6 +59,7 @@ async def agent_error_handler(request: Request, exc: AgentError) -> JSONResponse
 # --- Routers ---
 
 app.include_router(projects.router, prefix="/api/projects", tags=["projects"])
+app.include_router(modules.router, prefix="/api/projects/{project_id}/modules", tags=["modules"])
 app.include_router(sections.router, prefix="/api/projects/{project_id}/sections", tags=["sections"])
 app.include_router(poems.router, prefix="/api/projects/{project_id}/sections/{section_id}/poems", tags=["poems"])
 app.include_router(versions.router, prefix="/api/projects/{project_id}/sections/{section_id}/poems/{poem_slug}/versions", tags=["versions"])

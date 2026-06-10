@@ -1,0 +1,13 @@
+id: interior
+legacy_ids:
+  - typeset
+artifact_dir: projects/<project_id>/interior
+upstream:
+  - transcription
+promotion_schema: projects/<project_id>/interior/PROMOTION.yaml
+commands:
+  - texgraph build
+  - texgraph proof-build
+  - texgraph watch
+  - texgraph verify typeset
+agent_doc: modules/interior/AGENTS.md

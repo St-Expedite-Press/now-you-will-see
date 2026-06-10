@@ -19,18 +19,20 @@ from typing import Any
 
 import yaml
 
+from texgraph.modules import get_module, load_modules, upstream_for
+
 PROMOTION_FILENAME = "PROMOTION.yaml"
 
-VALID_STAGES = ("ingest", "transcribe", "proof", "typeset", "covers", "front-end", "final")
+VALID_STAGES = tuple(module.id for module in load_modules())
 
-# Maps each stage to the upstream stage whose PROMOTION.yaml it requires.
-UPSTREAM: dict[str, str] = {
-    "transcribe": "ingest",
-    "proof": "transcribe",
-    "typeset": "proof",
-    "final": "typeset",
-    "covers": "final",
-}
+# Maps each canonical module and legacy alias to the upstream module path whose
+# PROMOTION.yaml it requires.
+UPSTREAM: dict[str, str] = {}
+for _module in load_modules():
+    if _module.upstream:
+        _upstream_paths = [get_module(upstream).path for upstream in _module.upstream]
+        for _alias in _module.aliases:
+            UPSTREAM[_alias] = ", ".join(_upstream_paths)
 
 _STATUS_ORDER = ["not_started", "transcribed", "checked", "final"]
 
@@ -40,8 +42,20 @@ _STATUS_ORDER = ["not_started", "transcribed", "checked", "final"]
 # ---------------------------------------------------------------------------
 
 def promotion_path(project_root: Path, stage: str) -> Path:
-    """Return the path to ``<stage>/PROMOTION.yaml`` within *project_root*."""
-    return project_root / stage / PROMOTION_FILENAME
+    """Return the promotion path for a canonical module or legacy alias."""
+    module = get_module(stage)
+    candidates = [project_root / module.path / PROMOTION_FILENAME]
+    candidates.extend(project_root / alias / PROMOTION_FILENAME for alias in module.legacy_aliases)
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    if (project_root / module.path).exists():
+        return candidates[0]
+    for alias in module.legacy_aliases:
+        legacy_dir = project_root / alias
+        if legacy_dir.exists():
+            return legacy_dir / PROMOTION_FILENAME
+    return candidates[0]
 
 
 def read_promotion(project_root: Path, stage: str) -> dict[str, Any] | None:
@@ -83,26 +97,32 @@ def verify_stage(project_root: Path, stage: str) -> tuple[bool, list[str]]:
         *ok* is True when all preconditions pass.  *issues* contains
         human-readable failure messages when *ok* is False.
     """
-    if stage not in UPSTREAM:
+    try:
+        module = get_module(stage)
+    except KeyError:
         return False, [
             f"Stage '{stage}' has no upstream preconditions defined.",
             f"Valid stages with gates: {', '.join(UPSTREAM)}",
         ]
 
-    upstream = UPSTREAM[stage]
-    promo = read_promotion(project_root, upstream)
-
-    if promo is None:
-        return False, [
-            f"{upstream}/PROMOTION.yaml not found.",
-            f"Complete the {upstream} stage, then run:  texgraph promote {upstream}",
-        ]
-
-    checker = _CHECKERS.get(upstream)
-    if checker is None:
+    upstream_modules = upstream_for(module.id)
+    if not upstream_modules:
         return True, []
 
-    issues = checker(promo, project_root)
+    issues: list[str] = []
+    for upstream_module in upstream_modules:
+        promo = read_promotion(project_root, upstream_module.id)
+
+        if promo is None:
+            issues.extend([
+                f"{upstream_module.path}/PROMOTION.yaml not found.",
+                f"Complete the {upstream_module.id} module, then run:  texgraph promote {upstream_module.id}",
+            ])
+            continue
+
+        checker = _CHECKERS.get(upstream_module.id)
+        if checker is not None:
+            issues.extend(checker(promo, project_root))
     return len(issues) == 0, issues
 
 
@@ -115,13 +135,13 @@ def _check_ingest(promo: dict[str, Any], project_root: Path) -> list[str]:
 
     if promo.get("status") != "approved":
         issues.append(
-            "ingest/PROMOTION.yaml: status is not 'approved' — "
-            "run: texgraph promote ingest"
+            "sources/PROMOTION.yaml: status is not 'approved' — "
+            "run: texgraph promote sources"
         )
 
     sources: list[dict[str, Any]] = promo.get("sources") or []
     if not sources:
-        issues.append("ingest/PROMOTION.yaml: no sources listed — run texgraph ingest rename first")
+        issues.append("sources/PROMOTION.yaml: no sources listed — run texgraph ingest rename first")
         return issues
 
     for s in sources:
@@ -142,14 +162,14 @@ def _check_transcribe(promo: dict[str, Any], project_root: Path) -> list[str]:
     issues: list[str] = []
 
     if promo.get("status") != "approved":
-        issues.append("transcribe/PROMOTION.yaml: status is not 'approved'")
+        issues.append("transcription/PROMOTION.yaml: status is not 'approved'")
 
     if not promo.get("policy_accepted"):
-        issues.append("transcribe/PROMOTION.yaml: policy_accepted is not true")
+        issues.append("transcription/PROMOTION.yaml: policy_accepted is not true")
 
     volumes: list[dict[str, Any]] = promo.get("volumes") or []
     if not volumes:
-        issues.append("transcribe/PROMOTION.yaml: no volumes listed")
+        issues.append("transcription/PROMOTION.yaml: no volumes listed")
         return issues
 
     floor = promo.get("all_statuses_at_least", "transcribed")
@@ -170,7 +190,7 @@ def _check_transcribe(promo: dict[str, Any], project_root: Path) -> list[str]:
     )
     if has_open_readings and not promo.get("uncertain_readings_accepted"):
         issues.append(
-            "transcribe/PROMOTION.yaml: uncertain_readings exist but "
+            "transcription/PROMOTION.yaml: uncertain_readings exist but "
             "uncertain_readings_accepted is not true — resolve or explicitly accept"
         )
 
@@ -181,29 +201,29 @@ def _check_proof(promo: dict[str, Any], project_root: Path) -> list[str]:
     issues: list[str] = []
 
     if promo.get("status") != "approved":
-        issues.append("proof/PROMOTION.yaml: status is not 'approved'")
+        issues.append("manuscript/PROMOTION.yaml: status is not 'approved'")
 
     pdf = promo.get("proof_pdf")
     if not pdf:
-        issues.append("proof/PROMOTION.yaml: proof_pdf is missing")
+        issues.append("manuscript/PROMOTION.yaml: proof_pdf is missing")
     elif not (project_root / pdf).exists():
-        issues.append(f"proof/PROMOTION.yaml: proof_pdf not found on disk: {pdf}")
+        issues.append(f"manuscript/PROMOTION.yaml: proof_pdf not found on disk: {pdf}")
 
     tq = promo.get("textual_questions") or {}
     open_q = tq.get("open", -1)
     if open_q != 0:
         issues.append(
-            f"proof/PROMOTION.yaml: textual_questions.open is {open_q} (must be 0 for promotion)"
+            f"manuscript/PROMOTION.yaml: textual_questions.open is {open_q} (must be 0 for promotion)"
         )
 
     pc = promo.get("page_count")
     if pc is not None and pc % 2 != 0:
         issues.append(
-            f"proof/PROMOTION.yaml: page_count {pc} is odd — add a blank page to make it even"
+            f"manuscript/PROMOTION.yaml: page_count {pc} is odd — add a blank page to make it even"
         )
 
     if not promo.get("user_accepted_layout"):
-        issues.append("proof/PROMOTION.yaml: user_accepted_layout is not true")
+        issues.append("manuscript/PROMOTION.yaml: user_accepted_layout is not true")
 
     return issues
 
@@ -212,22 +232,22 @@ def _check_typeset(promo: dict[str, Any], project_root: Path) -> list[str]:
     issues: list[str] = []
 
     if promo.get("status") != "approved":
-        issues.append("typeset/PROMOTION.yaml: status is not 'approved'")
+        issues.append("interior/PROMOTION.yaml: status is not 'approved'")
 
     pdf = promo.get("interior_pdf")
     if not pdf:
-        issues.append("typeset/PROMOTION.yaml: interior_pdf is missing")
+        issues.append("interior/PROMOTION.yaml: interior_pdf is missing")
     elif not (project_root / pdf).exists():
-        issues.append(f"typeset/PROMOTION.yaml: interior_pdf not found on disk: {pdf}")
+        issues.append(f"interior/PROMOTION.yaml: interior_pdf not found on disk: {pdf}")
 
     if not promo.get("fonts_embedded"):
         issues.append(
-            "typeset/PROMOTION.yaml: fonts_embedded is not true — "
+            "interior/PROMOTION.yaml: fonts_embedded is not true — "
             "verify with: pdffonts <interior_pdf>"
         )
 
     if not promo.get("user_approved_interior"):
-        issues.append("typeset/PROMOTION.yaml: user_approved_interior is not true")
+        issues.append("interior/PROMOTION.yaml: user_approved_interior is not true")
 
     return issues
 
@@ -236,25 +256,21 @@ def _check_final(promo: dict[str, Any], project_root: Path) -> list[str]:
     issues: list[str] = []
 
     if promo.get("status") != "approved":
-        issues.append("final/PROMOTION.yaml: status is not 'approved'")
+        issues.append("release/PROMOTION.yaml: status is not 'approved'")
 
     pdf = promo.get("final_pdf")
     if not pdf:
-        issues.append("final/PROMOTION.yaml: final_pdf is missing")
+        issues.append("release/PROMOTION.yaml: final_pdf is missing")
     elif not (project_root / pdf).exists():
-        issues.append(f"final/PROMOTION.yaml: final_pdf not found on disk: {pdf}")
-
-    cu = promo.get("cover_unlock") or {}
-    if not cu.get("unlocked"):
-        issues.append("final/PROMOTION.yaml: cover_unlock.unlocked is not true")
+        issues.append(f"release/PROMOTION.yaml: final_pdf not found on disk: {pdf}")
 
     return issues
 
 
 _CHECKERS: dict[str, Any] = {
-    "ingest": _check_ingest,
-    "transcribe": _check_transcribe,
-    "proof": _check_proof,
-    "typeset": _check_typeset,
-    "final": _check_final,
+    "sources": _check_ingest,
+    "transcription": _check_transcribe,
+    "manuscript": _check_proof,
+    "interior": _check_typeset,
+    "release": _check_final,
 }

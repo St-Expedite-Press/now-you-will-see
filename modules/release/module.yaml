@@ -1,0 +1,10 @@
+id: release
+legacy_ids:
+  - final
+artifact_dir: projects/<project_id>/release
+upstream:
+  - interior
+promotion_schema: projects/<project_id>/release/PROMOTION.yaml
+commands:
+  - texgraph verify final
+agent_doc: modules/release/AGENTS.md

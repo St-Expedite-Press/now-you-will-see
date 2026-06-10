@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "texgraph"
 version = "0.1.0"
 description = "A Markdown-to-LuaLaTeX-to-PDFx editor and compiler for poetry collections"
-readme = "README.md"
+readme = "machinery/docs/PROJECT_OVERVIEW.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [

@@ -1,10 +1,11 @@
 import { create } from 'zustand'
-import type { ProjectDetail, WorkspaceInfo } from '@/types/project'
+import type { ProjectDetail, ProjectModule, WorkspaceInfo } from '@/types/project'
 import { projectsApi } from '@/api/projects'
 
 interface ProjectStore {
   workspace: WorkspaceInfo | null
   activeProject: ProjectDetail | null
+  modules: ProjectModule[]
   loading: boolean
   error: string | null
   loadWorkspace: () => Promise<void>
@@ -15,6 +16,7 @@ interface ProjectStore {
 export const useProjectStore = create<ProjectStore>((set) => ({
   workspace: null,
   activeProject: null,
+  modules: [],
   loading: false,
   error: null,
 
@@ -29,13 +31,16 @@ export const useProjectStore = create<ProjectStore>((set) => ({
   },
 
   loadProject: async (id) => {
-    set({ loading: true, error: null, activeProject: null })
+    set({ loading: true, error: null, activeProject: null, modules: [] })
     try {
-      const p = await projectsApi.get(id)
-      set({ activeProject: p, loading: false })
+      const [p, moduleList] = await Promise.all([
+        projectsApi.get(id),
+        projectsApi.listModules(id),
+      ])
+      set({ activeProject: p, modules: moduleList.modules, loading: false })
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e)
-      set({ error: message, loading: false, activeProject: null })
+      set({ error: message, loading: false, activeProject: null, modules: [] })
     }
   },
 

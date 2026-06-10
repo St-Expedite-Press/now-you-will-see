@@ -1,0 +1,12 @@
+id: workspace
+legacy_ids:
+  - project-create
+  - workspace
+artifact_dir: projects/<project_id>
+upstream: []
+promotion_schema: null
+commands:
+  - texgraph list
+  - texgraph studio
+agent_doc: modules/workspace/AGENTS.md
+

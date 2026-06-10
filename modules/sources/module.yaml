@@ -1,0 +1,15 @@
+id: sources
+legacy_ids:
+  - ingest
+artifact_dir: projects/<project_id>/sources
+upstream: []
+promotion_schema: projects/<project_id>/sources/PROMOTION.yaml
+commands:
+  - texgraph ingest rename
+  - texgraph pdf info
+  - texgraph pdf text
+  - texgraph pdf render
+  - texgraph archive files
+  - texgraph archive download
+  - texgraph verify ingest
+agent_doc: modules/sources/AGENTS.md

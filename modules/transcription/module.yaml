@@ -1,0 +1,14 @@
+id: transcription
+legacy_ids:
+  - transcribe
+artifact_dir: projects/<project_id>/transcription
+upstream:
+  - sources
+promotion_schema: projects/<project_id>/transcription/PROMOTION.yaml
+commands:
+  - texgraph metadata
+  - texgraph page-map
+  - texgraph plan
+  - texgraph scan
+  - texgraph verify transcribe
+agent_doc: modules/transcription/AGENTS.md

@@ -29,3 +29,30 @@ export interface WorkspaceInfo {
   default_project?: string
   projects: ProjectRef[]
 }
+
+export interface ProjectModule {
+  id: string
+  label: string
+  description: string
+  path: string
+  exists: boolean
+  legacy_stage?: string | null
+  legacy_path?: string | null
+  workspace_alias: boolean
+  verify_stage?: string | null
+}
+
+export interface ProjectModuleList {
+  project_id: string
+  modules: ProjectModule[]
+}
+
+export interface ModuleVerifyResult {
+  project_id: string
+  module_id: string
+  ok: boolean
+  status: string
+  verify_stage?: string | null
+  checked_path: string
+  issues: string[]
+}

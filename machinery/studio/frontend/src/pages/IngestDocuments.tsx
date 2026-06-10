@@ -111,7 +111,7 @@ export default function IngestDocuments() {
               </span>
               <div>
                 <h1 className="text-2xl font-medium">{project.meta.title || project.id}</h1>
-                <p className="mt-1 text-xs uppercase tracking-[0.16em] text-[#8f887b]">Ingest stage</p>
+                <p className="mt-1 text-xs uppercase tracking-[0.16em] text-[#8f887b]">Sources module</p>
               </div>
             </div>
           </div>
@@ -243,7 +243,7 @@ export default function IngestDocuments() {
               Register source
             </button>
             <button type="button" disabled className="rounded-md border border-[#343129] px-3 py-2 text-xs text-[#8f887b] opacity-60">
-              Verify transcribe
+              Verify transcription
             </button>
           </div>
         </div>
