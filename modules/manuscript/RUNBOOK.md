@@ -15,13 +15,13 @@ For new work, route through `typeset/AGENTS.md`.
 `proof-build` writes retained draft artifacts to:
 
 ```
-projects/<project_id>/typeset/output/proof/
+projects/<project_id>/interior/output/proof/
   tex/
   <slug>.pdf
 ```
 
 The draft PDF is a review artifact. Final interior approval is recorded in
-`projects/<project_id>/typeset/PROMOTION.yaml` after the production build,
+`projects/<project_id>/interior/PROMOTION.yaml` after the production build,
 font embedding check, and user approval.
 
 ## Legacy Records
@@ -29,7 +29,7 @@ font embedding check, and user approval.
 Older projects may contain:
 
 ```
-projects/<project_id>/proof/
+projects/<project_id>/manuscript/
   audit/
   corrections/
   output/
@@ -41,7 +41,7 @@ only when they are needed for provenance or review history.
 
 ## Skills
 
-- `proof/skills/poetry-proof/SKILL.md`
-- `proof/skills/prose-proof/SKILL.md`
-- `proof/skills/transcription-verification/SKILL.md`
-- `proof/skills/persona-editorial/SKILL.md`
+- `modules/manuscript/skills/poetry-proof/SKILL.md`
+- `modules/manuscript/skills/prose-proof/SKILL.md`
+- `modules/manuscript/skills/transcription-verification/SKILL.md`
+- `modules/manuscript/skills/persona-editorial/SKILL.md`

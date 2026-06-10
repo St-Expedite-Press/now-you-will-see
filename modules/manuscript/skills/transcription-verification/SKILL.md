@@ -22,13 +22,13 @@ Run focused checks for:
 Use the deterministic audit helper first:
 
 ```powershell
-.\.venv\Scripts\texgraph.exe audit projects/<project_id>/transcribe/<volume>/books/<book>
+.\.venv\Scripts\texgraph.exe audit projects/<project_id>/transcription/<volume>/books/<book>
 ```
 
 Then validate book metadata when structure or source matter changed:
 
 ```powershell
-.\.venv\Scripts\texgraph.exe metadata projects/<project_id>/transcribe/volumes --check
+.\.venv\Scripts\texgraph.exe metadata projects/<project_id>/transcription/volumes --check
 ```
 
 ## Status Rules

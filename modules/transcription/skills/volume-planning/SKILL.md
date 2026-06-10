@@ -8,9 +8,9 @@ description: Build or update a volume or book transcription plan from scanned po
 ## Workflow
 
 1. Read `AGENTS.md`, `transcribe/AGENTS.md`, the project's editorial policy
-   (if present under `projects/<project_id>/transcribe/metadata/`),
-   `projects/<project_id>/transcribe/metadata/source_manifest.md`, and the
-   target `projects/<project_id>/transcribe/<volume>/books/<book>/book.md`.
+   (if present under `projects/<project_id>/transcription/metadata/`),
+   `projects/<project_id>/transcription/metadata/source_manifest.md`, and the
+   target `projects/<project_id>/transcription/<volume>/books/<book>/book.md`.
 2. For structural or voice-led plans, read `PERSONA.md`; for neutral
    transcription plans, note the persona boundary without using the register.
 3. Confirm the source PDF is present and recorded in the source manifest.
@@ -32,7 +32,7 @@ description: Build or update a volume or book transcription plan from scanned po
    if a previous poem continues onto an expected start page, update the plan
    and affected spans from page images.
 10. Record multipage poems and possible series/cycle handling before transcription.
-11. Save the plan under `projects/<project_id>/transcribe/metadata/transcription_plans/`.
+11. Save the plan under `projects/<project_id>/transcription/metadata/transcription_plans/`.
 
 ## Plan Contents
 

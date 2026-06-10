@@ -16,7 +16,7 @@
 | Transcribing text from source scans | `transcription` | `projects/<id>/transcription/` |
 | Auditing, correcting, or textual review | `manuscript` | `projects/<id>/manuscript/` |
 | Proof-draft rendering, layout, and interior PDFs | `interior` | `projects/<id>/interior/` |
-| Legacy proof records and reusable proof skills | `proof/` legacy support | `projects/<id>/proof/` |
+| Legacy proof records and reusable proof skills | `proof/` legacy support | `projects/<id>/manuscript/` |
 | Cover assets or cover production | `covers/` | `projects/<id>/covers/` |
 | E-reader, web, publication-facing output | `publication` | `projects/<id>/publication/` |
 | Release packaging or delivery | `release` | `projects/<id>/release/` |

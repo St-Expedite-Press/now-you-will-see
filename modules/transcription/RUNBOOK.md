@@ -165,7 +165,7 @@ notes: []
 To Amy Lowell
 ```
 
-Load `transcribe/skills/source-matter/SKILL.md` for the full rules on matter type tags and formatting.
+Load `modules/transcription/skills/source-matter/SKILL.md` for the full rules on matter type tags and formatting.
 
 ---
 
@@ -203,7 +203,7 @@ Over the rooftops race the shadows of clouds;
 ...
 ```
 
-**Transcription rules (load `transcribe/skills/poem-transcription/SKILL.md` for full detail):**
+**Transcription rules (load `modules/transcription/skills/poem-transcription/SKILL.md` for full detail):**
 
 - Preserve every line break exactly as printed
 - Represent one indent level as two leading spaces
@@ -332,8 +332,8 @@ Exit 0 means manuscript/interior work may begin.
 
 | Task | Skill |
 |---|---|
-| Transcribing verse | `transcribe/skills/poem-transcription/SKILL.md` |
-| Transcribing prose or paratext | `transcribe/skills/prose-transcription/SKILL.md` |
-| Transcribing dedications, prefaces, colophons | `transcribe/skills/source-matter/SKILL.md` |
-| Planning a multi-book volume | `transcribe/skills/volume-planning/SKILL.md` |
-| Planning a multi-volume project | `transcribe/skills/project-planning/SKILL.md` |
+| Transcribing verse | `modules/transcription/skills/poem-transcription/SKILL.md` |
+| Transcribing prose or paratext | `modules/transcription/skills/prose-transcription/SKILL.md` |
+| Transcribing dedications, prefaces, colophons | `modules/transcription/skills/source-matter/SKILL.md` |
+| Planning a multi-book volume | `modules/transcription/skills/volume-planning/SKILL.md` |
+| Planning a multi-volume project | `modules/transcription/skills/project-planning/SKILL.md` |

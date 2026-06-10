@@ -60,7 +60,7 @@ projects/<project_id>/
 ```
 
 Buildable roots are `projects/<project_id>/interior`. Unmigrated projects may
-still build from `projects/<project_id>/typeset`.
+still build from `projects/<project_id>/interior`.
 
 ## Module Node
 

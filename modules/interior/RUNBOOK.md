@@ -32,7 +32,7 @@ production build.
 ```
 
 Output lands at `projects/<id>/interior/output/proof/` (or
-`projects/<id>/typeset/output/proof/` for unmigrated projects).
+`projects/<id>/interior/output/proof/` for unmigrated projects).
 
 ### Expected outputs
 

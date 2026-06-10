@@ -1,6 +1,6 @@
 ---
 name: project-planning
-description: Consolidate, maintain, and verify project-level publication plans. Use when editing files under projects/<project_id>/transcribe/project_plan/, combining planning documents, adding appendices or indexes, aligning plan prose with repo status, source inventory, metadata, tools, and skills.
+description: Consolidate, maintain, and verify project-level publication plans. Use when editing files under projects/<project_id>/transcription/project_plan/, combining planning documents, adding appendices or indexes, aligning plan prose with repo status, source inventory, metadata, tools, and skills.
 ---
 
 # Project Planning
@@ -9,15 +9,15 @@ description: Consolidate, maintain, and verify project-level publication plans. 
 
 1. Read `AGENTS.md` and `transcribe/AGENTS.md`.
 2. For voice-led or structural plans, read `PERSONA.md` and
-   `proof/skills/persona-editorial/SKILL.md`.
-3. Read the current files under `projects/<project_id>/transcribe/project_plan/`,
+   `modules/manuscript/skills/persona-editorial/SKILL.md`.
+3. Read the current files under `projects/<project_id>/transcription/project_plan/`,
    plus relevant metadata: source manifest, publication order, and editorial
-   policy under `projects/<project_id>/transcribe/metadata/`.
+   policy under `projects/<project_id>/transcription/metadata/`.
 4. Check current repo status with deterministic tools before repeating stale
    plan claims:
    ```powershell
-   .\.venv\Scripts\texgraph.exe metadata projects/<project_id>/transcribe/volumes --check
-   .\.venv\Scripts\texgraph.exe plan projects/<project_id>/transcribe/project_plan/PROJECT_PLAN.md --check
+   .\.venv\Scripts\texgraph.exe metadata projects/<project_id>/transcription/volumes --check
+   .\.venv\Scripts\texgraph.exe plan projects/<project_id>/transcription/project_plan/PROJECT_PLAN.md --check
    ```
 5. Separate local repo scope from larger publication horizons.
 6. Use appendices for source inventories, rights checklists, production notes,

@@ -7,7 +7,7 @@ description: Verify, normalize, and document source PDFs for transcription proje
 
 ## Workflow
 
-1. Confirm the full source PDF exists under `projects/<project_id>/ingest/raw/` in
+1. Confirm the full source PDF exists under `projects/<project_id>/sources/raw/` in
    the appropriate bucket subdirectory.
 2. Do not transcribe from partial downloads, sample pages, screenshots, or search
    snippets.
@@ -21,12 +21,12 @@ description: Verify, normalize, and document source PDFs for transcription proje
 5. For Internet Archive sources, use deterministic download:
    ```powershell
    .\.venv\Scripts\texgraph.exe archive files <identifier>
-   .\.venv\Scripts\texgraph.exe archive download <identifier> <file> projects/<project_id>/ingest/raw/<bucket>/<stable>.pdf
+   .\.venv\Scripts\texgraph.exe archive download <identifier> <file> projects/<project_id>/sources/raw/<bucket>/<stable>.pdf
    ```
 6. Do not download access-restricted items unless the user explicitly provides
    lawful source files. Record pending sources as `source_status: pending_acquisition`.
 7. Record page count, provenance, and problems in
-   `projects/<project_id>/ingest/source_manifest.md` (create if absent).
+   `projects/<project_id>/sources/source_manifest.md` (create if absent).
 8. Open or render title page, contents, first poem page, and final poem page
    to confirm the PDF is the intended source:
    ```powershell
@@ -35,7 +35,7 @@ description: Verify, normalize, and document source PDFs for transcription proje
 9. Mark missing or suspect sources clearly before any transcription begins.
 10. Refresh source matter signals after adding or replacing source PDFs:
     ```powershell
-    .\.venv\Scripts\texgraph.exe scan projects/<project_id>/transcribe/volumes --output projects/<project_id>/transcribe/metadata/source_matter_inventory.md
+    .\.venv\Scripts\texgraph.exe scan projects/<project_id>/transcription/volumes --output projects/<project_id>/transcription/metadata/source_matter_inventory.md
     ```
     Visually review image-only sources and ambiguous OCR hits before creating
     source front/back matter files.

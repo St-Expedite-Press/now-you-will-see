@@ -16,9 +16,9 @@ Load this skill when the proof task involves verse content:
 - Handling multi-page poems or poem cycles
 - Signing off on a poem's `status` field as `checked` or `final`
 
-Do not use for: prose paratext proof (`proof/skills/prose-proof`), cover work,
+Do not use for: prose paratext proof (`modules/manuscript/skills/prose-proof`), cover work,
 or technical documentation. If a poem combines verse body with substantial
-editorial apparatus, also load `proof/skills/transcription-verification`.
+editorial apparatus, also load `modules/manuscript/skills/transcription-verification`.
 
 ## Required Reads
 
@@ -26,7 +26,7 @@ editorial apparatus, also load `proof/skills/transcription-verification`.
 - `proof/AGENTS.md`
 - `ONTOLOGY.md § Data Schemas` — poem Markdown front matter spec
 - The poem source scan (open via `texgraph pdf render` or equivalent)
-- The poem file at `projects/<project_id>/typeset/content/<section>/<file>.md`
+- The poem file at `projects/<project_id>/interior/content/<section>/<file>.md`
 
 ## Proof Checklist
 
@@ -96,7 +96,7 @@ Set `status: final` only with explicit user approval.
 The `texgraph audit` command reports `status` values across a volume:
 
 ```powershell
-.\.venv\Scripts\texgraph.exe audit projects/<project_id>/transcribe/<volume> --json
+.\.venv\Scripts\texgraph.exe audit projects/<project_id>/transcription/<volume> --json
 ```
 
 Use this to identify poems not yet at `checked` status.

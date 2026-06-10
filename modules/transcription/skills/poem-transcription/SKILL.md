@@ -11,7 +11,7 @@ Before editing poem files, read:
 
 - `AGENTS.md`
 - `transcribe/AGENTS.md`
-- `transcribe/skills/poem-transcription/SKILL.md`
+- `modules/transcription/skills/poem-transcription/SKILL.md`
 - `projects/fletcher-complete-original-collections/transcribe/metadata/editorial_policy.md`
 - the relevant volume plan in `projects/fletcher-complete-original-collections/transcribe/metadata/`
 - the relevant `books/<volume>/book.md`
@@ -48,7 +48,7 @@ Before editing poem files, read:
     `title`, `book`, `book_order`, `matter_order`, `matter_section`,
     `matter_type`, `source_pdf`, `source_pages_scan`, `source_pages_printed`,
     `status`, and `notes`. For substantial source paratext work, switch to
-    `transcribe/skills/source-matter/SKILL.md`.
+    `modules/transcription/skills/source-matter/SKILL.md`.
 13. If the source page title differs from the scaffold, let the source govern:
     update YAML title, H1, checklist text, and filename when practical.
 14. If a scan contradicts the scaffold or volume plan, correct the current poem

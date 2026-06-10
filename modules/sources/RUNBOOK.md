@@ -21,7 +21,7 @@ Nothing in `transcribe/` may start until the ingest PROMOTION.yaml carries `stat
 ## Outputs
 
 ```
-projects/<project_id>/ingest/
+projects/<project_id>/sources/
   raw/
     <stable_name>.pdf                   ← renamed, certified source
     <stable_name>.provenance.yaml       ← written by texgraph ingest rename

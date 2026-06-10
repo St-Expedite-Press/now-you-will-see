@@ -23,7 +23,7 @@ or e-reader/HTML output.
 
 Before making layout decisions, read:
 
-- `projects/<project_id>/typeset/collection.yaml` — active `render_config`
+- `projects/<project_id>/interior/collection.yaml` — active `render_config`
 - `ONTOLOGY.md § Data Schemas` — prose front matter fields
 - `ONTOLOGY.md § Command Surface` — build and watch commands
 
@@ -93,7 +93,7 @@ When a collection contains both `type: prose` and `type: poem` files:
 .\.venv\Scripts\texgraph.exe watch --project <id>
 ```
 
-Check output in `projects/<project_id>/typeset/output/`.
+Check output in `projects/<project_id>/interior/output/`.
 
 ## Guardrails
 

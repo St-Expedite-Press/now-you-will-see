@@ -41,7 +41,7 @@ src/pages/AuditDashboard.tsx
 /ingest                   Ingest project picker
 /projects                 Continue Project
 /projects/new             Create Project
-/projects/<id>/ingest     Ingest Documents wireframe
+/projects/<id>/sources     Ingest Documents wireframe
 /projects/<id>            Project editor
 ```
 

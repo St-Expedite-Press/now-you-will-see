@@ -15,7 +15,7 @@ Load this skill when the proof task involves prose content:
 - Reviewing quotation marks, dashes, and typographic punctuation
 - Signing off on `status` for source paratext or editorial prose files
 
-Do not use for: verse proof (`proof/skills/poetry-proof`), cover work, or
+Do not use for: verse proof (`modules/manuscript/skills/poetry-proof`), cover work, or
 infrastructure documentation.
 
 ## Required Reads

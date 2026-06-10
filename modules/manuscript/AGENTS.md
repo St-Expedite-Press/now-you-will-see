@@ -14,7 +14,7 @@ readiness before interior production.
 
 Primary manuscript artifacts live under `projects/<project_id>/manuscript/`.
 Interior build content lives under `projects/<project_id>/interior/content/`.
-Legacy proof records may remain under `projects/<project_id>/proof/` during the
+Legacy proof records may remain under `projects/<project_id>/manuscript/` during the
 one-release compatibility window.
 
 ## Local Layout

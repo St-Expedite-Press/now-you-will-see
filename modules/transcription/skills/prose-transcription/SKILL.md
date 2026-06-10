@@ -14,8 +14,8 @@ Load this skill when the transcription task involves prose content:
 - Any matter that is paragraph-based, not line-by-line verse
 - Filling `type: prose` front matter files created by the volume plan
 
-Do not use for: verse transcription (`transcribe/skills/poem-transcription`),
-volume planning (`transcribe/skills/volume-planning`), or metadata operations.
+Do not use for: verse transcription (`modules/transcription/skills/poem-transcription`),
+volume planning (`modules/transcription/skills/volume-planning`), or metadata operations.
 
 ## Required Reads
 
@@ -95,13 +95,13 @@ Valid `matter_type` values:
 
 Source paratext files belong in:
 ```
-projects/<project_id>/transcribe/<volume>/books/<book>/front_matter/
-projects/<project_id>/transcribe/<volume>/books/<book>/back_matter/
+projects/<project_id>/transcription/<volume>/books/<book>/front_matter/
+projects/<project_id>/transcription/<volume>/books/<book>/back_matter/
 ```
 
 Prose sections destined for the typeset build belong in:
 ```
-projects/<project_id>/typeset/content/<section>/<file>.md
+projects/<project_id>/interior/content/<section>/<file>.md
 ```
 
 Confirm placement with the volume plan before creating files.
@@ -111,5 +111,5 @@ Confirm placement with the volume plan before creating files.
 - Do not invent missing text. Record uncertainty in `notes`.
 - Do not use external texts to fill gaps unless the user permits; record in `notes`.
 - Do not alter verse line breaks — if content is verse within a prose piece
-  (quoted poetry), switch to `transcribe/skills/poem-transcription` for that excerpt.
+  (quoted poetry), switch to `modules/transcription/skills/poem-transcription` for that excerpt.
 - Cross-stage writes require user approval.

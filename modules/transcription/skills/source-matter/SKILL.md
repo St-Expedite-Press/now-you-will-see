@@ -9,20 +9,20 @@ description: Transcribe and manage source-book front and back matter. Use when h
 
 Use this skill for source paratext from an original book scan:
 
-- `projects/<project_id>/transcribe/<volume>/books/<book>/front_matter/`
-- `projects/<project_id>/transcribe/<volume>/books/<book>/back_matter/`
+- `projects/<project_id>/transcription/<volume>/books/<book>/front_matter/`
+- `projects/<project_id>/transcription/<volume>/books/<book>/back_matter/`
 
 Do not use it for edition-level introductions, afterwords, or textual notes;
-those belong under `projects/<project_id>/transcribe/<volume>/front_matter/` and
-`projects/<project_id>/transcribe/<volume>/back_matter/`.
+those belong under `projects/<project_id>/transcription/<volume>/front_matter/` and
+`projects/<project_id>/transcription/<volume>/back_matter/`.
 
 For general prose transcription workflow, also read
-`transcribe/skills/prose-transcription/SKILL.md`.
+`modules/transcription/skills/prose-transcription/SKILL.md`.
 
 ## Workflow
 
 1. Read `AGENTS.md`, `transcribe/AGENTS.md`, the target `book.md`, and any
-   project-level editorial policy under `projects/<project_id>/transcribe/metadata/`.
+   project-level editorial policy under `projects/<project_id>/transcription/metadata/`.
 2. Render/open the relevant source scan pages before editing:
    ```powershell
    .\.venv\Scripts\texgraph.exe pdf render <pdf> --first <n> --last <n> --prefix <prefix>
@@ -52,7 +52,7 @@ For general prose transcription workflow, also read
 11. Set `status: "transcribed"` only after visual image checking.
 12. Regenerate book metadata after adding or removing source matter:
     ```powershell
-    .\.venv\Scripts\texgraph.exe metadata projects/<project_id>/transcribe/volumes --write --check
+    .\.venv\Scripts\texgraph.exe metadata projects/<project_id>/transcription/volumes --write --check
     ```
 
 ## Inventory
@@ -60,7 +60,7 @@ For general prose transcription workflow, also read
 Refresh the source matter inventory after source acquisition or replacement:
 
 ```powershell
-.\.venv\Scripts\texgraph.exe scan projects/<project_id>/transcribe/volumes --output projects/<project_id>/transcribe/metadata/source_matter_inventory.md
+.\.venv\Scripts\texgraph.exe scan projects/<project_id>/transcription/volumes --output projects/<project_id>/transcription/metadata/source_matter_inventory.md
 ```
 
 The inventory is a navigation aid. Visually review image-only sources and
