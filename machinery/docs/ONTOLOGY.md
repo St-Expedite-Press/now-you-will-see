@@ -16,7 +16,7 @@
 | Transcribing text from source scans | `transcription` | `projects/<id>/transcription/` |
 | Auditing, correcting, or textual review | `manuscript` | `projects/<id>/manuscript/` |
 | Proof-draft rendering, layout, and interior PDFs | `interior` | `projects/<id>/interior/` |
-| Legacy proof records and reusable proof skills | `proof/` legacy support | `projects/<id>/manuscript/` |
+| Reading-edition relineation and editorial notes | `manuscript` | `projects/<id>/manuscript/reading/` |
 | Cover assets or cover production | `covers/` | `projects/<id>/covers/` |
 | E-reader, web, publication-facing output | `publication` | `projects/<id>/publication/` |
 | Release packaging or delivery | `release` | `projects/<id>/release/` |
@@ -115,24 +115,21 @@ modules/<module>/
   skills/
     <skill-name>/
       SKILL.md           ← reusable workflow program, loaded on demand
-  tools/
-    <script>.py          ← deterministic helper scripts owned by this module
-  src/
-  tests/
 ```
+
+`modules/` holds contracts only. All runtime code lives in
+`machinery/src/texgraph/` (the single import root); deterministic helper
+scripts live in `machinery/tools/`.
 
 Canonical modules: `workspace`, `sources`, `transcription`, `manuscript`,
 `interior`, `covers`, `publication`, `release`.
 
-Legacy framework paths: `ingest/` (`sources`), `transcribe/`
-(`transcription`), `proof/` (legacy proof support), `typeset/` (`manuscript`
-and `interior`), `front-end/` (`publication`), and `final/` (`release`).
-
-The old root framework directories remain as compatibility redirects for one
-release cycle. New work should route through `modules/<module>/AGENTS.md`.
-`proof/` remains only for legacy proof support and historical records. New proof
-drafts are an `interior` rendering mode and write under
-`projects/<project_id>/interior/output/proof/`.
+The old root framework directories (`ingest/`, `transcribe/`, `proof/`,
+`typeset/`, `front-end/`, `final/`, root `covers/`) were removed on
+2026-06-10; their skills and runbooks were merged into `modules/<module>/`.
+Module-name aliases (`texgraph verify proof|typeset|…`) remain accepted in
+the CLI for one further cycle. Proof drafts are an `interior` rendering mode
+and write under `projects/<project_id>/interior/output/proof/`.
 
 ### machinery/
 
@@ -158,6 +155,9 @@ Local project workspaces. Gitignored except tracked example projects.
 ```
 projects/
   <project_id>/
+    RUN_REPORT.md        ← index of dated session reports
+    reports/
+      RUN-YYYY-MM-DD.md  ← one report per working session
     sources/
       raw/               ← renamed source files (<stable_name>.<ext>)
                             provenance records (<stable_name>.provenance.yaml)
@@ -166,36 +166,33 @@ projects/
       PROMOTION.yaml     ← module gate: volumes transcribed and policy accepted
       <volume files, plans, metadata>
     manuscript/
-      <audit reports, corrections, textual-review notes>
+      EDITORIAL_PROCEDURE.md  ← reading-edition format and note classes
+      reading/           ← hand-curated reading edition (three-section poem
+                            files); builds consume read-only, never write
+      corrections/       ← proof corrections, house style, scan references
+      <audit reports, textual-review notes>
+      PROMOTION.yaml
     interior/
-      collection.yaml
-      content/
-      corrections/
-      output/
+      collection.yaml    ← content_dir points at ../manuscript/reading
+      output/            ← the ONLY directory builds write
         proof/
+        legacy-proof/    ← superseded pre-migration proof renders
       PROMOTION.yaml     ← module gate: interior PDF embedded and approved
     covers/
       PROMOTION.yaml
+      _inbox/            ← unrenamed asset drops pending stable naming
       <cover assets and production files>
     publication/
     release/
 
-    # compatibility-only paths accepted by aliases/migration:
-    ingest/              ← sources legacy path
-    transcribe/          ← transcription legacy path
-      PROMOTION.yaml     ← module gate: volumes transcribed and policy accepted
-      <volume files, plans, metadata>
-    proof/               ← manuscript legacy support
-    typeset/             ← interior legacy path
-    front-end/           ← publication legacy path
-    final/               ← release legacy path
-
+  _archive/              ← retired projects
   spectra_poems/         ← tracked example project (in git)
 ```
 
-Build roots point at `projects/<project_id>/interior/`. During compatibility,
-existing workspace `path` values may still point at `typeset/`; config
-resolution checks both canonical and legacy interior roots.
+Build roots point at `projects/<project_id>/interior/`; workspace `path`
+values point at the interior root. All registered projects use the canonical
+module directories (migrated 2026-06-10); `texgraph migrate modules` remains
+available for any project restored from old layouts.
 
 ---
 
@@ -694,13 +691,30 @@ These must always be true. Violating any of them breaks the system.
 12. **`PROMOTION.yaml` is the machine-readable gate**. A stage does not begin
     work unless the upstream PROMOTION.yaml exists and passes `texgraph verify`.
     The file lives at `projects/<id>/<module>/PROMOTION.yaml`. Writing `status:
-    approved` requires explicit user action via `texgraph promote <module>` (not
-    yet implemented — stages 4–7 of the gate implementation plan).
+    approved` requires explicit user action via `texgraph promote <module>`.
 
 13. **Stable source naming is the sources certification**. A file named according
     to the schema `<author>_<year>_<title>_<source>.<ext>` in `sources/raw/`
     certifies it has been processed. The original file is gone — `texgraph ingest
     rename` moves, not copies. Presence of the renamed file is the processing record.
+
+14. **Hand-curated text never lives under a directory any build writes.**
+    Reading editions live in `projects/<id>/manuscript/reading/`; builds
+    consume them read-only through `collection.yaml: content_dir` and write
+    only under `interior/output/`. Scaffold tools never overwrite existing
+    reading files without `--force`.
+
+15. **One doc home, one import root, contracts-only modules.** Canonical
+    documentation lives in `machinery/docs/` (root files are pointers);
+    runtime Python lives only in `machinery/src/texgraph/`;
+    `modules/<module>/` holds AGENTS.md, module.yaml, RUNBOOK.md, schemas,
+    and skills — never code.
+
+16. **Reading-edition poem files use the three-section format** (`## Original
+    Lineation`, `## Editorial Relineation`, `## Context Notes`). The parser
+    typesets the relineation when present, else the original; context notes
+    go to poem metadata (`context_notes`), never inline into the book. The
+    full contract lives in the project's `manuscript/EDITORIAL_PROCEDURE.md`.
 
 ---
 

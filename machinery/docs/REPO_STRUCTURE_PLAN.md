@@ -1,8 +1,18 @@
 # Repo Structure Plan
 
 Date: 2026-06-10
-Status: proposed — supersedes nothing; sequences and extends
-`MODULE_REFACTOR_STATUS.md § Next Hardening Sequence`.
+Status: EXECUTED 2026-06-10 (same day). Deviations from the proposal:
+- `texgraph promote` already existed; no work needed.
+- Root stage dirs were deleted outright (no LEGACY.md cycle) after their
+  canonical skills/RUNBOOKs were merged into `modules/<module>/`.
+- The CLI alias layer (verify proof|typeset|…) was retained for one further
+  cycle; its removal is the last open hardening item.
+- `requirements.txt` kept (deliberate, self-documenting flat manifest);
+  Makefile kept; root `logs/` kept (designed, gitignored log store).
+- Root `.env` found to be a stray Hermes-agent config (OpenRouter) — left in
+  place because it may hold live keys; flagged for the operator to relocate.
+- workspace.yaml schema upgrade (project_root + per-module roots) deferred;
+  entries now point at canonical interior roots under the existing schema.
 
 ## Diagnosis
 

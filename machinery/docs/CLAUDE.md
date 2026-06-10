@@ -126,7 +126,8 @@ and whether `texgraph verify <next-module>` now passes.
 | `machinery/docs/ONTOLOGY.md` | Authoritative repo map: schemas, commands, invariants |
 | `modules/<module>/AGENTS.md` | Module contract: inputs, outputs, gate, skills, tools |
 | `modules/<module>/RUNBOOK.md` | Operator guide when present: concrete commands, paths, failure modes |
-| `projects/<id>/RUN_REPORT.md` | Session log: what ran, what changed, what remains |
+| `projects/<id>/RUN_REPORT.md` | Index of dated session reports in `projects/<id>/reports/` |
+| `projects/<id>/manuscript/EDITORIAL_PROCEDURE.md` | Reading-edition format: three-section poem files, note classes |
 | `workspace.yaml` | Maps project IDs to project/interior roots (local, gitignored) |
 
 ---

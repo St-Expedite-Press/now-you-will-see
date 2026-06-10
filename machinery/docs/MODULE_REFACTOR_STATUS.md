@@ -1,8 +1,37 @@
 # Modular Refactor Audit Status
 
-Date: 2026-06-09
+Date: 2026-06-10 (supersedes 2026-06-09 audit below)
 
 ## Verdict
+
+COMPLETE. All registered projects (spectra_poems, lift-wind-love-heat,
+fletcher-complete-original-collections) are migrated to canonical module
+directories. Root legacy stage directories are deleted; their skills and
+RUNBOOKs live in `modules/<module>/`. Reading editions live in
+`manuscript/reading/` and builds consume them read-only (verified by draft
+builds on all three projects and a full Fletcher proof-build). `texgraph
+promote` exists. See `REPO_STRUCTURE_PLAN.md` for the executed sequence and
+deviations.
+
+## Remaining hardening (open)
+
+1. Remove the CLI module-alias layer (`verify proof|typeset|…`) after one
+   further cycle; update `modules/*/module.yaml` legacy_aliases with it.
+2. workspace.yaml schema upgrade: explicit `project_root` + per-module
+   artifact roots (entries currently point at canonical interior roots under
+   the path-based schema).
+3. Publication, covers, and release remain structurally present but not
+   production-complete modules.
+4. Broader CLI integration tests for `ingest rename`, `verify`, `modules
+   verify`, and migration conflict behavior.
+5. Interior apparatus rendering for reading-edition `context_notes`
+   (captured by the parser, not yet typeset as endnotes).
+
+---
+
+# Previous audit (2026-06-09)
+
+## Verdict (superseded)
 
 The modular refactor is implemented and usable as a compatibility-first
 transition. The canonical registry, CLI module commands, migration planner,

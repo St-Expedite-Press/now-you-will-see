@@ -97,26 +97,32 @@ projects/<project_id>/
   release/        ← release packages and manifests
 ```
 
-Legacy project artifact directories remain accepted for one compatibility
-cycle: `ingest`, `transcribe`, `proof`, `typeset`, `front-end`, and `final`.
-Use `texgraph migrate modules --project <id> --dry-run` before applying a
-semantic directory migration.
+All registered projects use the canonical module directories (migrated
+2026-06-10). The reading edition lives in `manuscript/reading/`; builds
+consume it read-only and write only under `interior/output/`. For any
+project restored from an old layout, run
+`texgraph migrate modules --project <id> --dry-run` first.
 
-`workspace.yaml` maps project IDs to `project_root` plus module artifact roots.
-During compatibility, existing `path` values may still point at the interior
-root (`interior/` or legacy `typeset/`).
+`workspace.yaml` maps project IDs to their interior roots
+(`projects/<id>/interior`).
 
 ---
 
 ## System Invariants
 
-Three critical rules — see `machinery/docs/ONTOLOGY.md § Key Invariants` for the full list:
+Critical rules — see `machinery/docs/ONTOLOGY.md § Key Invariants` for the full list:
 
 - `section_id` is the directory name, not `_meta.yaml:id`.
 - Module agents write only to their module-owned artifact directory.
   Cross-module writes require explicit user approval.
 - Persona prose never enters source text, YAML, manifests, audits, or command
   output.
+- Hand-curated text never lives under a directory any build writes. Reading
+  editions live in `manuscript/`; builds consume them read-only and write
+  only under `interior/output/`.
+- One doc home (`machinery/docs/`), one Python import root
+  (`machinery/src/texgraph/`), and `modules/<module>/` holds contracts only
+  (AGENTS.md, module.yaml, RUNBOOK.md, schemas, skills) — no runtime code.
 
 ---
 
