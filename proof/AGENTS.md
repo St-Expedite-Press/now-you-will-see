@@ -1,41 +1,28 @@
-# Proof Stage
+# Proof Workflows
 
-Owns the audit pass, editorial corrections, and the draft proof build.
-The proof build is the primary output of this stage: a tex artifact and draft PDF
-that the user reviews before the typeset stage begins.
+Proof is now a first-draft mode of the `typeset` stage, not a separate pipeline
+stage between transcription and typesetting.
+
+Use `typeset/AGENTS.md` for routing and stage ownership. The proof directory
+keeps reusable proofing skills and legacy project artifacts, but new draft TeX
+and PDF builds belong under:
+
+```
+projects/<project_id>/typeset/output/proof/
+```
 
 ## Use For
 
-- Auditing transcribed files against source scans (line-by-line poem proof).
-- Recording and resolving textual questions.
-- Checking statuses, page spans, forbidden markup, and metadata consistency.
-- Building the draft proof PDF for editorial review.
+- Reusable proofing checklists and legacy correction records.
+- Verse, prose, and transcription verification guidance loaded from the
+  `proof/skills/` directory.
 
-## DAG Contract
+## Do Not Use For
 
-Inputs:
-- approved transcribe PROMOTION.yaml — run `texgraph verify proof [--project <id>]` before beginning
-- transcribed poem files under `projects/<project_id>/transcribe/`
-- source PDFs at `projects/<project_id>/ingest/raw/`
-
-Outputs:
-```
-projects/<project_id>/proof/
-  audit/
-    <book>_audit.json           ← texgraph audit --json
-  corrections/
-    <book>_corrections.md       ← textual question log
-  output/
-    tex/
-      <slug>.tex                ← proof tex artifact (tracked)
-    <slug>.pdf                  ← draft proof PDF (gitignored — for review only)
-  PROMOTION.yaml
-```
-
-User gate:
-- User reviews the proof PDF.
-- All textual questions resolved.
-- User approves: sets `status: approved`, `user_accepted_layout: true` in PROMOTION.yaml.
+- New proof draft builds. Use `texgraph proof-build --project <id>`, which writes
+  to `typeset/output/proof/`.
+- New promotion gates between transcribe and typeset. `texgraph verify typeset`
+  now checks the transcribe gate directly.
 
 ## Local Skills
 
@@ -43,12 +30,3 @@ User gate:
 - `skills/prose-proof/SKILL.md` — paragraph integrity and type-tag proof for prose
 - `skills/transcription-verification/SKILL.md` — cross-file status and metadata audit
 - `skills/persona-editorial/SKILL.md` — editorial voice review
-
-## Tools
-
-- `texgraph verify proof [--project <id>]` — check transcribe gate
-- `texgraph audit <book_dir> [--json]` — structural audit
-- `texgraph metadata <volumes_dir> --check` — metadata consistency
-- `texgraph pdf render <pdf> --first N --last N --prefix P` — render source pages for comparison
-- `texgraph proof-build --project <id>` — draft build → proof/output/
-- `texgraph verify typeset [--project <id>]` — confirm proof gate passes after promotion

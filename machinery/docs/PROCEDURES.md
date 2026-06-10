@@ -1,7 +1,7 @@
 # Procedures
 
 Use these procedures from the repository root. For the full command reference,
-directory taxonomy, and data schemas, read `ONTOLOGY.md`.
+directory taxonomy, and data schemas, read `machinery/docs/ONTOLOGY.md`.
 
 ---
 
@@ -10,16 +10,16 @@ directory taxonomy, and data schemas, read `ONTOLOGY.md`.
 1. Read root `AGENTS.md` — classification tree, routing tables, DAG, update loops.
 2. Classify the job type: `pipeline`, `research`, `conversation`, or `tooling`.
    If composite, declare the full path before starting.
-3. If pipeline: route to the stage using the pipeline routing table and read the
-   stage `AGENTS.md`. If non-pipeline: follow the non-pipeline routing table in
+3. If pipeline: route to the module using the pipeline routing table and read the
+   module's `modules/<module>/AGENTS.md`. If non-pipeline: follow the non-pipeline routing table in
    root `AGENTS.md`. If ambiguous: load `machinery/skills/task-classifier/SKILL.md`.
 4. Load only the skill files needed for the specific task.
-5. Identify what user input is required before stage completion.
-6. Write only to `projects/<project_id>/<stage>/` unless the user approves
-   a cross-stage edit.
+5. Identify what user input is required before module completion.
+6. Write only to the module-owned project path unless the user approves
+   a cross-module edit.
 
 If the task requires repo-wide context (directory shape, schemas, command
-names, invariants), read `ONTOLOGY.md` rather than exploring the filesystem.
+names, invariants), read `machinery/docs/ONTOLOGY.md` rather than exploring the filesystem.
 
 ---
 
@@ -29,12 +29,13 @@ names, invariants), read `ONTOLOGY.md` rather than exploring the filesystem.
 Copy-Item workspace.example.yaml workspace.yaml
 ```
 
-Edit `workspace.yaml` to point at local project typeset roots:
+Edit `workspace.yaml` to point at local project roots and interior roots:
 
 ```yaml
 projects:
   - id: my-project
-    path: projects/my-project/typeset
+    project_root: projects/my-project
+    path: projects/my-project/interior
     description: "Local project"
 default_project: my-project
 ```
@@ -66,16 +67,16 @@ default_project: my-project
 
 At each step, stop and present the required user input before proceeding.
 
-1. **project-create** — collect: project ID, title, author/editor, intended outputs, persona choice if relevant.
-2. **ingest** — collect: sources, provenance, rights/access notes, naming approval.
-3. **transcribe** — collect: target scope, policy, uncertain readings for resolution.
-4. **proof** — collect: correction decisions and unresolved textual questions.
-5. **typeset** — collect: trim, format, type regime, inclusion decisions.
+1. **workspace** — collect: project ID, title, author/editor, intended outputs, persona choice if relevant.
+2. **sources** — collect: sources, provenance, rights/access notes, naming approval.
+3. **transcription** — collect: target scope, policy, uncertain readings for resolution.
+4. **manuscript** — collect: correction decisions and unresolved textual questions.
+5. **interior** — collect: trim, format, type regime, inclusion decisions.
 6. **covers** — collect: visual direction, assets, page-count-dependent specs.
-7. **front-end** — collect: audience, public copy, media, launch mode.
-8. **final** — collect: vendor target and final signoff.
+7. **publication** — collect: audience, public copy, media, launch mode.
+8. **release** — collect: vendor target and final signoff.
 
-See `ONTOLOGY.md § Pipeline Architecture` for the full DAG and stage ownership rules.
+See `machinery/docs/ONTOLOGY.md § Pipeline Architecture` for the full DAG and module ownership rules.
 See `machinery/docs/DAG_PIPELINE.md` for node contracts and promotion record schema.
 
 ---
@@ -89,7 +90,7 @@ data schemas, or pipeline edges:
 .\.venv\Scripts\python.exe machinery\tools\ontology_check.py
 ```
 
-Review and update the flagged `ONTOLOGY.md` sections. Then save a new baseline:
+Review and update the flagged `machinery/docs/ONTOLOGY.md` sections. Then save a new baseline:
 
 ```powershell
 .\.venv\Scripts\python.exe machinery\tools\ontology_check.py --save-baseline
@@ -118,7 +119,7 @@ With a registered project:
 ## Verify Font Embedding (Before Vendor Submission)
 
 ```powershell
-pdffonts projects\<id>\typeset\output\<file>.pdf
+pdffonts projects\<id>\interior\output\<file>.pdf
 ```
 
 All fonts must show `emb: yes`. Any un-embedded font will cause a vendor
@@ -143,16 +144,16 @@ raw ingest files and generated PDFs should not be tracked.
 
 ## Stage Procedures
 
-Detailed contracts, skill rosters, and tool references live in each stage's
+Detailed contracts, skill rosters, and tool references live in each module's
 `AGENTS.md`. Point of entry per task type:
 
 | Task involves | Read |
 |---|---|
-| Source acquisition, provenance | `ingest/AGENTS.md` |
-| Poem or prose transcription | `transcribe/AGENTS.md` |
-| Verification, audit, editorial review | `proof/AGENTS.md` |
-| Layout, PDF builds | `typeset/AGENTS.md` |
-| Cover production | `covers/AGENTS.md` |
-| E-reader, web, publication output | `front-end/AGENTS.md` |
-| Release packaging | `final/AGENTS.md` |
+| Source acquisition, provenance | `modules/sources/AGENTS.md` |
+| Poem or prose transcription | `modules/transcription/AGENTS.md` |
+| Verification, audit, editorial review | `modules/manuscript/AGENTS.md` |
+| Layout, PDF builds | `modules/interior/AGENTS.md` |
+| Cover production | `modules/covers/AGENTS.md` |
+| E-reader, web, publication output | `modules/publication/AGENTS.md` |
+| Release packaging | `modules/release/AGENTS.md` |
 | CLI, Studio, tests, infrastructure, docs | `machinery/AGENTS.md` |

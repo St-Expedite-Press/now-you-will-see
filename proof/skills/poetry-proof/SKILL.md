@@ -107,4 +107,5 @@ Use this to identify poems not yet at `checked` status.
 - Proof is a fidelity check against the source. Editorial improvements belong in
   a subsequent editorial pass with explicit user direction.
 - Do not change `type:` for typographic convenience — `type:` is a content classification.
-- Cross-stage writes (modifying typeset files from proof stage) require user approval.
+- When this checklist is used inside the typeset stage, corrections may modify
+  typeset manuscript files only as part of an approved correction pass.

@@ -11,9 +11,9 @@ Owns cover-art policy, cover assets, style records, and cover production notes.
 ## DAG Contract
 
 Inputs:
-- approved final PROMOTION.yaml with `cover_unlock.unlocked: true` — run `texgraph verify covers [--project <id>]` before beginning
+- approved interior PROMOTION.yaml — run `texgraph verify covers [--project <id>]` before beginning
 - project title, author/editor, imprint, and metadata
-- approved trim and page count from typeset
+- approved trim and page count from interior/typeset output
 - source cover assets or requested visual direction
 - vendor requirements
 
@@ -35,7 +35,7 @@ as appropriate for the content type.
 
 ## Tools
 
-- `texgraph verify covers [--project <id>]` — check final gate (cover_unlock) before starting
+- `texgraph verify covers [--project <id>]` — check the approved interior gate before starting
 - Studio cover endpoints under `/api/projects/{project_id}/covers`.
 - Project cover assets under `projects/<project_id>/covers/`.
 

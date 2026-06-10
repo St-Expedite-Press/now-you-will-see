@@ -13,21 +13,21 @@ planning.
 
 Inputs:
 - approved ingest PROMOTION.yaml — run `texgraph verify transcribe [--project <id>]` before beginning
-- approved source files from `projects/<project_id>/ingest/raw/`
+- approved source files from `projects/<project_id>/sources/raw/`
 - target volume, book, section, or item
 - transcription policy
 - source page map or source scope
 
 Outputs:
-- documentary transcription under `projects/<project_id>/transcribe/`
+- documentary transcription under `projects/<project_id>/transcription/`
 - source matter files
 - metadata and book/volume status updates
 - unresolved-reading notes
-- `projects/<project_id>/transcribe/PROMOTION.yaml` — written on user approval
+- `projects/<project_id>/transcription/PROMOTION.yaml` — written on user approval
 
 User gate:
 - user approves transcription policy and either resolves uncertain readings or
-  accepts them as recorded uncertainties before proof promotion.
+  accepts them as recorded uncertainties before manuscript/interior work begins.
 
 ## Local Skills
 
@@ -40,10 +40,10 @@ User gate:
 ## Tools
 
 - `texgraph verify transcribe [--project <id>]` — check ingest gate before starting
-- `texgraph metadata projects/<project_id>/transcribe/volumes --write --check`
-- `texgraph scan projects/<project_id>/transcribe/volumes --output projects/<project_id>/transcribe/metadata/source_matter_inventory.md`
-- `texgraph plan projects/<project_id>/transcribe/project_plan/PROJECT_PLAN.md --check`
+- `texgraph metadata projects/<project_id>/transcription/volumes --write --check`
+- `texgraph scan projects/<project_id>/transcription/volumes --output projects/<project_id>/transcription/metadata/source_matter_inventory.md`
+- `texgraph plan projects/<project_id>/transcription/project_plan/PROJECT_PLAN.md --check`
 - `texgraph page-map --offset <n> --printed "<ranges>"`
 
-Transcription files belong under `projects/<project_id>/transcribe/`, which is
+Transcription files belong under `projects/<project_id>/transcription/`, which is
 local-only and ignored by Git.

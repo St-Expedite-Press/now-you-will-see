@@ -1,8 +1,8 @@
 # DAG Pipeline Contract
 
 This document defines the end-to-end publishing graph. The graph exists so a
-project can move from first source intake to final release without hiding
-stage-specific decisions inside one opaque command.
+project can move from first source intake to release without hiding
+module-specific decisions inside one opaque command.
 
 ## Principle
 
@@ -18,41 +18,40 @@ not write `PROMOTION.yaml`.
 ## Graph
 
 ```text
-project-create
-  -> ingest
-  -> transcribe
-  -> proof
-  -> typeset
-  -> final
-
-typeset -> covers -> final
-typeset -> front-end -> final
-proof   -> final
+workspace
+  -> sources
+  -> transcription
+  -> manuscript
+  -> interior
+      -> covers
+      -> publication
+  -> release
 ```
 
 ## Promotion Records
 
-Each stage gate is enforced by a `PROMOTION.yaml` file at
-`projects/<project_id>/<stage>/PROMOTION.yaml`. A stage may not begin work
-until the upstream stage's PROMOTION.yaml exists and passes `texgraph verify`.
+Each module gate is enforced by a `PROMOTION.yaml` file at
+`projects/<project_id>/<module>/PROMOTION.yaml`. A module may not begin work
+until the upstream module's PROMOTION.yaml exists and passes `texgraph verify`.
 
 **Implemented gates** (upstream → stage):
 
 | Upstream | Stage | Command |
 |---|---|---|
-| ingest | transcribe | `texgraph verify transcribe` |
-| transcribe | proof | `texgraph verify proof` |
-| proof | typeset | `texgraph verify typeset` |
-| typeset | final | `texgraph verify final` |
-| final | covers | `texgraph verify covers` (requires `cover_unlock.unlocked: true`) |
+| sources | transcription | `texgraph verify transcription` (`transcribe` alias) |
+| transcription | manuscript | `texgraph verify manuscript` (`proof` compatibility alias) |
+| transcription | interior | `texgraph verify interior` (`typeset` alias) |
+| interior | covers | `texgraph verify covers` |
+| interior | publication | `texgraph verify publication` (`front-end` alias; checker still minimal) |
+| interior | release | `texgraph verify release` (`final` alias) |
 
 **Pending gates** (not yet implemented):
-- front-end stage has no formal verify gate yet
-- `texgraph promote <stage>` command (writes approved PROMOTION.yaml) — step 5 of gate plan
+- publication module needs a fuller checker for EPUB/web deliverables
+- `texgraph promote <module>` command (writes approved PROMOTION.yaml)
 
 Implemented support command:
 - `texgraph proof-build` renders a proof artifact tree and proof PDF from the
-  typeset manuscript.
+  interior manuscript.
 
 See `ONTOLOGY.md § Data Schemas` for full PROMOTION.yaml schemas per stage.
 See `machinery/src/texgraph/promotions.py` for the verification implementation.
@@ -72,14 +71,14 @@ Inputs:
 - optional persona choice
 
 Outputs:
-- `projects/<project_id>/` stage directories
-- initial `projects/<project_id>/typeset/collection.yaml`
+- `projects/<project_id>/` module directories
+- initial `projects/<project_id>/interior/collection.yaml`
 - workspace registration
 
 User gate:
 - approve project ID, title, and initial stage structure
 
-### ingest
+### sources
 
 Purpose: acquire, rename, and document source material.
 
@@ -89,65 +88,64 @@ Inputs:
 - naming policy
 
 Outputs:
-- renamed source files under `projects/<project_id>/ingest/raw/` — stable name: `<author>_<year>_<title>_<source>.<ext>`
+- renamed source files under `projects/<project_id>/sources/raw/` — stable name: `<author>_<year>_<title>_<source>.<ext>`
 - provenance records (`<stable_name>.provenance.yaml`)
-- `projects/<project_id>/ingest/PROMOTION.yaml`
+- `projects/<project_id>/sources/PROMOTION.yaml`
 
 Commands:
 - `texgraph ingest rename <file> --author A --year Y --title T`
-- `texgraph verify ingest`
+- `texgraph verify sources`
 
 User gate:
 - approve source set and rights/provenance status
 
-### transcribe
+### transcription
 
 Purpose: convert source material into documentary project text.
 
 Inputs:
-- approved ingest PROMOTION.yaml (`texgraph verify transcribe`)
+- approved sources PROMOTION.yaml (`texgraph verify transcription`)
 - approved source files
 - target volume/book/section
 - transcription policy
 - unresolved source questions
 
 Outputs:
-- transcribed text under `projects/<project_id>/transcribe/`
+- transcribed text under `projects/<project_id>/transcription/`
 - source matter files
 - metadata and planning updates
-- `projects/<project_id>/transcribe/PROMOTION.yaml`
+- `projects/<project_id>/transcription/PROMOTION.yaml`
 
 User gate:
 - accept transcription policy and resolve uncertain readings or mark them open
 
-### proof
+### manuscript
 
-Purpose: verify text against source evidence and record corrections.
+Purpose: verify text against source evidence, record corrections, and maintain
+the build manuscript.
 
 Inputs:
-- approved transcribe PROMOTION.yaml (`texgraph verify proof`)
+- approved transcription PROMOTION.yaml
 - transcribed text
 - source images or PDFs
 - metadata
 - persona boundary for editorial prose only
 
 Outputs:
-- audit reports
-- correction lists
-- proof notes
-- verified or blocked status markers
-- `projects/<project_id>/proof/PROMOTION.yaml`
+- corrected manuscript files
+- audit reports and correction notes
+- retained proof drafts under `projects/<project_id>/interior/output/proof/`
 
 User gate:
-- accept corrections, decide unresolved textual questions, approve proof status
+- accept corrections and decide unresolved textual questions.
 
-### typeset
+### interior
 
 Purpose: prepare buildable book interiors.
 
 Inputs:
-- approved proof PROMOTION.yaml (`texgraph verify typeset`)
-- proofed text
+- approved transcription/manuscript state (`texgraph verify interior`; `typeset` alias)
+- corrected manuscript text
 - collection metadata
 - trim size
 - type/layout regime
@@ -158,7 +156,7 @@ Outputs:
 - content directories
 - draft/final TeX/PDF artifacts
 - build logs and layout notes
-- `projects/<project_id>/typeset/PROMOTION.yaml`
+- `projects/<project_id>/interior/PROMOTION.yaml`
 
 User gate:
 - approve format, type regime, draft proof, and final interior
@@ -168,9 +166,9 @@ User gate:
 Purpose: produce and verify cover assets.
 
 Inputs:
-- approved final PROMOTION.yaml with `cover_unlock.unlocked: true` (`texgraph verify covers`)
+- approved interior PROMOTION.yaml (`texgraph verify covers`)
 - title/author/metadata
-- trim and page count from typeset
+- trim and page count from interior
 - cover assets
 - vendor requirements
 - visual direction
@@ -184,15 +182,14 @@ Outputs:
 User gate:
 - approve visual direction, proof, and vendor file
 
-### front-end
+### publication
 
 Purpose: produce publication-facing web/static materials.
 
 Inputs:
 - project metadata
 - approved copy
-- approved cover assets
-- release status
+- optional approved cover assets
 - public audience and call-to-action
 
 Outputs:
@@ -203,12 +200,12 @@ Outputs:
 User gate:
 - approve public copy, media, and launch state
 
-### final
+### release
 
 Purpose: collect approved artifacts for release or handoff.
 
 Inputs:
-- approved typeset PROMOTION.yaml (`texgraph verify final`)
+- approved interior PROMOTION.yaml (`texgraph verify release`; `final` alias)
 - interior approval
 - cover approval (if covers stage complete)
 - optional front-end approval
@@ -220,7 +217,7 @@ Outputs:
 - delivery manifest
 - upload checklist
 - final notes
-- `projects/<project_id>/final/PROMOTION.yaml` with `cover_unlock.unlocked: true`
+- `projects/<project_id>/release/PROMOTION.yaml`
 
 User gate:
 - final signoff

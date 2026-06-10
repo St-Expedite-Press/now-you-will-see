@@ -1,7 +1,7 @@
 # AGENTS.md — Root Dispatcher
 
-Read this file first. Then read `ONTOLOGY.md` for full repo detail, or read the
-relevant stage `AGENTS.md` for the task at hand.
+Read this file first. Then read `machinery/docs/ONTOLOGY.md` for full repo
+detail, or read the relevant module `AGENTS.md` for the task at hand.
 
 ---
 
@@ -11,7 +11,7 @@ Before routing, determine the job type. Every request is one of four types:
 
 | Job type | Signals | Produces |
 |---|---|---|
-| `pipeline/<stage>` | Changes or produces an artifact under `projects/<id>/` | Stage output + PROMOTION.yaml |
+| `pipeline/<module>` | Changes or produces an artifact under `projects/<id>/` | Module output + PROMOTION.yaml |
 | `research` | Finding, evaluating, or deciding on sources — not yet committing them | Research note (optional) |
 | `conversation` | Question, planning discussion, feedback — no artifact target | Answer or decision |
 | `tooling` | Change to CLI, infrastructure, docs, or skills | Code or doc change |
@@ -29,13 +29,13 @@ starting; execute each phase in order; pause at each transition for user input.
 
 | Path | When | Transition trigger |
 |---|---|---|
-| `pipeline/<stage>` | All inputs known — rote execution | — |
-| `conversation → pipeline/<stage>` | Required inputs missing or ambiguous | User provides missing input |
-| `research → pipeline/ingest` | Source not yet identified | User approves candidate |
+| `pipeline/<module>` | All inputs known — rote execution | — |
+| `conversation → pipeline/<module>` | Required inputs missing or ambiguous | User provides missing input |
+| `research → pipeline/sources` | Source not yet identified | User approves candidate |
 | `research → conversation` | Research raises an unanswerable question | Question surfaced to user |
 | `conversation` | Planning, scoping, feedback — no execution | — |
 | `tooling` | Framework change only | User approves scope |
-| `tooling → pipeline/<stage>` | Fix a tool, then use it in the same session | Tool change complete + user confirms |
+| `tooling → pipeline/<module>` | Fix a tool, then use it in the same session | Tool change complete + user confirms |
 
 **Rote vs. conversation-required** is a property of the task instance, not the type:
 - Rote: all required inputs present → execute immediately
@@ -47,28 +47,29 @@ starting; execute each phase in order; pause at each transition for user input.
 
 ### Pipeline routing
 
-| Request involves | Stage | Read next |
+| Request involves | Module | Read next |
 |---|---|---|
-| Finding, downloading, or registering sources | `ingest/` | `ingest/AGENTS.md` |
-| Transcribing text from source scans | `transcribe/` | `transcribe/AGENTS.md` |
-| Auditing, correcting, or writing editorial prose | `proof/` | `proof/AGENTS.md` |
-| Building PDFs, managing poems, setting layout | `typeset/` | `typeset/AGENTS.md` |
-| Cover assets or cover production | `covers/` | `covers/AGENTS.md` |
-| E-reader, web, or publication-facing output | `front-end/` | `front-end/AGENTS.md` |
-| Release packaging or delivery | `final/` | `final/AGENTS.md` |
+| Workspace registration and project creation | `workspace` | `modules/workspace/AGENTS.md` |
+| Finding, downloading, or registering sources | `sources` | `modules/sources/AGENTS.md` |
+| Transcribing text from source scans | `transcription` | `modules/transcription/AGENTS.md` |
+| Auditing, correcting, or editorial review | `manuscript` | `modules/manuscript/AGENTS.md` |
+| Building proof drafts, PDFs, poems, and layout | `interior` | `modules/interior/AGENTS.md` |
+| Cover assets or cover production | `covers` | `modules/covers/AGENTS.md` |
+| E-reader, web, or publication-facing output | `publication` | `modules/publication/AGENTS.md` |
+| Release packaging or delivery | `release` | `modules/release/AGENTS.md` |
 
-For each routed stage: read stage `AGENTS.md`, load relevant skills, use only that
-stage's tools, identify required user input, record outputs under
-`projects/<project_id>/<stage>/`.
+For each routed module: read module `AGENTS.md`, load relevant skills, use only
+that module's tools, identify required user input, and record outputs under the
+module-owned project artifact directory.
 
-For requests spanning multiple pipeline stages, process in DAG order.
+For requests spanning multiple pipeline modules, process in DAG order.
 
 ### Non-pipeline routing
 
 | Job type | Read next | Notes |
 |---|---|---|
 | `conversation` | No additional file | Respond directly; no stage artifact |
-| `research` | `ingest/AGENTS.md` for source context | Optionally persist findings as `<topic>.research.md` in `projects/<id>/ingest/` |
+| `research` | `modules/sources/AGENTS.md` for source context | Optionally persist findings as `<topic>.research.md` in `projects/<id>/sources/` |
 | `tooling` | `machinery/AGENTS.md` | |
 
 ---
@@ -76,11 +77,10 @@ For requests spanning multiple pipeline stages, process in DAG order.
 ## DAG
 
 ```
-project-create → ingest → transcribe → proof → typeset → [covers, front-end] → final
-                                        proof → final  (direct, for short-form work)
+workspace → sources → transcription → manuscript → interior → [covers, publication] → release
 ```
 
-Each pipeline edge requires a user gate. Gate details live in the stage's `AGENTS.md`.
+Each pipeline edge requires a user gate. Gate details live in the module's `AGENTS.md`.
 
 ---
 
@@ -88,27 +88,33 @@ Each pipeline edge requires a user gate. Gate details live in the stage's `AGENT
 
 ```
 projects/<project_id>/
-  ingest/        ← raw sources, provenance records, PROMOTION.yaml
-  transcribe/    ← transcription files, plans, metadata, PROMOTION.yaml
-  proof/         ← audit reports, corrections, PROMOTION.yaml
-  typeset/       ← collection.yaml, content/, output/, PROMOTION.yaml   ← build root
-  covers/        ← cover assets and production files
-  front-end/     ← publication-facing assets
-  final/         ← release packages and manifests
+  sources/        ← raw sources, provenance records, PROMOTION.yaml
+  transcription/  ← transcription files, plans, metadata, PROMOTION.yaml
+  manuscript/     ← proofing, corrections, textual review
+  interior/       ← collection.yaml, content/, proof drafts, output/, PROMOTION.yaml
+  covers/         ← cover assets and production files
+  publication/    ← publication-facing assets
+  release/        ← release packages and manifests
 ```
 
-`workspace.yaml` maps project IDs to typeset paths. See `ONTOLOGY.md §
-workspace.yaml` for the schema.
+Legacy project artifact directories remain accepted for one compatibility
+cycle: `ingest`, `transcribe`, `proof`, `typeset`, `front-end`, and `final`.
+Use `texgraph migrate modules --project <id> --dry-run` before applying a
+semantic directory migration.
+
+`workspace.yaml` maps project IDs to `project_root` plus module artifact roots.
+During compatibility, existing `path` values may still point at the interior
+root (`interior/` or legacy `typeset/`).
 
 ---
 
 ## System Invariants
 
-Three critical rules — see `ONTOLOGY.md § Key Invariants` for the full list:
+Three critical rules — see `machinery/docs/ONTOLOGY.md § Key Invariants` for the full list:
 
 - `section_id` is the directory name, not `_meta.yaml:id`.
-- Stage agents write only to `projects/<id>/<stage>/`. Cross-stage writes
-  require explicit user approval.
+- Module agents write only to their module-owned artifact directory.
+  Cross-module writes require explicit user approval.
 - Persona prose never enters source text, YAML, manifests, audits, or command
   output.
 
@@ -123,7 +129,8 @@ data schemas, or pipeline edges — run:
 .\.venv\Scripts\python.exe machinery\tools\ontology_check.py
 ```
 
-If it flags changes in tracked areas, update `ONTOLOGY.md` before closing.
+If it flags changes in tracked areas, update `machinery/docs/ONTOLOGY.md`
+before closing.
 Then save a new baseline:
 
 ```powershell
@@ -149,4 +156,4 @@ Use `machinery/skills/skill-improvement-loop/SKILL.md` for full guidance.
 ## Full Reference
 
 For directory taxonomy, file schemas, command surface, dependency map, and
-all invariants: read `ONTOLOGY.md`.
+all invariants: read `machinery/docs/ONTOLOGY.md`.

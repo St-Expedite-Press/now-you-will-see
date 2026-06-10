@@ -80,7 +80,8 @@ build will fail with a font-not-found error.
 Copy-Item workspace.example.yaml workspace.yaml
 ```
 
-Open `workspace.yaml` and confirm it lists `spectra_poems`:
+Open `workspace.yaml` and confirm it lists `spectra_poems`. The tracked example
+may still use the legacy `typeset` interior path until migrated:
 
 ```yaml
 projects:
@@ -142,7 +143,8 @@ checks, and audit dashboard smoke tests.
 
 This creates a new `.md` file in
 `projects/spectra_poems/typeset/content/01_iberian-dreams/` with standard
-front matter. Open it and fill in the body text.
+front matter. That path is the example project's unmigrated interior root. Open
+it and fill in the body text.
 
 Rebuild to see the result:
 
@@ -163,10 +165,10 @@ Or use watch mode to rebuild automatically on every save:
 Create the project directory structure:
 
 ```powershell
-New-Item -ItemType Directory -Path projects\my-collection\typeset\content\01_poems -Force
+New-Item -ItemType Directory -Path projects\my-collection\interior\content\01_poems -Force
 ```
 
-Create `projects/my-collection/typeset/collection.yaml`:
+Create `projects/my-collection/interior/collection.yaml`:
 
 ```yaml
 title: "My Collection"
@@ -194,7 +196,7 @@ render_config:
   stanza_skip: 1.2ex
 ```
 
-Create `projects/my-collection/typeset/content/01_poems/_meta.yaml`:
+Create `projects/my-collection/interior/content/01_poems/_meta.yaml`:
 
 ```yaml
 id: poems
@@ -211,7 +213,8 @@ projects:
     path: projects/spectra_poems/typeset
     description: "Tracked example"
   - id: my-collection
-    path: projects/my-collection/typeset
+    project_root: projects/my-collection
+    path: projects/my-collection/interior
     description: "My collection"
 default_project: my-collection
 ```
@@ -238,7 +241,7 @@ This produces a PDF/X-3 file with embedded fonts and XMP metadata. Verify
 font embedding before submitting to a vendor:
 
 ```powershell
-pdffonts projects\my-collection\typeset\output\my-collection.pdf
+pdffonts projects\my-collection\interior\output\my-collection.pdf
 ```
 
 All fonts should show `emb: yes`. If any do not, the vendor will reject the file.
@@ -266,12 +269,12 @@ The package was not installed into the venv. Run `.\.venv\Scripts\pip.exe instal
 
 ## Next Steps
 
-- `ONTOLOGY.md` — comprehensive reference for directory structure, all file schemas, command surface, key invariants
+- `machinery/docs/ONTOLOGY.md` — comprehensive reference for directory structure, all file schemas, command surface, key invariants
 - `AGENTS.md` — how to classify and route tasks through the pipeline with AI assistance
 - `machinery/docs/STUDIO_FRONTEND.md` — Studio frontend setup, routes, and smoke tests
-- `machinery/docs/DAG_PIPELINE.md` — full pipeline graph with node contracts and gate commands
-- `typeset/skills/poetry/SKILL.md` — verse-specific layout decisions
-- `typeset/skills/prose/SKILL.md` — prose layout decisions
+- `machinery/docs/DAG_PIPELINE.md` — full module graph with node contracts and gate commands
+- `modules/interior/skills/poetry/SKILL.md` — verse-specific layout decisions
+- `modules/interior/skills/prose/SKILL.md` — prose layout decisions
 - `machinery/docs/PROCEDURES.md` — verification and workflow procedures
 
 ### Pipeline gate commands
@@ -282,13 +285,16 @@ Once you have a project and want to carry it through the full pipeline:
 # Rename an ingested source to its stable name and register it
 .\.venv\Scripts\texgraph.exe ingest rename <file> --author "keats" --year 1820 --title "lamia-and-other-poems" --project my-collection
 
-# Check that the upstream stage is ready before starting the next stage
-.\.venv\Scripts\texgraph.exe verify transcribe --project my-collection
-.\.venv\Scripts\texgraph.exe verify proof --project my-collection
-.\.venv\Scripts\texgraph.exe verify typeset --project my-collection
-.\.venv\Scripts\texgraph.exe verify final --project my-collection
+# Check that the upstream module is ready before starting the next module
+.\.venv\Scripts\texgraph.exe verify transcription --project my-collection
+.\.venv\Scripts\texgraph.exe verify interior --project my-collection
+.\.venv\Scripts\texgraph.exe verify covers --project my-collection
+.\.venv\Scripts\texgraph.exe verify release --project my-collection
 ```
 
 `texgraph verify` exits 0 when the upstream gate is clear and 1 with a list of
-blocking issues when it is not. Each stage writes a `PROMOTION.yaml` file when
-the user approves it; downstream stages check this file before starting work.
+blocking issues when it is not. Legacy names such as `transcribe`, `typeset`,
+and `final` resolve to the canonical `transcription`, `interior`, and `release`
+modules. Each module writes a
+`PROMOTION.yaml` file when the user approves it; downstream modules check this
+file before starting work.

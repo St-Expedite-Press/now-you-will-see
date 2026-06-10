@@ -6,23 +6,23 @@ This document is the operator guide for the transcribe stage. It covers gate ver
 
 ## What Transcribe Does
 
-Transcribe converts source PDF pages into clean, structured Markdown files — one file per poem, organized into volumes and books. It also captures front/back matter, records page mappings, and validates metadata before handing work to proof.
+Transcription converts source PDF pages into clean, structured Markdown files — one file per poem, organized into volumes and books. It also captures front/back matter, records page mappings, and validates metadata before handing work to manuscript/interior modules.
 
-Nothing in `proof/` may start until the transcribe PROMOTION.yaml carries `status: approved`.
+Nothing in `manuscript/` or `interior/` may start until the transcription PROMOTION.yaml carries `status: approved`.
 
 ---
 
 ## Inputs
 
 - Approved ingest PROMOTION.yaml (`status: approved`)
-- Source PDF at `projects/<project_id>/ingest/raw/<stable>.pdf`
+- Source PDF at `projects/<project_id>/sources/raw/<stable>.pdf`
 - Volume structure decision (how the book divides into books/sections)
 - Transcription policy (from `transcribe/metadata/editorial_policy.md`)
 
 ## Outputs
 
 ```
-projects/<project_id>/transcribe/
+projects/<project_id>/transcription/
   metadata/
     editorial_policy.md
     transcription_plans/
@@ -272,7 +272,7 @@ Update `transcription_status: complete` in the front matter.
 When the user has reviewed a representative sample of the transcription against the source scans, write the PROMOTION.yaml:
 
 ```yaml
-# projects/fletcher-complete-original-collections/transcribe/PROMOTION.yaml
+# projects/fletcher-complete-original-collections/transcription/PROMOTION.yaml
 stage: transcribe
 status: approved
 approved_at: <ISO 8601>
@@ -291,11 +291,11 @@ notes: ""
 Verify the gate passes:
 
 ```powershell
-.\.venv\Scripts\texgraph.exe verify proof `
+.\.venv\Scripts\texgraph.exe verify interior `
   --project fletcher-complete-original-collections
 ```
 
-Exit 0 means proof work may begin.
+Exit 0 means manuscript/interior work may begin.
 
 ---
 
@@ -308,7 +308,7 @@ Exit 0 means proof work may begin.
 | `audit` reports null `source_pages_scan` | Front matter not filled in | Add scan and printed page numbers |
 | `audit` reports unchecked items | `book.md` checklist has `- [ ]` lines | Complete or mark complete the section |
 | `metadata --check` reports stale | `book.md` fields changed after last `--write` | Re-run with `--write` flag |
-| `verify proof` fails after approval | PROMOTION.yaml `status` not `approved` | Edit and set `status: approved` |
+| `verify interior` fails after approval | PROMOTION.yaml `status` not `approved` | Edit and set `status: approved` |
 
 ---
 
@@ -316,7 +316,7 @@ Exit 0 means proof work may begin.
 
 ```powershell
 .\.venv\Scripts\texgraph.exe verify transcribe --project <id>
-.\.venv\Scripts\texgraph.exe verify proof --project <id>
+.\.venv\Scripts\texgraph.exe verify interior --project <id>
 .\.venv\Scripts\texgraph.exe pdf text <pdf> --first N --last N
 .\.venv\Scripts\texgraph.exe pdf render <pdf> --first N --last N --prefix P
 .\.venv\Scripts\texgraph.exe page-map --offset N --printed "<ranges>"

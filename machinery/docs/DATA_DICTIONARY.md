@@ -22,7 +22,16 @@ Shape:
 ```yaml
 projects:
   - id: example-project
-    path: projects/example-project/typeset
+    project_root: projects/example-project
+    path: projects/example-project/interior
+    modules:
+      sources: projects/example-project/sources
+      transcription: projects/example-project/transcription
+      manuscript: projects/example-project/manuscript
+      interior: projects/example-project/interior
+      covers: projects/example-project/covers
+      publication: projects/example-project/publication
+      release: projects/example-project/release
     description: "Local project workspace"
 default_project: example-project
 ```
@@ -33,23 +42,32 @@ Project body:
 
 ```text
 projects/<project_id>/
+  covers/
+  interior/
+  manuscript/
+  publication/
+  release/
+  sources/
+  transcription/
+
+  # compatibility-only paths accepted during one release cycle:
   ingest/
   transcribe/
   proof/
   typeset/
-  final/
-  covers/
   front-end/
+  final/
 ```
 
-Buildable roots are `projects/<project_id>/typeset`.
+Buildable roots are `projects/<project_id>/interior`. Unmigrated projects may
+still build from `projects/<project_id>/typeset`.
 
-## Stage Node
+## Module Node
 
-Conceptual shape for a stage in the DAG:
+Conceptual shape for a module in the DAG:
 
 ```yaml
-stage: transcribe
+module: transcription
 project_id: example-project
 inputs_required:
   - approved source files
@@ -60,7 +78,7 @@ outputs_expected:
 user_gate:
   - uncertain readings resolved or recorded
 downstream:
-  - proof
+  - manuscript
 ```
 
 ## Promotion Record
@@ -68,26 +86,26 @@ downstream:
 Planned shape:
 
 ```yaml
-from_stage: proof
-to_stage: typeset
+from_module: transcription
+to_module: interior
 project_id: example-project
 approved_by: user
 approved_at: 2026-05-26T00:00:00Z
 inputs:
-  - path: projects/example-project/transcribe
+  - path: projects/example-project/transcription
 outputs:
-  - path: projects/example-project/typeset
+  - path: projects/example-project/interior
 notes: ""
 ```
 
 Promotion records are documented but not yet automated.
 
-## Typeset Project
+## Interior Project
 
 Expected local shape:
 
 ```text
-projects/<project_id>/typeset/
+projects/<project_id>/interior/
   collection.yaml
   content/
   output/
@@ -118,7 +136,7 @@ harmonikum.md
 ```
 
 The poem body remains documentary. Editorial or institutional prose belongs in
-the appropriate project/stage files, not inside source transcription by
+the appropriate project/module files, not inside source transcription by
 accident.
 
 ## Version Sidecar
@@ -131,21 +149,43 @@ Version sidecars use this naming pattern:
 
 Canonical version selection must match build behavior.
 
+## Module Registry
+
+Canonical module order:
+
+```text
+workspace -> sources -> transcription -> manuscript -> interior -> [covers, publication] -> release
+```
+
+Legacy aliases resolve as follows:
+
+```yaml
+ingest: sources
+transcribe: transcription
+proof: manuscript
+typeset: interior
+front-end: publication
+final: release
+```
+
+`proof` is legacy support for proofing skills and historical records. It is not
+a canonical pipeline stage.
+
 ## Studio Module Agent
 
 Planned conceptual shape:
 
 ```yaml
-module: proof
+module: interior
 project_id: example-project
 read_scope: projects/example-project
-write_scope: projects/example-project/proof
+write_scope: projects/example-project/interior
 external_knowledge: optional
 requires_user_gate: true
 ```
 
 Module agents may read the full project directory. Writes should stay in the
-active stage unless the user approves a cross-stage edit or promotion.
+active module path unless the user approves a cross-module edit or promotion.
 
 ## Studio Product Readiness Audit
 
@@ -176,16 +216,17 @@ and `ui`. Findings use `critical`, `high`, `medium`, or `low` severity.
 
 This audit is a product-readiness inspection of Texgraph itself. It is not a
 pipeline proof artifact and must not write to source text, YAML manifests, or
-project stage directories.
+project module directories.
 
-## Stage Skills
+## Module Skills
 
-Skills are stage-owned:
+Skills are module-owned:
 
-- `ingest/skills/`
-- `transcribe/skills/`
-- `proof/skills/`
-- `typeset/skills/`
+- `modules/sources/skills/`
+- `modules/transcription/skills/`
+- `modules/manuscript/skills/`
+- `modules/interior/skills/`
 - `machinery/skills/`
 
-Add new skills to the stage that owns the job.
+Add new skills to the module that owns the job. Legacy root skill directories
+remain only for compatibility.
