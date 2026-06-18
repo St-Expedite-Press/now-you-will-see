@@ -12,8 +12,8 @@ Before editing poem files, read:
 - `AGENTS.md`
 - `transcribe/AGENTS.md`
 - `modules/transcription/skills/poem-transcription/SKILL.md`
-- `projects/fletcher-complete-original-collections/transcribe/metadata/editorial_policy.md`
-- the relevant volume plan in `projects/fletcher-complete-original-collections/transcribe/metadata/`
+- `projects/fletcher-early-works/transcribe/metadata/editorial_policy.md`
+- the relevant volume plan in `projects/fletcher-early-works/transcribe/metadata/`
 - the relevant `books/<volume>/book.md`
 
 ## Workflow
@@ -44,7 +44,7 @@ Before editing poem files, read:
 12. For unnumbered invocation, dedication, dedicatory poem, prefatory, or
     reader-address material, do not force the item into the numbered poem
     sequence unless the contents page lists it as a poem. Put it in
-    `projects/fletcher-complete-original-collections/transcribe/volumes/<volume>/books/<book>/front_matter/` with YAML fields for
+    `projects/fletcher-early-works/transcribe/volumes/<volume>/books/<book>/front_matter/` with YAML fields for
     `title`, `book`, `book_order`, `matter_order`, `matter_section`,
     `matter_type`, `source_pdf`, `source_pages_scan`, `source_pages_printed`,
     `status`, and `notes`. For substantial source paratext work, switch to

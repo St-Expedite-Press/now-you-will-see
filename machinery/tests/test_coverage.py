@@ -89,11 +89,11 @@ def test_fletcher_edition_is_complete():
 
     root = repo_root()
     reading = (
-        root / "projects" / "fletcher-complete-original-collections"
+        root / "projects" / "fletcher-early-works"
         / "manuscript" / "reading"
     )
     if not reading.exists():
-        pytest.skip("Fletcher project not present")
+        pytest.skip("Fletcher early-works project not present")
     rep = check_source_coverage(reading, root)
     assert rep.ok, (
         f"unreferenced={rep.unreferenced} broken={rep.broken_source} "

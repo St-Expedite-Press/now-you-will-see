@@ -16,7 +16,7 @@ router = APIRouter()
 # app/routers/covers.py -> app/ -> backend/ -> studio/ -> machinery/ -> repo root
 _REPO_ROOT = Path(__file__).resolve().parents[5]
 _PROJECTS_DIR = _REPO_ROOT / "projects"
-_UMBRELLA_PROJECT = "fletcher-complete-original-collections"
+_UMBRELLA_PROJECT = "fletcher-early-works"
 _UMBRELLA_COVERS_DIR = _PROJECTS_DIR / _UMBRELLA_PROJECT / "covers"
 
 _REGIME_DEFS: dict[str, dict[str, str]] = {

@@ -352,7 +352,7 @@ def proof_build(
     Examples
     --------
 
-        texgraph proof-build --project fletcher-complete-original-collections
+        texgraph proof-build --project fletcher-early-works
     """
     from texgraph.compiler import Compiler
     from texgraph.parser import PoetryParser

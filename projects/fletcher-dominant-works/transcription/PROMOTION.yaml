@@ -1,0 +1,6 @@
+stage: transcription
+project_id: fletcher-dominant-works
+status: pending
+notes: >
+  Scaffolded volume. See transcription/volumes/02_dominant_works/. Source PDFs are shared in
+  projects/fletcher-series/sources/raw/. Not yet ready for manuscript promotion.

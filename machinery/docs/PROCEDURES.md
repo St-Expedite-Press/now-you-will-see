@@ -175,7 +175,7 @@ git ls-files workspace.yaml
 ```
 
 `workspace.yaml` should return empty. `projects/` may show tracked exception
-workspaces such as `spectra_poems` and `fletcher-complete-original-collections`;
+workspaces such as `spectra_poems` and `fletcher-early-works`;
 raw ingest files and generated PDFs should not be tracked.
 
 ---

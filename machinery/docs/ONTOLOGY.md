@@ -696,11 +696,13 @@ These must always be true. Violating any of them breaks the system.
 
 10. **`projects/` is gitignored** except explicitly tracked project exceptions
     listed in `.gitignore` as negation rules. Current tracked exceptions:
-    `projects/spectra_poems/` and `projects/fletcher-complete-original-collections/`.
-    For Fletcher, only the source (markdown, YAML, editorial docs) is tracked;
-    the whole `output/` tree and binary scans (`*.png`, `*.jpg`, `*.pdf`) are
-    re-ignored. The hand-edited reading edition is irreplaceable and must stay
-    versioned.
+    `projects/spectra_poems/` and the Fletcher series via the `projects/fletcher-*/`
+    glob — the four volume projects (`fletcher-early-works`, `fletcher-dominant-works`,
+    `fletcher-embattled-works`, `fletcher-falling-works`) plus the shared
+    `fletcher-series/` root. Only source (markdown, YAML, editorial docs) is
+    tracked; the whole `output/` tree and binary scans (`*.png`, `*.jpg`, `*.pdf`)
+    are re-ignored. The hand-edited reading editions are irreplaceable and must
+    stay versioned.
 
 11. **`texgraph` is the sole CLI entrypoint**. Keep the command name stable.
 

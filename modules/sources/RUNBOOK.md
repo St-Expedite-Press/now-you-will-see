@@ -59,7 +59,7 @@ Choose the `Text PDF` entry if available; it has OCR embedded and will improve `
 .\.venv\Scripts\texgraph.exe archive download `
   preludesandsymph00flet `
   preludesandsymph00flet.pdf `
-  projects/fletcher-complete-original-collections/sources/raw/preludes_and_symphonies_1922_ia.pdf
+  projects/fletcher-early-works/sources/raw/preludes_and_symphonies_1922_ia.pdf
 ```
 
 The destination path is **not** the final stable name — it is a working download target. We rename it in Step 4.
@@ -73,11 +73,11 @@ Confirm the PDF is intact and matches the intended source before spending any ef
 ```powershell
 # Page count and basic metadata
 .\.venv\Scripts\texgraph.exe pdf info `
-  projects/fletcher-complete-original-collections/sources/raw/preludes_and_symphonies_1922_ia.pdf
+  projects/fletcher-early-works/sources/raw/preludes_and_symphonies_1922_ia.pdf
 
 # Render first 5 pages as images to confirm title page / edition
 .\.venv\Scripts\texgraph.exe pdf render `
-  projects/fletcher-complete-original-collections/sources/raw/preludes_and_symphonies_1922_ia.pdf `
+  projects/fletcher-early-works/sources/raw/preludes_and_symphonies_1922_ia.pdf `
   --first 1 --last 5 --prefix tmp_verify
 ```
 
@@ -99,18 +99,18 @@ Remove-Item tmp_verify-*.png
 
 ```powershell
 .\.venv\Scripts\texgraph.exe ingest rename `
-  projects/fletcher-complete-original-collections/sources/raw/preludes_and_symphonies_1922_ia.pdf `
+  projects/fletcher-early-works/sources/raw/preludes_and_symphonies_1922_ia.pdf `
   --author gould-fletcher `
   --year 1922 `
   --title preludes-and-symphonies `
   --source ia `
-  --project fletcher-complete-original-collections
+  --project fletcher-early-works
 ```
 
 This command:
 1. Moves the file to `gould-fletcher_1922_preludes-and-symphonies_ia.pdf`
 2. Writes `gould-fletcher_1922_preludes-and-symphonies_ia.provenance.yaml` alongside it
-3. Creates or updates `projects/fletcher-complete-original-collections/sources/PROMOTION.yaml` with `status: pending`
+3. Creates or updates `projects/fletcher-early-works/sources/PROMOTION.yaml` with `status: pending`
 
 The stable filename schema is:
 
@@ -127,7 +127,7 @@ After renaming, the working download path no longer exists. Do not reference it 
 Open the generated provenance file and fill in any missing fields:
 
 ```
-projects/fletcher-complete-original-collections/sources/raw/
+projects/fletcher-early-works/sources/raw/
   gould-fletcher_1922_preludes-and-symphonies_ia.provenance.yaml
 ```
 
@@ -150,7 +150,7 @@ For a pre-1928 US publication with no renewal, `rights_status: public_domain` is
 
 ## Step 6 — Update source_manifest.md
 
-Open or create `projects/fletcher-complete-original-collections/sources/source_manifest.md` and add an entry:
+Open or create `projects/fletcher-early-works/sources/source_manifest.md` and add an entry:
 
 ```markdown
 ## gould-fletcher_1922_preludes-and-symphonies_ia.pdf
@@ -170,7 +170,7 @@ Open or create `projects/fletcher-complete-original-collections/sources/source_m
 Review all of the above. When the source set is confirmed, edit the PROMOTION.yaml to approve:
 
 ```yaml
-# projects/fletcher-complete-original-collections/sources/PROMOTION.yaml
+# projects/fletcher-early-works/sources/PROMOTION.yaml
 stage: sources
 status: approved
 approved_at: <ISO 8601>
@@ -183,7 +183,7 @@ Verify the gate passes:
 
 ```powershell
 .\.venv\Scripts\texgraph.exe verify transcription `
-  --project fletcher-complete-original-collections
+  --project fletcher-early-works
 ```
 
 Exit 0 means transcription work may begin.
