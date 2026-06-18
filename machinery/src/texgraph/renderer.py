@@ -42,21 +42,25 @@ from texgraph.parser import CyclePart, Poem, Scene, Section, Stanza
 # LaTeX character escaping
 # ---------------------------------------------------------------------------
 
-# Ordered so that backslash is replaced first (it is the escape char itself)
-_LATEX_ESCAPE_MAP: list[tuple[str, str]] = [
-    ("\\", r"\textbackslash{}"),
-    ("&",  r"\&"),
-    ("%",  r"\%"),
-    ("$",  r"\$"),
-    ("#",  r"\#"),
-    ("_",  r"\_"),
-    ("{",  r"\{"),
-    ("}",  r"\}"),
-    ("~",  r"\textasciitilde{}"),
-    ("^",  r"\textasciicircum{}"),
-    ("[",  r"{[}"),
-    ("]",  r"{]}"),
-]
+# Single-pass mapping of LaTeX special characters to their escapes.  Applied as
+# one regex substitution so that replacements which themselves contain braces
+# (``\textbackslash{}``, ``\textasciitilde{}``, ``\textasciicircum{}``) are not
+# re-scanned and double-escaped by the ``{`` / ``}`` entries.
+_LATEX_ESCAPE_MAP: dict[str, str] = {
+    "\\": r"\textbackslash{}",
+    "&":  r"\&",
+    "%":  r"\%",
+    "$":  r"\$",
+    "#":  r"\#",
+    "_":  r"\_",
+    "{":  r"\{",
+    "}":  r"\}",
+    "~":  r"\textasciitilde{}",
+    "^":  r"\textasciicircum{}",
+    "[":  r"{[}",
+    "]":  r"{]}",
+}
+_LATEX_ESCAPE_RE = re.compile("|".join(re.escape(c) for c in _LATEX_ESCAPE_MAP))
 
 # ---------------------------------------------------------------------------
 # Leading-space indentation helper
@@ -88,6 +92,9 @@ _SMART_QUOTE_MAP: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r'"([^"]+)"'), r"``\1''"),   # "word" → ``word''
 ]
 
+# Three or more consecutive ASCII dots collapse to a single ellipsis.
+_ASCII_ELLIPSIS_RE = re.compile(r"\.{3,}")
+
 # Em-dash, en-dash, ellipsis, and Unicode curly quote replacements
 _DASH_MAP: list[tuple[str, str]] = [
     ("—", "---"),
@@ -115,13 +122,22 @@ def escape_latex(text: str, *, smart_quotes: bool = True) -> str:
         Raw string to escape.
     smart_quotes:
         When ``True`` (default), convert Unicode curly quotes and straight
-        double/single quotes to TeX ligature pairs before the escape pass.
+        double/single quotes to TeX ligature pairs.
 
     Returns
     -------
     str
         LaTeX-safe string.
+
+    Notes
+    -----
+    Special-character escaping runs **first**, before the quote/dash/ellipsis
+    conversions.  Those conversions emit LaTeX control sequences
+    (``---``, ``\\ldots{}``, ``‘‘``…); running them after the escape
+    pass keeps the escape pass from mangling their backslashes and braces.
     """
+    text = _LATEX_ESCAPE_RE.sub(lambda m: _LATEX_ESCAPE_MAP[m.group()], text)
+
     if smart_quotes:
         for pattern, replacement in _SMART_QUOTE_MAP:
             text = pattern.sub(replacement, text)
@@ -129,8 +145,8 @@ def escape_latex(text: str, *, smart_quotes: bool = True) -> str:
     for original, replacement in _DASH_MAP:
         text = text.replace(original, replacement)
 
-    for original, replacement in _LATEX_ESCAPE_MAP:
-        text = text.replace(original, replacement)
+    # ASCII ellipsis → proper ellipsis (typographic clean-up for proof output)
+    text = _ASCII_ELLIPSIS_RE.sub(r"\\ldots{}", text)
 
     return text
 
@@ -177,6 +193,25 @@ def _md_inline_to_latex(text: str) -> str:
         last_end = m.end()
     result.append(escape_latex(text[last_end:]))
     return "".join(result)
+
+
+# Lone ATX heading marking an internal movement, e.g. "## I", "## II.", "## 3".
+_MOVEMENT_RE = re.compile(r"^#{1,6}\s+(.+?)\.?\s*$")
+
+
+def _movement_label(non_empty_lines: list[str]) -> str | None:
+    """Return the movement label if *non_empty_lines* is a single ATX heading.
+
+    Reading-edition poems mark internal movements with a markdown heading on a
+    line of its own (``## I``).  Such a stanza carries no verse text; it should
+    render as a centered movement label.  Returns the label text (e.g. ``"I"``)
+    with the leading ``#`` markers and any trailing period stripped, or ``None``
+    when the stanza is ordinary verse.
+    """
+    if len(non_empty_lines) != 1:
+        return None
+    m = _MOVEMENT_RE.match(non_empty_lines[0].strip())
+    return m.group(1).strip() if m else None
 
 
 # ---------------------------------------------------------------------------
@@ -358,17 +393,33 @@ class LaTeXRenderer:
         self,
         config: dict[str, Any],
         frontmatter_paths: list[str],
-        main_paths: list[str],
+        main_sections: list[dict[str, Any]],
         backmatter_paths: list[str],
         template_name: str = "proof_master.tex.jinja2",
     ) -> str:
-        """Render the master document that \\input{}'s all proof fragments."""
+        """Render the master document that \\input{}'s all proof fragments.
+
+        Parameters
+        ----------
+        main_sections:
+            List of dicts, each with keys ``title`` (str), ``paths`` (list[str]),
+            and ``print_endnotes`` (bool).  Endnotes are reset and printed
+            between volumes when ``print_endnotes`` is True.
+        """
         template = self._env.get_template(template_name)
+        escaped_sections = [
+            {
+                "title": escape_latex(sec.get("title", "")),
+                "paths": sec.get("paths", []),
+                "print_endnotes": sec.get("print_endnotes", False),
+            }
+            for sec in main_sections
+        ]
         return template.render(
             config=self._escape_config_dict(config),
             rc=config.get("render_config") or {},
             frontmatter_paths=frontmatter_paths,
-            main_paths=main_paths,
+            main_sections=escaped_sections,
             backmatter_paths=backmatter_paths,
         )
 
@@ -447,6 +498,9 @@ class LaTeXRenderer:
             rendered_parts = []
             rendered_scenes = []
 
+        raw_notes = str(poem.meta.get("context_notes") or "")
+        parsed_notes = self._parse_context_notes(raw_notes)
+
         return {
             "title": escape_latex(poem.title),
             "subtitle": escape_latex(poem.subtitle),
@@ -465,7 +519,30 @@ class LaTeXRenderer:
             "parts": rendered_parts,
             "scenes": rendered_scenes,
             "path": str(poem.path),
+            "notes": [_md_inline_to_latex(n) for n in parsed_notes],
         }
+
+    @staticmethod
+    def _parse_context_notes(raw: str) -> list[str]:
+        """Split a context_notes block into individual note strings.
+
+        Paragraphs are separated by blank lines.  Leading ``Note:`` or
+        ``Note: `` prefixes are stripped from each paragraph so the rendered
+        footnote text is clean prose.
+        """
+        if not raw.strip():
+            return []
+        paragraphs = re.split(r"\n\s*\n", raw.strip())
+        notes: list[str] = []
+        for para in paragraphs:
+            text = para.strip()
+            if text.startswith("Note: "):
+                text = text[6:].strip()
+            elif text.startswith("Note:"):
+                text = text[5:].strip()
+            if text:
+                notes.append(text)
+        return notes
 
     # ------------------------------------------------------------------
     # Rendering helpers
@@ -539,6 +616,21 @@ class LaTeXRenderer:
         result: list[dict[str, Any]] = []
         for stanza in stanzas:
             non_empty = [l for l in stanza.lines if l.strip()]
+
+            # Movement heading: a stanza that is a lone ATX heading (e.g.
+            # ``## I`` or ``## II.``) marking an internal movement.  Render it as
+            # a centered label, not as a verse line — otherwise the markdown
+            # ``##`` leaks into the proof as ``\#\#``.
+            movement = _movement_label(non_empty)
+            if movement is not None:
+                result.append({
+                    "lines": [],
+                    "is_blockquote": False,
+                    "is_movement": True,
+                    "label": escape_latex(movement),
+                })
+                continue
+
             is_blockquote = bool(non_empty) and all(
                 l.startswith(">") for l in non_empty
             )
@@ -553,7 +645,12 @@ class LaTeXRenderer:
                 if i < len(stanza.lines) - 1:
                     esc += r" \\"
                 rendered_lines.append(esc)
-            result.append({"lines": rendered_lines, "is_blockquote": is_blockquote})
+            result.append({
+                "lines": rendered_lines,
+                "is_blockquote": is_blockquote,
+                "is_movement": False,
+                "label": "",
+            })
         return result
 
     @staticmethod

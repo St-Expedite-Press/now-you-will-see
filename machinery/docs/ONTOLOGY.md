@@ -253,18 +253,27 @@ render_config:
   outer_margin: 0.75in
   line_spread: 1.1                       # leading multiplier
   stanza_skip: 1.2ex                     # vertical space between stanzas
+  short_poem_maxheight: '0.62\textheight' # proof pipeline: below this measured height a poem is centered on its page
+  page_squeeze: '3\baselineskip'         # proof pipeline: max overrun \enlargethispage absorbs to keep a poem whole
 ```
+
+`short_poem_maxheight` and `page_squeeze` are consumed only by the `proof_*`
+templates (the one-poem-per-page omnibus pipeline). They are relative to the
+text block, so a single value works across trim sizes. Both are optional and
+fall back to the defaults shown.
 
 ### Poem Markdown front matter
 
 ```yaml
 ---
 title: "Poem Title"
-type: poem                               # poem | prose | poem-cycle | poem-screenplay
+type: poem                               # poem | prose | poem-cycle | poem-screenplay (required — OKF)
 order: 1                                 # integer, controls sequence within section
+part: ""                                 # optional — part/book subdivision label
 subtitle: ""                             # optional
 epigraph: ""                             # optional
 dedication: ""                           # optional
+source: ""                               # optional — relative path to transcription witness
 ---
 
 First line of poem body.
@@ -272,6 +281,11 @@ First line of poem body.
 
 Stanzas are separated by blank lines. Leading spaces are preserved as
 indentation in the rendered verse environment.
+
+Reading-edition poems in `manuscript/reading/` also carry `part:` and `source:`
+fields. The `source:` field links the reading file back to its documentary witness
+in `transcription/volumes/`. See `manuscript/EDITORIAL_PROCEDURE.md § Frontmatter
+Fields` for the full OKF-aligned standard and path construction rules.
 
 ### Section _meta.yaml
 
@@ -287,19 +301,14 @@ order: 1                                 # controls section sequence in the buil
 ```yaml
 projects:
   - id: project-slug                     # used with --project flag
-    project_root: projects/project-slug  # canonical root, relative to workspace.yaml
-    modules:
-      sources: projects/project-slug/sources
-      transcription: projects/project-slug/transcription
-      manuscript: projects/project-slug/manuscript
-      interior: projects/project-slug/interior
-      covers: projects/project-slug/covers
-      publication: projects/project-slug/publication
-      release: projects/project-slug/release
-    path: projects/project-slug/interior # compatibility alias for interior root
+    path: projects/project-slug/interior # path to the interior module root (collection.yaml lives here)
     description: "Human description"
 default_project: project-slug
 ```
+
+The `WorkspaceConfig` model reads `id`, `path`, and `description` from each entry.
+`path` must point to the project's `interior/` directory (where `collection.yaml` lives).
+Copy `workspace.example.yaml` to `workspace.yaml` and register projects there.
 
 ### Stable source naming schema
 
@@ -546,7 +555,8 @@ The CLI is invoked as `texgraph`.
 | Command | Stage | What it does |
 |---|---|---|
 | `texgraph build [--project <id>] [--draft]` | interior (`typeset` alias) | Parse → render → compile PDF |
-| `texgraph proof-build [--project <id>]` | manuscript/interior | Render retained first-draft proof TeX/PDF under `interior/output/proof/` (`typeset/output/proof/` for unmigrated projects) |
+| `texgraph proof-build [--project <id>] [--config <yaml>]` | manuscript/interior | Render retained proof TeX/PDF under `interior/output/proof/`. `--config` renders a variant style sheet (hardcover/softcover) through the same pipeline into `interior/output/proof-<name>/` |
+| `texgraph proof-preview [--project <id>] [--pages <spec>] [--sample <n>]` | manuscript/interior | Render structural proof pages (title pages, dividers, sparse leaves) to `interior/output/proof/preview/*.png` for visual review; requires poppler (`pdftoppm`, `pdftotext`) |
 | `texgraph watch [--project <id>]` | interior (`typeset` alias) | Auto-rebuild on file changes |
 | `texgraph list` | workspace | List registered projects |
 | `texgraph new poem "Title" [--section <id>]` | manuscript (`typeset` alias) | Scaffold poem file |
@@ -683,8 +693,12 @@ These must always be true. Violating any of them breaks the system.
 9. **`.env` is never committed**. It is gitignored and contains live credentials.
 
 10. **`projects/` is gitignored** except explicitly tracked project exceptions
-    listed in `.gitignore` as negation rules. Current tracked exception:
-    `projects/spectra_poems/`.
+    listed in `.gitignore` as negation rules. Current tracked exceptions:
+    `projects/spectra_poems/` and `projects/fletcher-complete-original-collections/`.
+    For Fletcher, only the source (markdown, YAML, editorial docs) is tracked;
+    the whole `output/` tree and binary scans (`*.png`, `*.jpg`, `*.pdf`) are
+    re-ignored. The hand-edited reading edition is irreplaceable and must stay
+    versioned.
 
 11. **`texgraph` is the sole CLI entrypoint**. Keep the command name stable.
 
@@ -715,6 +729,13 @@ These must always be true. Violating any of them breaks the system.
     typesets the relineation when present, else the original; context notes
     go to poem metadata (`context_notes`), never inline into the book. The
     full contract lives in the project's `manuscript/EDITORIAL_PROCEDURE.md`.
+
+17. **Content is flat within a section.** `scan_collection` treats only the
+    immediate subdirectories of the content root as sections, and only the
+    `.md` files directly inside a section are typeset. A `.md` nested a further
+    level down is unreachable; the parser now raises rather than silently
+    dropping it. Front matter (`_title.md`, `00_dedication.md`) sits beside the
+    poems and is ordered ahead of the body by unit type, not filename.
 
 ---
 

@@ -1,14 +1,14 @@
-# Ingest Stage — Runbook
+# Sources Stage — Runbook
 
-This document is the operator guide for the ingest stage. It covers source discovery, download, naming, verification, and promotion. Every example uses *Preludes and Symphonies* (Fletcher, 1922) as the running case.
+This document is the operator guide for the sources stage. It covers source discovery, download, naming, verification, and promotion. Every example uses *Preludes and Symphonies* (Fletcher, 1922) as the running case.
 
 ---
 
-## What Ingest Does
+## What the Sources Stage Does
 
-Ingest owns the boundary between the outside world and the repo. Its job is to locate a source PDF, download it from a known archive, give it a stable filename, record its provenance, and let the user approve it before any transcription work begins.
+The sources stage owns the boundary between the outside world and the repo. Its job is to locate a source PDF, download it from a known archive, give it a stable filename, record its provenance, and let the user approve it before any transcription work begins.
 
-Nothing in `transcribe/` may start until the ingest PROMOTION.yaml carries `status: approved`.
+Nothing in `transcription/` may start until the sources PROMOTION.yaml carries `status: approved`.
 
 ---
 
@@ -59,7 +59,7 @@ Choose the `Text PDF` entry if available; it has OCR embedded and will improve `
 .\.venv\Scripts\texgraph.exe archive download `
   preludesandsymph00flet `
   preludesandsymph00flet.pdf `
-  projects/fletcher-complete-original-collections/ingest/raw/preludes_and_symphonies_1922_ia.pdf
+  projects/fletcher-complete-original-collections/sources/raw/preludes_and_symphonies_1922_ia.pdf
 ```
 
 The destination path is **not** the final stable name — it is a working download target. We rename it in Step 4.
@@ -73,11 +73,11 @@ Confirm the PDF is intact and matches the intended source before spending any ef
 ```powershell
 # Page count and basic metadata
 .\.venv\Scripts\texgraph.exe pdf info `
-  projects/fletcher-complete-original-collections/ingest/raw/preludes_and_symphonies_1922_ia.pdf
+  projects/fletcher-complete-original-collections/sources/raw/preludes_and_symphonies_1922_ia.pdf
 
 # Render first 5 pages as images to confirm title page / edition
 .\.venv\Scripts\texgraph.exe pdf render `
-  projects/fletcher-complete-original-collections/ingest/raw/preludes_and_symphonies_1922_ia.pdf `
+  projects/fletcher-complete-original-collections/sources/raw/preludes_and_symphonies_1922_ia.pdf `
   --first 1 --last 5 --prefix tmp_verify
 ```
 
@@ -99,7 +99,7 @@ Remove-Item tmp_verify-*.png
 
 ```powershell
 .\.venv\Scripts\texgraph.exe ingest rename `
-  projects/fletcher-complete-original-collections/ingest/raw/preludes_and_symphonies_1922_ia.pdf `
+  projects/fletcher-complete-original-collections/sources/raw/preludes_and_symphonies_1922_ia.pdf `
   --author gould-fletcher `
   --year 1922 `
   --title preludes-and-symphonies `
@@ -110,7 +110,7 @@ Remove-Item tmp_verify-*.png
 This command:
 1. Moves the file to `gould-fletcher_1922_preludes-and-symphonies_ia.pdf`
 2. Writes `gould-fletcher_1922_preludes-and-symphonies_ia.provenance.yaml` alongside it
-3. Creates or updates `projects/fletcher-complete-original-collections/ingest/PROMOTION.yaml` with `status: pending`
+3. Creates or updates `projects/fletcher-complete-original-collections/sources/PROMOTION.yaml` with `status: pending`
 
 The stable filename schema is:
 
@@ -127,7 +127,7 @@ After renaming, the working download path no longer exists. Do not reference it 
 Open the generated provenance file and fill in any missing fields:
 
 ```
-projects/fletcher-complete-original-collections/ingest/raw/
+projects/fletcher-complete-original-collections/sources/raw/
   gould-fletcher_1922_preludes-and-symphonies_ia.provenance.yaml
 ```
 
@@ -150,7 +150,7 @@ For a pre-1928 US publication with no renewal, `rights_status: public_domain` is
 
 ## Step 6 — Update source_manifest.md
 
-Open or create `projects/fletcher-complete-original-collections/ingest/source_manifest.md` and add an entry:
+Open or create `projects/fletcher-complete-original-collections/sources/source_manifest.md` and add an entry:
 
 ```markdown
 ## gould-fletcher_1922_preludes-and-symphonies_ia.pdf
@@ -170,8 +170,8 @@ Open or create `projects/fletcher-complete-original-collections/ingest/source_ma
 Review all of the above. When the source set is confirmed, edit the PROMOTION.yaml to approve:
 
 ```yaml
-# projects/fletcher-complete-original-collections/ingest/PROMOTION.yaml
-stage: ingest
+# projects/fletcher-complete-original-collections/sources/PROMOTION.yaml
+stage: sources
 status: approved
 approved_at: <ISO 8601>
 sources:
@@ -182,11 +182,11 @@ notes: "Macmillan 1922 first combined edition. Public domain. 156 pages. Text PD
 Verify the gate passes:
 
 ```powershell
-.\.venv\Scripts\texgraph.exe verify transcribe `
+.\.venv\Scripts\texgraph.exe verify transcription `
   --project fletcher-complete-original-collections
 ```
 
-Exit 0 means transcribe work may begin.
+Exit 0 means transcription work may begin.
 
 ---
 
@@ -198,7 +198,7 @@ Exit 0 means transcribe work may begin.
 | Download is 0 bytes or corrupt | Network issue or access restriction | Re-download; check `access_confirmed` in provenance |
 | Rendered pages are wrong edition | IA has multiple scans | Find the correct identifier; check publication date on title page |
 | `pdf info` shows 0 pages | Corrupted download | Re-download; verify SHA-256 |
-| `verify transcribe` fails | PROMOTION.yaml missing or `status: pending` | Complete approval steps above |
+| `verify transcription` fails | PROMOTION.yaml missing or `status: pending` | Complete approval steps above |
 
 ---
 
@@ -211,5 +211,5 @@ Exit 0 means transcribe work may begin.
 .\.venv\Scripts\texgraph.exe pdf text <pdf> --first N --last N
 .\.venv\Scripts\texgraph.exe pdf render <pdf> --first N --last N --prefix P
 .\.venv\Scripts\texgraph.exe ingest rename <file> --author A --year Y --title T --source S --project <id>
-.\.venv\Scripts\texgraph.exe verify transcribe --project <id>
+.\.venv\Scripts\texgraph.exe verify transcription --project <id>
 ```

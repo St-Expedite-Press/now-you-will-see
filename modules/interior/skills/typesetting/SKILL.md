@@ -133,10 +133,75 @@ Before submitting to a print vendor (IngramSpark, KDP, BookVault, etc.):
 7. Page count is even (add blank page if necessary)
 8. Physical proof ordered before public listing
 
+## Proof Pipeline (one-poem-per-page editions)
+
+The `proof-build` command renders a fragment-per-unit tree under
+`interior/output/proof/tex/` and compiles a single book PDF. It uses the
+`proof_*` templates (`proof_preamble`, `proof_fragment`, `proof_master`), which
+implement the omnibus page architecture:
+
+- **One poem per page**, placement decided by the poem's *measured* height in
+  TeX (the `poemblock` environment), not a Python line count. Short poems are
+  centered; medium poems are top-set from a fixed sink so titles align across
+  spreads; a poem just over a page is squeezed onto one page with
+  `\enlargethispage`; only genuinely long poems flow across pages.
+- **Stanzas never split**: the `verse` package's line break is patched to
+  `\nobreak`, so a page break can fall only at an inter-stanza gap.
+- **Full-page recto dividers** for in-book parts; **recto title page** per book;
+  **per-volume endnotes** (`\theendnotes` between books).
+- Chapter-level matter (intro, notes, afterword) uses `openany` — no forced
+  rectos, so no blank versos carrying a stray folio.
+
+Placement knobs (in `render_config`, relative to the text block so they are
+trim-independent):
+
+| Key | Default | Meaning |
+|---|---|---|
+| `short_poem_maxheight` | `0.62\textheight` | below this measured height, a poem is centered |
+| `page_squeeze` | `3\baselineskip` | max overrun `\enlargethispage` may absorb to keep a poem whole |
+
+Build a variant trim (hardcover/softcover) through the *same* pipeline rather
+than letting style sheets drift onto the older `build` templates:
+
+```powershell
+.\.venv\Scripts\texgraph.exe proof-build --config projects/<id>/interior/collection_hardcover.yaml
+```
+
+This writes to `interior/output/proof-<name>/`, leaving the trade proof intact.
+
+## Visual Proof Review (mandatory before sign-off)
+
+Do not verify a typeset proof by reading the generated `.tex`. Render the key
+leaves and look:
+
+```powershell
+.\.venv\Scripts\texgraph.exe proof-preview --project <id>          # structural pages
+.\.venv\Scripts\texgraph.exe proof-preview --project <id> --pages 40,120 --sample 50
+```
+
+`proof-preview` detects structural pages by content (title pages, dividers, and
+short centered poems are near-empty leaves) and renders them to
+`interior/output/proof/preview/*.png`. A sparse page that is *not* a title or
+divider is usually a defect — an orphaned closing line or a blank leaf with a
+folio. Open the PNGs and confirm: book openings, every part divider, short
+poems centered (not stranded at the top), long poems breaking only between
+stanzas, and no blank page carrying a page number.
+
+## Content Structure Invariant
+
+`scan_collection` treats only the immediate subdirectories of the reading
+directory as sections, and only the `.md` files *directly* inside a section are
+typeset. A `.md` nested a further level down is unreachable and is now a hard
+build error (it once silently dropped an entire poem sequence). Keep poems flat
+within a section; front matter (`_title.md`, `00_dedication.md`) lives beside
+them and is ordered ahead of the body by type, not filename.
+
 ## Guardrails
 
 - Never alter source poem `.md` files or YAML front matter for typesetting reasons.
-- `render_config` changes belong in `collection.yaml` only.
+- `render_config` changes belong in `collection.yaml` (or a variant style sheet) only.
 - Template changes require a comment explaining why the default was insufficient.
 - Do not commit vendor-specific constraints as permanent spec changes without
   documenting the rationale.
+- Sign off a proof only after a visual review of the rendered pages, never from
+  the `.tex` alone.

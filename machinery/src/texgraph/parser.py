@@ -388,6 +388,45 @@ def _canonical_poem_path(section_dir: Path, base_path: Path) -> Path:
     return candidate if candidate.is_file() else base_path
 
 
+# Front-matter unit types sort ahead of body poems within a section, in this
+# order.  Anything not listed is body content and sorts after (rank 2).
+_FRONT_MATTER_RANK: dict[str, int] = {
+    "section-title": 0,
+    "dedicatory-poem": 1,
+    "dedication": 1,
+}
+
+
+def _front_matter_rank(poem_type: str) -> int:
+    """Sort rank for a unit type: 0 = title page, 1 = dedication, 2 = body."""
+    return _FRONT_MATTER_RANK.get(poem_type, 2)
+
+
+def _assert_no_orphaned_markdown(content_dir: Path, sub_dirs: list[Path]) -> None:
+    """Raise if any ``.md`` lives below the section level and would be dropped.
+
+    The scanner treats only immediate subdirectories of *content_dir* as
+    sections, and only the ``.md`` files directly inside a section are typeset.
+    A ``.md`` nested one level deeper (``section/group/poem.md``) is silently
+    unreachable.  Surfacing it as an error turns a vanished-content bug into an
+    actionable failure that names the offending files.
+    """
+    orphans: list[Path] = []
+    for sub_dir in sub_dirs:
+        for child in sub_dir.iterdir():
+            if child.is_dir() and not child.name.startswith("."):
+                orphans.extend(sorted(child.rglob("*.md")))
+    if orphans:
+        rel = "\n  ".join(str(p.relative_to(content_dir)) for p in orphans)
+        raise ValueError(
+            f"{len(orphans)} markdown file(s) are nested below the section level "
+            f"in {content_dir} and would be silently dropped from the build. "
+            f"Move them up into their section directory (content is flat within "
+            f"a section), or split the group into its own top-level section:\n  "
+            f"{rel}"
+        )
+
+
 def _section_markdown_files(section_dir: Path) -> list[Path]:
     """Return section markdown files, resolving canonical versions and skipping variants."""
     resolved: list[Path] = []
@@ -577,14 +616,22 @@ class PoetryParser:
             key=lambda d: (_numeric_prefix(d.name), d.name),
         )
 
+        # Guard against silently dropped content.  Only the section directory's
+        # own ``.md`` files are typeset; anything nested a further level down is
+        # unreachable and would vanish from the book without a trace (this is
+        # exactly how an entire poem sequence once went missing).  Fail loudly.
+        _assert_no_orphaned_markdown(content_dir, sub_dirs)
+
         for sub_dir in sub_dirs:
             meta = _load_section_meta(sub_dir)
             section = Section(path=sub_dir, meta=meta)
 
             md_files = _section_markdown_files(sub_dir)
             parsed: list[Poem] = [self.parse_file(f) for f in md_files]
-            # Sort by explicit order key first, then by filename
-            parsed.sort(key=lambda p: (p.order, p.path.name))
+            # Sort front matter (title page, then dedication) ahead of the body,
+            # then by explicit order key, then filename.  The type rank prevents
+            # a dedication with ``order: 1`` from sorting in among the poems.
+            parsed.sort(key=lambda p: (_front_matter_rank(p.type), p.order, p.path.name))
             section.poems = parsed
 
             sections.append(section)

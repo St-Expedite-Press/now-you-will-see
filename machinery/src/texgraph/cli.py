@@ -225,7 +225,7 @@ def build(
         task = progress.add_task("Parsing content…", total=None)
         try:
             sections = parser.scan_collection(cfg.resolved_content_dir)
-        except FileNotFoundError as exc:
+        except (FileNotFoundError, ValueError) as exc:
             console.print(f"[red]Parse error:[/red] {exc}")
             raise typer.Exit(code=1)
         progress.update(task, description="Parsing complete.")
@@ -316,6 +316,14 @@ def proof_build(
         "-p",
         help="Project ID from [bold]workspace.yaml[/bold].",
     ),
+    config: Optional[Path] = typer.Option(
+        None,
+        "--config",
+        "-c",
+        help="Style sheet to render (e.g. [bold]interior/collection_hardcover.yaml[/bold]). "
+             "Defaults to the project's collection.yaml.  Variants write to "
+             "[bold]output/proof-<name>/[/bold] so they don't clobber each other.",
+    ),
     verbose: bool = typer.Option(
         False,
         "--verbose",
@@ -347,7 +355,7 @@ def proof_build(
     console.rule("[bold cyan]Texgraph Proof Build[/bold cyan]")
 
     try:
-        cfg = _resolve_config(Path("collection.yaml"), project)
+        cfg = _resolve_config(config or Path("collection.yaml"), project)
     except typer.Exit:
         raise
     except (ValueError, FileNotFoundError) as exc:
@@ -356,9 +364,15 @@ def proof_build(
 
     cfg.draft_mode = True
 
+    # Variant style sheets (hardcover, softcover) render through this same
+    # pipeline into a distinct output dir so the trade proof is never clobbered.
+    variant = ""
+    if config is not None and Path(config).stem not in ("collection", ""):
+        variant = Path(config).stem.removeprefix("collection_")
+
     interior_root = cfg.project_root
     project_root = interior_root.parent
-    proof_out = interior_root / "output" / "proof"
+    proof_out = interior_root / "output" / (f"proof-{variant}" if variant else "proof")
     tex_out = proof_out / "tex"
     tex_out.mkdir(parents=True, exist_ok=True)
 
@@ -380,7 +394,7 @@ def proof_build(
         task = progress.add_task("Parsing content…", total=None)
         try:
             sections = parser.scan_collection(cfg.resolved_content_dir)
-        except FileNotFoundError as exc:
+        except (FileNotFoundError, ValueError) as exc:
             console.print(f"[red]Parse error:[/red] {exc}")
             raise typer.Exit(code=1)
         progress.update(task, description="Parsing complete.")
@@ -396,7 +410,7 @@ def proof_build(
     raw_config = cfg.as_dict()
 
     frontmatter_paths: list[str] = []
-    main_paths: list[str] = []
+    main_sections: list[dict] = []
     backmatter_paths: list[str] = []
     fragment_count = 0
     errors: list[str] = []
@@ -413,6 +427,15 @@ def proof_build(
             section_type = section.meta.get("type", "section")
             section_dir = tex_out / section.path.name
             section_dir.mkdir(exist_ok=True)
+
+            # For main-matter sections, create a per-section bucket for endnotes
+            if section_type not in ("frontmatter", "backmatter"):
+                section_title = str(section.meta.get("title") or "")
+                main_sections.append({
+                    "title": section_title,
+                    "paths": [],
+                    "print_endnotes": bool(section_title),  # only named book sections
+                })
 
             prev_part = ""
             for poem in section.poems:
@@ -442,7 +465,7 @@ def proof_build(
                 elif section_type == "backmatter":
                     backmatter_paths.append(rel_input)
                 else:
-                    main_paths.append(rel_input)
+                    main_sections[-1]["paths"].append(rel_input)
 
         progress.update(task, description="Fragments done.")
 
@@ -465,7 +488,7 @@ def proof_build(
     master_path = tex_out / f"{slug}.tex"
     master_path.write_text(
         renderer.render_proof_master(
-            raw_config, frontmatter_paths, main_paths, backmatter_paths
+            raw_config, frontmatter_paths, main_sections, backmatter_paths
         ),
         encoding="utf-8",
     )
@@ -523,6 +546,105 @@ def proof_build(
         console.print(f"\n  Full log: [dim]{result.log_path}[/dim]")
 
     raise typer.Exit(code=0 if result.success else 1)
+
+
+@app.command(name="proof-preview")
+def proof_preview(
+    project: Optional[str] = typer.Option(
+        None, "--project", "-p", help="Project ID from [bold]workspace.yaml[/bold]."
+    ),
+    pages: Optional[str] = typer.Option(
+        None, "--pages",
+        help="Extra pages to render, e.g. [bold]40,120-122[/bold].",
+    ),
+    sample: int = typer.Option(
+        0, "--sample",
+        help="Also render every Nth page (0 = off) to spot-check body poems.",
+    ),
+    dpi: int = typer.Option(150, "--dpi", help="Render resolution."),
+) -> None:
+    """Render the structurally important proof pages to PNG for visual review.
+
+    Closes the gap between "the build succeeded" and "the book is right": instead
+    of inferring layout from the generated [bold].tex[/bold], this renders the
+    actual leaves a reviewer must eyeball — every book title page and part
+    divider (from the [bold].toc[/bold]), the introduction, each per-volume notes
+    section, plus any [bold]--pages[/bold] and an optional [bold]--sample[/bold]
+    stride — into [bold]interior/output/proof/preview/[/bold].
+
+    Run [bold]proof-build[/bold] first.  Requires [bold]pdftoppm[/bold] (poppler).
+    """
+    import shutil
+    import subprocess
+
+    from texgraph.pagemap import expand_pages
+
+    console.rule("[bold cyan]Texgraph Proof Preview[/bold cyan]")
+
+    for tool in ("pdftoppm", "pdftotext"):
+        if not shutil.which(tool):
+            console.print(f"[red]{tool} not found on PATH.[/red]  Install poppler-utils.")
+            raise typer.Exit(code=1)
+
+    try:
+        cfg = _resolve_config(Path("collection.yaml"), project)
+    except (ValueError, FileNotFoundError) as exc:
+        console.print(f"[red]Config error:[/red] {exc}")
+        raise typer.Exit(code=1)
+
+    proof_out = cfg.project_root / "output" / "proof"
+    slug = _slugify(cfg.title)
+    pdf = proof_out / f"{slug}.pdf"
+    if not pdf.exists():
+        console.print(f"[red]Proof PDF not found:[/red] {pdf}\n  Run proof-build first.")
+        raise typer.Exit(code=1)
+
+    # Structural pages are detected by content: title pages, part dividers, and
+    # centered short poems carry only a few words, unlike dense body or notes
+    # pages.  pdftotext splits on form feeds, one chunk per *physical* page —
+    # the index pdftoppm needs (the printed folio in the TOC is not the same).
+    proc = subprocess.run(
+        ["pdftotext", "-layout", str(pdf), "-"], capture_output=True, text=True
+    )
+    physical_pages = proc.stdout.split("\f")
+    total = len(physical_pages)
+
+    labelled: dict[int, str] = {1: "opening"}
+    for i, ptext in enumerate(physical_pages, start=1):
+        compact = " ".join(ptext.split())
+        if 0 < len(compact) <= 70:  # sparse leaf = structural page or short poem
+            labelled[i] = compact[:54]
+    if pages:
+        for p in expand_pages(pages):
+            labelled.setdefault(p, "requested")
+    if sample > 0:
+        for p in range(sample, total + 1, sample):
+            labelled.setdefault(p, "sample")
+
+    preview_dir = proof_out / "preview"
+    preview_dir.mkdir(parents=True, exist_ok=True)
+    for old in preview_dir.glob("page-*.png"):
+        old.unlink()
+
+    rendered = 0
+    for page in sorted(labelled):
+        if page > total:
+            continue
+        prefix = preview_dir / f"page-{page:04d}"
+        result = subprocess.run(
+            ["pdftoppm", "-f", str(page), "-l", str(page), "-png", "-r", str(dpi),
+             "-singlefile", str(pdf), str(prefix)],
+            capture_output=True, text=True,
+        )
+        if result.returncode != 0:
+            continue
+        rendered += 1
+        console.print(f"  p.{page:>4}  [dim]{labelled[page]}[/dim]")
+
+    console.print(
+        f"\n  Rendered [bold]{rendered}[/bold] page(s) -> "
+        f"[bold]{preview_dir.relative_to(cfg.project_root.parent)}[/bold]"
+    )
 
 
 # ---------------------------------------------------------------------------

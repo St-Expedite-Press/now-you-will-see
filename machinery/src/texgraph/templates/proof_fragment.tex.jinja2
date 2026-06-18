@@ -9,7 +9,7 @@
 \thispagestyle{empty}
 \vspace*{\fill}
 \begin{center}
-  {\normalfont\Large\itshape \VAR{config.title}\par}
+  {\headingfont\Large \VAR{config.title}\par}
 \end{center}
 \vspace*{\fill}
 \clearpage
@@ -20,16 +20,16 @@
 \thispagestyle{empty}
 \vspace*{2in}
 \begin{center}
-  {\normalfont\huge\itshape \VAR{config.title}\par}
+  {\headingfont\huge \VAR{config.title}\par}
   \BLOCK{if config.subtitle}
   \vspace{1.5ex}
-  {\normalfont\normalsize \VAR{config.subtitle}\par}
+  {\headingfont\normalsize \VAR{config.subtitle}\par}
   \BLOCK{endif}
   \vspace{2in}
   {\normalfont\normalsize\scshape\MakeLowercase{\VAR{config.author}}\par}
   \BLOCK{if config.publisher}
   \vfill
-  {\normalfont\small \VAR{config.publisher}\par}
+  {\headingfont\small \VAR{config.publisher}\par}
   \BLOCK{endif}
   {\normalfont\small \VAR{config.year}\par}
 \end{center}
@@ -37,10 +37,7 @@
 
 %# ── Copyright page ───────────────────────────────────────────────────────────
 \BLOCK{elif poem.type == "copyright"}
-\clearpage
-\thispagestyle{empty}
-\vspace*{\fill}
-{\small\setlength{\parskip}{0.75\baselineskip}\setlength{\parindent}{0pt}%
+\begin{copyrightpage}
 \BLOCK{for stanza in poem.stanzas}
 \noindent
 \BLOCK{for line in stanza.lines}
@@ -51,7 +48,7 @@
 \medskip
 \BLOCK{endif}
 \BLOCK{endfor}
-}%
+\end{copyrightpage}
 \clearpage
 
 %# ── Table of contents ────────────────────────────────────────────────────────
@@ -65,15 +62,15 @@
 %# ── Prose (introduction / backmatter chapter / in-section note) ──────────────
 \BLOCK{elif poem.type == "prose"}
 \BLOCK{if section.meta.get("type") in ["frontmatter", "backmatter"]}
-\clearpage
-\pagestyle{plain}
 \chapter*{\VAR{poem.title}}
 \addcontentsline{toc}{chapter}{\VAR{poem.title}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.8\baselineskip}
 \BLOCK{for stanza in poem.stanzas}
 \BLOCK{for line in stanza}
-\VAR{line}\par
+\VAR{line}
+
 \BLOCK{endfor}
-\medskip
 \BLOCK{endfor}
 \clearpage
 \BLOCK{if section.meta.get("type") == "frontmatter"}
@@ -83,24 +80,27 @@
 \BLOCK{endif}
 \BLOCK{else}
 \section*{\VAR{poem.title}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.6\baselineskip}
 \BLOCK{for stanza in poem.stanzas}
 \BLOCK{for line in stanza}
-\VAR{line}\par
+\VAR{line}
+
 \BLOCK{endfor}
-\medskip
 \BLOCK{endfor}
 \BLOCK{endif}
 
 %# ── Section / book title page ────────────────────────────────────────────────
 \BLOCK{elif poem.type == "section-title"}
-\clearpage
+\cleardoublepage
 \thispagestyle{empty}
+\addcontentsline{toc}{chapter}{\VAR{section.meta.get("title") or section.title or poem.title}}
 \vspace*{\fill}
 \begin{center}
-  {\normalfont\LARGE\itshape \VAR{section.meta.get("label") or section.title}\par}
+  \booktitle{\VAR{section.meta.get("title") or section.title or poem.title}}\par
   \BLOCK{if poem.meta.get("subtitle")}
-  \vspace{1.5ex}
-  {\normalfont\small \VAR{poem.meta.get("subtitle")}\par}
+  \vspace{2ex}
+  {\headingfont\small \VAR{poem.meta.get("subtitle")}\par}
   \BLOCK{endif}
   \BLOCK{if poem.meta.get("note")}
   \vspace{4ex}
@@ -109,7 +109,6 @@
 \end{center}
 \vspace*{\fill}
 \clearpage
-\markright{\VAR{section.meta.get("label") or section.title}}
 
 %# ── Dedicatory poem (full poem, centered) ────────────────────────────────────
 \BLOCK{elif poem.type == "dedicatory-poem"}
@@ -155,15 +154,30 @@
 \vspace*{\fill}
 \clearpage
 
+%# ── Navigation/index files — no typeset content ──────────────────────────────
+\BLOCK{elif poem.type in ["book-index", "collection-index", "section-index"]}
+%# editorial index file — not typeset
+
 %# ── Verse poem (regular, cycle, screenplay) ──────────────────────────────────
 \BLOCK{else}
 
-%# Part heading fires when this poem opens a new part
+%# Full-page part divider fires when this poem opens a new part
 \BLOCK{if include_part_heading and poem.meta.get("part", "")}
-\partheading{\VAR{poem.meta.get("part", "")}}
+\partdivider{\VAR{poem.meta.get("part", "")}}
 \BLOCK{endif}
 
-\poemtitle{\VAR{poem.title}}
+%# One poem per page (rule 1).  A \clearpage on an already-fresh page (e.g. just
+%# after a divider or title page) is a no-op, so this never double-blanks.
+\clearpage
+%# Vertical placement is decided inside \begin{poemblock} by the poem's measured
+%# height: short poems are centered (rule 3), the rest top-set from the sink and
+%# allowed to flow (rules 2, 4).  See \NewEnviron{poemblock} in the preamble.
+\begin{poemblock}
+\poemtitle{\VAR{poem.title}%
+\BLOCK{if poem.notes}%
+\BLOCK{for _note in poem.notes}\endnotemark\BLOCK{endfor}%
+\BLOCK{endif}%
+}
 \BLOCK{if poem.subtitle}
 {\itshape \VAR{poem.subtitle}}\nopagebreak\medskip
 \BLOCK{endif}
@@ -186,7 +200,9 @@
 {\itshape \VAR{part.title}}\nopagebreak\medskip
 \BLOCK{endif}
 \BLOCK{for stanza in part.stanzas}
-\BLOCK{if stanza.is_blockquote}
+\BLOCK{if stanza.is_movement}
+\movementlabel{\VAR{stanza.label}}
+\BLOCK{elif stanza.is_blockquote}
 \begin{quote}\itshape
 \BLOCK{for line in stanza.lines}
 \VAR{line}
@@ -237,7 +253,9 @@
 \BLOCK{else}
 %# ── Standard verse poem ──────────────────────────────────────────────────────
 \BLOCK{for stanza in poem.stanzas}
-\BLOCK{if stanza.is_blockquote}
+\BLOCK{if stanza.is_movement}
+\movementlabel{\VAR{stanza.label}}
+\BLOCK{elif stanza.is_blockquote}
 \begin{quote}\itshape
 \BLOCK{for line in stanza.lines}
 \VAR{line}
@@ -252,7 +270,20 @@
 \BLOCK{endif}
 \BLOCK{if not loop.last}
 \vspace{\VAR{rc.get("stanza_skip") or "1.2ex"}}
+%# Bind the final stanza to the one before it so a flowing poem cannot orphan
+%# its closing stanza alone at the top of a continuation page.
+\BLOCK{if loop.revindex == 2}\nopagebreak[4]\BLOCK{endif}
 \BLOCK{endif}
+\BLOCK{endfor}
+\BLOCK{endif}
+
+\end{poemblock}
+
+\BLOCK{if poem.notes}
+\addtocounter{endnote}{-\VAR{poem.notes|length}}%
+\BLOCK{for _note in poem.notes}
+\stepcounter{endnote}%
+\endnotetext{\VAR{_note}}%
 \BLOCK{endfor}
 \BLOCK{endif}
 

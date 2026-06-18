@@ -54,12 +54,50 @@ default_project: my-project
 # Auto-rebuild on file changes
 .\.venv\Scripts\texgraph.exe watch --project <id>
 
-# Build proof artifact tree and proof PDF
+# Build proof artifact tree and proof PDF (trade style sheet)
 .\.venv\Scripts\texgraph.exe proof-build --project <id>
+
+# Build a variant style sheet (hardcover / softcover) through the SAME proof
+# pipeline — writes to interior/output/proof-<name>/ so it never clobbers the trade proof
+.\.venv\Scripts\texgraph.exe proof-build --config projects/<id>/interior/collection_hardcover.yaml
 
 # List registered projects
 .\.venv\Scripts\texgraph.exe list
 ```
+
+---
+
+## Visual Proof Review
+
+Never sign off a typeset proof by reading the generated `.tex`. Render the
+structurally important leaves and look at them:
+
+```powershell
+# Renders book title pages, part dividers, and any sparse/short-poem pages to
+# interior/output/proof/preview/*.png  (requires pdftoppm + pdftext from poppler)
+.\.venv\Scripts\texgraph.exe proof-preview --project <id>
+
+# Add explicit pages or a sampling stride
+.\.venv\Scripts\texgraph.exe proof-preview --project <id> --pages 40,120-122 --sample 50
+```
+
+The tool auto-detects structural pages by content (a near-empty leaf is a title
+page, a divider, a short centered poem, or — a defect — an orphaned line or a
+stray-folio blank). Inspect each rendered PNG. This loop is what catches
+orphaned closing couplets, split stanzas, and blank leaves carrying a folio —
+none of which appear in a grep of the source.
+
+---
+
+## Batch / Agent Edits to Source
+
+When a script or sub-agent rewrites many manuscript files (e.g. an editorial
+note pass), make each write idempotent and self-checkpointing: write results
+back to the source file as each unit completes, so a crash or interrupted run is
+resumable by re-running over only the not-yet-updated files. Never hold a whole
+batch in memory to write at the end — a process exit loses all of it. Because the
+Fletcher manuscript is now version-controlled (see git tracking below), commit
+before a large batch so a bad rewrite is recoverable with `git restore`.
 
 ---
 

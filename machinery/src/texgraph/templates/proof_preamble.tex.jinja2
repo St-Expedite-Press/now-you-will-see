@@ -6,9 +6,23 @@
 
 \usepackage{fontspec}
 \usepackage{microtype}
-\setmainfont{\VAR{rc.get("mainfont") or "EB Garamond"}}[
+\usepackage{etoolbox}
+\usepackage{environ}
+
+% Body font (set via render_config.mainfont; default Crimson Pro)
+\setmainfont{\VAR{rc.get("mainfont") or "Crimson Pro"}}[
   Ligatures = TeX,
   Numbers   = OldStyle,
+]
+
+% Display/heading font: IM FELL English SC (already a small-caps design)
+\newfontfamily\headingfont{IM FELL English SC}[
+  Ligatures = TeX,
+]
+
+% Ornament font: IM FELL FLOWERS 2 (press bird and decorative ornaments)
+\newfontfamily\ornamentfont{IM FELL FLOWERS 2}[
+  Ligatures = TeX,
 ]
 
 \usepackage{polyglossia}
@@ -26,18 +40,84 @@
 
 \usepackage{verse}
 
+% Verse: keep the lines of a stanza together so a page break never splits a
+% stanza.  The verse package ends each line with a bare \par (only the starred
+% \\* adds \nobreak), so by default a page can break between any two lines.
+% Patch its line-break macro to make every break non-breakable; the breakable
+% point then survives only at the inter-stanza \vspace between verse environments.
+\makeatletter
+\patchcmd{\@vscentercr}{\par\@ifstar}{\par\nobreak\@ifstar}{}{}
+\makeatother
+
+% Discourage stranding a lone line at the top or bottom of a page, and let pages
+% end short rather than stretch verse to fill (poetry sets ragged-bottom).
+\widowpenalty=10000
+\clubpenalty=10000
+\raggedbottom
+
+% Title sink: top-set poems drop this far from the top of the text block so
+% titles land in a consistent optical position across spreads.
+\newlength{\poemsink}
+\setlength{\poemsink}{0.06\textheight}
+
+% One-poem-per-page placement, decided by ACTUAL typeset height rather than a
+% line-count guess.  The poem (title + body) is set into a box and measured: if
+% it fits within \shortpoemlimit it is optically centered on its page;
+% otherwise it is top-set from the sink and \unvbox'd so it can flow across
+% pages, breaking only between stanzas (the verse \nobreak patch above keeps
+% each stanza whole).  \shortpoemlimit is tunable via render_config.short_poem_maxheight.
+\newsavebox{\poembox}
+\newlength{\shortpoemlimit}
+\setlength{\shortpoemlimit}{\VAR{rc.get("short_poem_maxheight") or "0.62\\textheight"}}
+% Slack by which a just-too-tall poem may overrun a page (via \enlargethispage)
+% to stay whole instead of orphaning a closing line or two.
+\newlength{\tgsqueeze}
+\setlength{\tgsqueeze}{\VAR{rc.get("page_squeeze") or "3\\baselineskip"}}
+\NewEnviron{poemblock}{%
+  \setbox\poembox=\vbox{\BODY}%
+  \edef\tgpoemht{\the\dimexpr\ht\poembox+\dp\poembox\relax}%
+  \ifdim\tgpoemht<\shortpoemlimit
+    % Short: center the intact poem vertically on its page.
+    \vspace*{\fill}\box\poembox\vspace*{\fill}%
+  \else\ifdim\dimexpr\tgpoemht+\poemsink\relax<\textheight
+    % Medium: fits a page with the sink — top-set so titles align across spreads.
+    \vspace*{\poemsink}\unvbox\poembox
+  \else\ifdim\tgpoemht<\dimexpr\textheight+\tgsqueeze\relax
+    % Just over a page: lengthen this page slightly to keep the poem whole
+    % rather than orphan a closing line or two onto a near-empty leaf.
+    \enlargethispage{\tgsqueeze}\unvbox\poembox
+  \else
+    % Genuinely longer than a page: set flush and let it flow across pages,
+    % breaking only between stanzas (\interlinepenalty keeps each stanza whole).
+    \unvbox\poembox
+  \fi\fi\fi
+}
+
+% Folio: centered at foot; no running heads (house style: clean body pages)
 \usepackage{fancyhdr}
 \pagestyle{fancy}
 \fancyhf{}
 \renewcommand{\headrulewidth}{0pt}
-\fancyhead[LE]{\small\scshape\MakeLowercase{\VAR{config.author}}}
-\fancyhead[RO]{\small\itshape\nouppercase{\rightmark}}
-\fancyfoot[LE,RO]{\small\thepage}
+\fancyfoot[C]{\small\thepage}
 \fancypagestyle{plain}{%
   \fancyhf{}%
   \renewcommand{\headrulewidth}{0pt}%
-  \fancyfoot[LE,RO]{\small\thepage}%
+  \fancyfoot[C]{\small\thepage}%
 }
+
+% Blank versos inserted by \cleardoublepage (forcing book/part/notes openings
+% onto a recto) must carry NO folio — a page number on an otherwise empty leaf
+% is a production defect.  Ship the inserted blank with the empty page style.
+\makeatletter
+\renewcommand*{\cleardoublepage}{%
+  \clearpage
+  \if@twoside
+    \ifodd\c@page\else
+      \null\thispagestyle{empty}\newpage
+    \fi
+  \fi
+}
+\makeatother
 
 \usepackage[
   pdftitle={\VAR{config.title}},
@@ -49,20 +129,102 @@
 \BLOCK{if rc.get("line_spread")}
 \linespread{\VAR{rc.get("line_spread")}}\selectfont
 \BLOCK{endif}
-\usepackage{emptypage}
 
+% TOC: dotted leaders, right-aligned folios
+\usepackage{tocloft}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+\setlength{\cftbeforesecskip}{0.3em}
+
+% Endnotes (collected by volume; \theendnotes called between volumes in master)
+\usepackage{endnotes}
+\renewcommand{\enotesize}{\small}
+% Endnotes heading: printed as a chapter* so it gets its own page and TOC entry
+% \chapter* already opens a fresh recto (book class, openright); no extra
+% \clearpage here, or it can leave a stray blank leaf between book and notes.
+\renewcommand{\enoteheading}{%
+  \pagestyle{plain}%
+  \chapter*{\notesname}%
+  \addcontentsline{toc}{chapter}{\notesname}%
+  \markboth{}{}%
+}
+% Endnote item format: hanging indent, note number in text style
+\renewcommand{\theendnote}{\arabic{endnote}}
+\renewcommand{\makeenmark}{\textsuperscript{\theenmark}}
+
+% Prose chapter heading (Introduction, Afterword, etc.)
+\usepackage{titlesec}
+\titleformat{\chapter}[display]
+  {}
+  {}
+  {0pt}
+  {\thispagestyle{plain}\vspace*{1.5in}\begin{center}\headingfont\Large}
+  [\end{center}\vspace{1.5\baselineskip}]
+\titlespacing{\chapter}{0pt}{0pt}{0pt}
+
+% Section heading (within a chapter — used for TOC entries only, not printed)
+\titleformat{\section}[hang]{\headingfont\normalsize}{}{0pt}{}
+\titlespacing{\section}{0pt}{1.5\baselineskip}{0.5\baselineskip}
+
+% Poem title: IM FELL English SC.  Vertical placement (sink or centering) is
+% supplied by the fragment before this is called, so the title itself adds no
+% leading space — only the gap between title and first line.
 \renewcommand{\poemtitle}[1]{%
-  \vspace{1.5\baselineskip}%
-  {\noindent\normalfont\itshape\large #1\par}%
-  \vspace{0.5\baselineskip}%
+  {\noindent\headingfont #1\par}%
+  \vspace{0.6\baselineskip}%
   \noindent
 }
 
-\newcommand{\partheading}[1]{%
-  \vspace{2\baselineskip}%
+% Part divider: a full page of its own, forced to a recto, the part label
+% centered in the upper-middle of the text block.  The following poem's own
+% \clearpage flushes this page (a \clearpage on a fresh page is a no-op, so no
+% double blank results).  emptypage keeps the auto-inserted verso clean.
+\newcommand{\partdivider}[1]{%
+  \cleardoublepage
+  \thispagestyle{empty}%
+  \addcontentsline{toc}{section}{#1}%
+  \null\vspace*{0.32\textheight}%
   \begin{center}%
-    {\normalfont\footnotesize\scshape\MakeLowercase{#1}}%
+    {\headingfont\large #1\par}%
   \end{center}%
-  \vspace{0.75\baselineskip}%
-  \nopagebreak[4]%
+  \vfill\null
+}
+
+% Book/movement title page heading: large IM FELL, letterspaced
+\newcommand{\booktitle}[1]{%
+  {\headingfont\LARGE #1}%
+}
+
+% Internal movement label within a poem (e.g. a centered "I" / "II")
+\newcommand{\movementlabel}[1]{%
+  \vspace{0.5\baselineskip}%
+  {\centering\headingfont #1\par}%
+  \nopagebreak\vspace{0.3\baselineskip}%
+  \noindent
+}
+
+% Half-title presenter line
+\newcommand{\pressline}[1]{%
+  {\headingfont\small #1\par}%
+}
+
+% Dedication/epigraph page: text high on page, right-of-center, italic
+\newenvironment{dedicationpage}{%
+  \thispagestyle{empty}%
+  \null\vspace{0.22\textheight}%
+  \begin{flushright}%
+    \itshape
+}{%
+  \end{flushright}%
+  \vfill\null
+}
+
+% Copyright page: block low on page, left-aligned, footnotesize
+\newenvironment{copyrightpage}{%
+  \thispagestyle{empty}%
+  \null\vfill
+  \footnotesize
+  \setlength{\parskip}{0.5\baselineskip}%
+  \setlength{\parindent}{0pt}%
+}{%
+  \null
 }

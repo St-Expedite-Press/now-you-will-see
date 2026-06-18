@@ -1,10 +1,10 @@
-# Transcribe Stage — Runbook
+# Transcription Stage — Runbook
 
-This document is the operator guide for the transcribe stage. It covers gate verification, volume scaffolding, poem transcription, metadata validation, and promotion. Every example uses *Preludes and Symphonies* (Fletcher, 1922) as the running case.
+This document is the operator guide for the transcription stage. It covers gate verification, volume scaffolding, poem transcription, metadata validation, and promotion. Every example uses *Preludes and Symphonies* (Fletcher, 1922) as the running case.
 
 ---
 
-## What Transcribe Does
+## What the Transcription Stage Does
 
 Transcription converts source PDF pages into clean, structured Markdown files — one file per poem, organized into volumes and books. It also captures front/back matter, records page mappings, and validates metadata before handing work to manuscript/interior modules.
 
@@ -14,10 +14,10 @@ Nothing in `manuscript/` or `interior/` may start until the transcription PROMOT
 
 ## Inputs
 
-- Approved ingest PROMOTION.yaml (`status: approved`)
+- Approved sources PROMOTION.yaml (`status: approved`)
 - Source PDF at `projects/<project_id>/sources/raw/<stable>.pdf`
 - Volume structure decision (how the book divides into books/sections)
-- Transcription policy (from `transcribe/metadata/editorial_policy.md`)
+- Transcription policy (from `transcription/metadata/editorial_policy.md`)
 
 ## Outputs
 
@@ -44,12 +44,12 @@ projects/<project_id>/transcription/
 
 ---
 
-## Step 1 — Verify the ingest gate
+## Step 1 — Verify the sources gate
 
-**Always run this first.** If it fails, stop and resolve the ingest stage.
+**Always run this first.** If it fails, stop and resolve the sources stage.
 
 ```powershell
-.\.venv\Scripts\texgraph.exe verify transcribe `
+.\.venv\Scripts\texgraph.exe verify transcription `
   --project fletcher-complete-original-collections
 ```
 
@@ -64,12 +64,12 @@ Before creating any files, understand what you are transcribing.
 ```powershell
 # Extract the table of contents pages as text
 .\.venv\Scripts\texgraph.exe pdf text `
-  projects/fletcher-complete-original-collections/ingest/raw/gould-fletcher_1922_preludes-and-symphonies_ia.pdf `
+  projects/fletcher-complete-original-collections/sources/raw/gould-fletcher_1922_preludes-and-symphonies_ia.pdf `
   --first 1 --last 15
 
 # Render the first 15 pages as images for visual inspection
 .\.venv\Scripts\texgraph.exe pdf render `
-  projects/fletcher-complete-original-collections/ingest/raw/gould-fletcher_1922_preludes-and-symphonies_ia.pdf `
+  projects/fletcher-complete-original-collections/sources/raw/gould-fletcher_1922_preludes-and-symphonies_ia.pdf `
   --first 1 --last 15 --prefix tmp_toc
 ```
 
@@ -95,7 +95,7 @@ Record this offset in the book manifest (see Step 4).
 Create the directory structure. For *Preludes and Symphonies* inside the Fletcher project:
 
 ```
-projects/fletcher-complete-original-collections/transcribe/volumes/
+projects/fletcher-complete-original-collections/transcription/volumes/
   03_later_collections/
     volume.md
     books/
@@ -126,7 +126,7 @@ author: "John Gould Fletcher"
 publisher: "Macmillan"
 place: "New York"
 year: 1922
-source_pdf: "projects/fletcher-complete-original-collections/ingest/raw/gould-fletcher_1922_preludes-and-symphonies_ia.pdf"
+source_pdf: "projects/fletcher-complete-original-collections/sources/raw/gould-fletcher_1922_preludes-and-symphonies_ia.pdf"
 source_status: present
 pdf_pages: <N>
 rights_status: public_domain
@@ -190,7 +190,7 @@ title: "Irradiation I"
 book: "Preludes and Symphonies"
 book_order: 1
 poem_order: 1
-source_pdf: "projects/fletcher-complete-original-collections/ingest/raw/gould-fletcher_1922_preludes-and-symphonies_ia.pdf"
+source_pdf: "projects/fletcher-complete-original-collections/sources/raw/gould-fletcher_1922_preludes-and-symphonies_ia.pdf"
 source_pages_scan: [17]
 source_pages_printed: [9]
 status: transcribed
@@ -216,7 +216,7 @@ Over the rooftops race the shadows of clouds;
 
 ```powershell
 .\.venv\Scripts\texgraph.exe pdf render `
-  projects/fletcher-complete-original-collections/ingest/raw/gould-fletcher_1922_preludes-and-symphonies_ia.pdf `
+  projects/fletcher-complete-original-collections/sources/raw/gould-fletcher_1922_preludes-and-symphonies_ia.pdf `
   --first 17 --last 17 --prefix tmp_poem001
 ```
 
@@ -229,22 +229,22 @@ Run these after each book section is complete, not just at the end.
 ```powershell
 # Check for forbidden tokens, missing fields, and unchecked items
 .\.venv\Scripts\texgraph.exe audit `
-  projects/fletcher-complete-original-collections/transcribe/volumes/03_later_collections/books/preludes_and_symphonies_1922
+  projects/fletcher-complete-original-collections/transcription/volumes/03_later_collections/books/preludes_and_symphonies_1922
 
 # Generate/update book.json metadata
 .\.venv\Scripts\texgraph.exe metadata `
-  projects/fletcher-complete-original-collections/transcribe/volumes/03_later_collections/books/preludes_and_symphonies_1922 `
+  projects/fletcher-complete-original-collections/transcription/volumes/03_later_collections/books/preludes_and_symphonies_1922 `
   --write --check
 
 # Scan source PDFs for front/back matter signals (run after all books done)
 .\.venv\Scripts\texgraph.exe scan `
-  projects/fletcher-complete-original-collections/transcribe/volumes `
-  --output projects/fletcher-complete-original-collections/transcribe/metadata/source_matter_inventory.md
+  projects/fletcher-complete-original-collections/transcription/volumes `
+  --output projects/fletcher-complete-original-collections/transcription/metadata/source_matter_inventory.md
 ```
 
 **`texgraph audit` checks:**
 - Every poem has `source_pages_scan` and `source_pages_printed` set (not null)
-- No forbidden markup tokens (`\`\`\``, `&nbsp;`, `<br`, `page-break`, `PAGE BREAK`)
+- No forbidden markup tokens (` ``` `, `&nbsp;`, `<br`, `page-break`, `PAGE BREAK`)
 - `book.md` exists and has no unchecked `- [ ]` items
 - No `tmp_*.png` files left in repo root
 
@@ -273,7 +273,7 @@ When the user has reviewed a representative sample of the transcription against 
 
 ```yaml
 # projects/fletcher-complete-original-collections/transcription/PROMOTION.yaml
-stage: transcribe
+stage: transcription
 status: approved
 approved_at: <ISO 8601>
 policy_accepted: true
@@ -303,7 +303,7 @@ Exit 0 means manuscript/interior work may begin.
 
 | Symptom | Likely cause | Resolution |
 |---|---|---|
-| `verify transcribe` fails | Ingest PROMOTION.yaml missing or not approved | Return to ingest stage |
+| `verify transcription` fails | Sources PROMOTION.yaml missing or not approved | Return to sources stage |
 | `audit` reports forbidden tokens | HTML or markdown markup in a poem file | Remove `<br>`, `&nbsp;`, code fences |
 | `audit` reports null `source_pages_scan` | Front matter not filled in | Add scan and printed page numbers |
 | `audit` reports unchecked items | `book.md` checklist has `- [ ]` lines | Complete or mark complete the section |
@@ -315,7 +315,7 @@ Exit 0 means manuscript/interior work may begin.
 ## Commands reference
 
 ```powershell
-.\.venv\Scripts\texgraph.exe verify transcribe --project <id>
+.\.venv\Scripts\texgraph.exe verify transcription --project <id>
 .\.venv\Scripts\texgraph.exe verify interior --project <id>
 .\.venv\Scripts\texgraph.exe pdf text <pdf> --first N --last N
 .\.venv\Scripts\texgraph.exe pdf render <pdf> --first N --last N --prefix P
