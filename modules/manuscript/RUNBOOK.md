@@ -12,6 +12,29 @@ For new work, route through `typeset/AGENTS.md`.
 .\.venv\Scripts\texgraph.exe proof-build --project <id>
 ```
 
+## Source coverage (no poem ever dropped)
+
+Before signing off a reading edition, prove every transcription poem is built:
+
+```powershell
+.\.venv\Scripts\texgraph.exe verify-coverage --project <id>
+```
+
+It checks the `source:` links from reading poems to their transcription
+witnesses — failing on any unbuilt, broken, or duplicated witness (exits
+non-zero). The same check runs as a test, so CI fails if a poem goes missing.
+This exists because a poem sequence once vanished silently; run it after any
+content move, scaffold, or batch edit.
+
+## Notes apparatus (reading edition)
+
+Context notes are typeset as **keyed back-matter notes**, not inline footnotes:
+no in-text marks; per-book "Notes to <Book>" sections group each poem's notes
+under its title with a page reference, keyed by line number. Each note's leading
+line citation or `Form:` label is set apart from the gloss. Editorial notes
+should therefore lead with a line citation (`ll. 9–10 ('lemma'):`) or `Form:`
+where applicable so the apparatus reads as structured entries.
+
 `proof-build` writes retained draft artifacts to:
 
 ```

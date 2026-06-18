@@ -21,34 +21,70 @@ If it fails, resolve the issues reported (transcription PROMOTION.yaml missing o
 
 ---
 
-## Proof build (first-draft review PDF)
+## Proof build (review PDF — the omnibus pipeline)
 
-A proof build is a single LuaLaTeX pass — no PDF/X compliance, faster output.
-Use it to review layout and catch rendering issues before committing to a
-production build.
+`proof-build` is the full interior pipeline (the `proof_*` templates): a
+fragment per content unit, one-poem-per-page placement decided by measured
+height, full-page recto part dividers, per-book recto title pages, and keyed
+back-matter notes. Two LuaLaTeX passes resolve the TOC and page references.
 
 ```powershell
+# Trade review proof (collection.yaml)
 .\.venv\Scripts\texgraph.exe proof-build --project <id>
+
+# A variant style sheet (hardcover / softcover) through the SAME pipeline —
+# writes to output/proof-<name>/ so it never clobbers the trade proof
+.\.venv\Scripts\texgraph.exe proof-build --config projects/<id>/interior/collection_hardcover.yaml
 ```
 
-Output lands at `projects/<id>/interior/output/proof/` (or
-`projects/<id>/interior/output/proof/` for unmigrated projects).
+Output lands at `projects/<id>/interior/output/proof/` (variants:
+`output/proof-<name>/`). See `modules/interior/skills/typesetting/SKILL.md` for
+the page-mode (`one-per-page` vs `flow`) and placement knobs.
+
+### Visual review (mandatory before sign-off)
+
+Never sign off layout from the generated `.tex`. Render the structural pages and look:
+
+```powershell
+.\.venv\Scripts\texgraph.exe proof-preview --project <id>          # title pages, dividers, sparse leaves
+.\.venv\Scripts\texgraph.exe proof-preview --project <id> --pages 40,120 --sample 50
+```
+
+Outputs PNGs to `output/proof/preview/`. Requires poppler (`pdftoppm`, `pdftotext`).
+A sparse page that is not a title/divider is usually a defect (orphaned line,
+stray-folio blank).
+
+### Print-ready PDF/X (vendor upload)
+
+For an IngramSpark-uploadable interior, add `--print-ready`: loads `pdfx`
+(PDF/X-3), pads to an even page count, and writes to `output/print/<format>/`.
+
+```powershell
+.\.venv\Scripts\texgraph.exe proof-build --print-ready --config projects/<id>/interior/collection_hardcover.yaml
+.\.venv\Scripts\texgraph.exe proof-build --print-ready --config projects/<id>/interior/collection_softcover.yaml
+```
+
+Verify: `pdffonts` (all `emb yes`), `pdfinfo` (even page count, correct trim,
+PDF/X marker). For the omnibus editions this is the production path — not the
+legacy `build` command below, which uses the older non-poetry templates.
 
 ### Expected outputs
 
 | File | Description |
 |---|---|
-| `output/proof/<collection>.tex` | Rendered LuaLaTeX source |
-| `output/proof/<collection>.pdf` | Draft PDF (single pass, no PDF/X) |
+| `output/proof/tex/<collection>.tex` | Master + per-fragment LuaLaTeX source |
+| `output/proof/<collection>.pdf` | Review PDF (2 passes) |
+| `output/print/<format>/<collection>.pdf` | PDF/X-3, even pages (with `--print-ready`) |
 
 ### Common failures
 
 | Symptom | Cause | Fix |
 |---|---|---|
+| `markdown file(s) … silently dropped` | A poem nested below the section level | Flatten it into its section directory (content is flat within a section) |
 | `collection.yaml not found` | Wrong project ID or unmigrated workspace path | Run `texgraph list` to check registered paths |
 | `lualatex not found` | LuaLaTeX not on PATH | Install TeX Live or MiKTeX and add `lualatex` to PATH |
-| Missing font | Font name in `collection.yaml:render_config.mainfont` not installed | Install the font system-wide |
-| Blank PDF / render error | Section `_meta.yaml` missing required fields | Run `texgraph audit <volume>` |
+| Missing font | `render_config.mainfont` not installed | Install the font system-wide |
+| PDF emitted as US Letter | `pdfx` loaded before geometry | Already handled in the proof preamble; keep `pdfx` after geometry |
 
 ---
 

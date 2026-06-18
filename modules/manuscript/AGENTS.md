@@ -10,6 +10,19 @@ readiness before interior production.
 - Preserving legacy proof workflows while moving new work toward manuscript
   readiness.
 
+## Commands & Skills
+
+- `texgraph verify-coverage [--project <id>]` — prove every transcription poem
+  maps 1:1 to a built reading poem (no unbuilt, broken, or duplicated witnesses).
+  Run after any content move, scaffold, or batch edit. Exits non-zero on a gap
+  and is enforced by a test. See `RUNBOOK.md § Source coverage`.
+- `texgraph proof-preview [--project <id>]` — render proof pages to PNG for
+  visual review of layout and the keyed notes apparatus.
+- Skills: `skills/poetry-proof/SKILL.md`, `skills/prose-proof/SKILL.md`,
+  `skills/transcription-verification/SKILL.md`, `skills/persona-editorial/SKILL.md`.
+- Context notes are keyed back-matter notes (no inline marks); lead each note
+  with a line citation or `Form:` so it sets apart cleanly. See `RUNBOOK.md § Notes apparatus`.
+
 ## Artifact Boundary
 
 Primary manuscript artifacts live under `projects/<project_id>/manuscript/`.
