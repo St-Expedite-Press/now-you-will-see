@@ -17,16 +17,19 @@ node_modules/
 # Local project data — tracked examples excepted
 projects/*
 !projects/spectra_poems/
-# Fletcher edition: the manuscript source (markdown, YAML configs, editorial
+# Fletcher series: the manuscript source (markdown, YAML configs, editorial
 # docs, transcriptions) is irreplaceable hand work and MUST be versioned.
+# The glob covers every volume project (fletcher-early-works, -dominant-works,
+# -embattled-works, -falling-works), the shared fletcher-series/ root, and the
+# transitional fletcher-complete-original-collections name during the split.
 # Everything regenerable or binary stays out: the whole output/ tree and any
 # page-scan images.  Re-add a specific binary deliberately if it must travel.
-!projects/fletcher-complete-original-collections/
-projects/fletcher-complete-original-collections/**/output/
-projects/fletcher-complete-original-collections/**/*.png
-projects/fletcher-complete-original-collections/**/*.jpg
-projects/fletcher-complete-original-collections/**/*.jpeg
-projects/fletcher-complete-original-collections/**/*.pdf
+!projects/fletcher-*/
+projects/fletcher-*/**/output/
+projects/fletcher-*/**/*.png
+projects/fletcher-*/**/*.jpg
+projects/fletcher-*/**/*.jpeg
+projects/fletcher-*/**/*.pdf
 workspace.yaml
 
 # LaTeX build artifacts (ephemeral)
