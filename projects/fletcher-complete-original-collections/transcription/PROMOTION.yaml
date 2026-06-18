@@ -1,0 +1,39 @@
+stage: transcription
+project_id: fletcher-complete-original-collections
+status: approved
+approved_at: '2026-06-01T00:00:00+00:00'
+policy_accepted: true
+all_statuses_at_least: transcribed
+uncertain_readings_accepted: false
+notes: >
+  First-pass transcription of all five 1913 early works complete. All 276 poems
+  carry status: transcribed. Automated audit passes with zero issues, zero
+  forbidden tokens, zero unchecked poems across all five books. Metadata written
+  and verified (book.json current for all books). Image-checked verification
+  pass (status: checked) is the primary remaining work for the proof stage.
+volumes:
+  - id: 01_early_works
+    title: "The Early Works of John Gould Fletcher"
+    transcription_status: transcribed
+    poem_count: 276
+    books:
+      - id: 01_the_book_of_nature_1910_1912
+        poem_count: 74
+        transcription_status: transcribed
+        audit_issues: 0
+      - id: 02_the_dominant_city_1911_1912
+        poem_count: 44
+        transcription_status: transcribed
+        audit_issues: 0
+      - id: 03_fire_and_wine
+        poem_count: 51
+        transcription_status: transcribed
+        audit_issues: 0
+      - id: 04_fools_gold
+        poem_count: 67
+        transcription_status: transcribed
+        audit_issues: 0
+      - id: 05_visions_of_the_evening
+        poem_count: 40
+        transcription_status: transcribed
+        audit_issues: 0

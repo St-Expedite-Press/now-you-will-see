@@ -1,0 +1,83 @@
+stage: sources
+project_id: fletcher-complete-original-collections
+status: approved
+approved_at: '2026-05-29T02:22:17.418108+00:00'
+naming_schema_version: 1
+notes: >
+  Pre-existing sources (early_1913/, middle_1915_1928/, late_rights_pending/)
+  were registered before the sources rename was introduced. Provenance
+  records for those files are captured in sources/source_manifest.md
+  and transcription/project_plan/PROJECT_PLAN.md. SHA-256 checksums not yet recorded
+  for pre-existing sources.
+sources:
+  # --- early_1913/ (5 sources, public domain, pre-1914) ---
+  - stable_path: sources/raw/early_1913/the_book_of_nature_1910_1912.pdf
+    rights: public_domain
+    access_confirmed: true
+    page_count: 126
+  - stable_path: sources/raw/early_1913/the_dominant_city_1911_1912.pdf
+    rights: public_domain
+    access_confirmed: true
+    page_count: 88
+  - stable_path: sources/raw/early_1913/fire_and_wine.pdf
+    rights: public_domain
+    access_confirmed: true
+    page_count: 88
+  - stable_path: sources/raw/early_1913/fools_gold.pdf
+    rights: public_domain
+    access_confirmed: true
+    page_count: 90
+  - stable_path: sources/raw/early_1913/visions_of_the_evening.pdf
+    rights: public_domain
+    access_confirmed: true
+    page_count: 56
+  # --- middle_1915_1928/ (7 sources, public domain, pre-1928) ---
+  - stable_path: sources/raw/middle_1915_1928/irradiations_sand_and_spray.pdf
+    rights: public_domain
+    access_confirmed: true
+    page_count: 92
+  - stable_path: sources/raw/middle_1915_1928/goblins_and_pagodas.pdf
+    rights: public_domain
+    access_confirmed: true
+    page_count: 134
+  - stable_path: sources/raw/middle_1915_1928/japanese_prints.pdf
+    rights: public_domain
+    access_confirmed: true
+    page_count: 120
+  - stable_path: sources/raw/middle_1915_1928/the_tree_of_life.pdf
+    rights: public_domain
+    access_confirmed: true
+    page_count: 138
+  - stable_path: sources/raw/middle_1915_1928/breakers_and_granite.pdf
+    rights: public_domain
+    access_confirmed: true
+    page_count: 188
+  - stable_path: sources/raw/middle_1915_1928/parables.pdf
+    rights: public_domain
+    access_confirmed: true
+    page_count: 164
+  - stable_path: sources/raw/middle_1915_1928/the_black_rock.pdf
+    rights: public_domain
+    access_confirmed: true
+    page_count: null
+  # --- late_rights_pending/ (2 sources, rights not cleared) ---
+  - stable_path: sources/raw/late_rights_pending/South_Star_by_John_Gould_Fletcher.pdf
+    rights: unknown
+    access_confirmed: false
+    page_count: null
+    notes: "Rights clearance pending. Do not transcribe until cleared."
+  - stable_path: sources/raw/late_rights_pending/The_Burning_Mountain_by_John_Gould_Fletcher.pdf
+    rights: unknown
+    access_confirmed: false
+    page_count: null
+    notes: "Rights clearance pending. Do not transcribe until cleared."
+  # --- 1922 combined edition (newly added 2026-05-29) ---
+  - stable_name: gould-fletcher_1922_preludes-and-symphonies_ia.pdf
+    stable_path: sources/raw/gould-fletcher_1922_preludes-and-symphonies_ia.pdf
+    format: pdf
+    page_count: 180
+    rights: public_domain
+    checksum_sha256: 3e3b43fed12f9673d34ab1f842de7d5442db9f2c2fd5320a554aa10272c64745
+    access_confirmed: true
+    provenance_ref: sources/raw/gould-fletcher_1922_preludes-and-symphonies_ia.pdf.provenance.yaml
+    notes: "Houghton Mifflin 1922 combined edition. Supplementary to the 1915/1916 originals already in middle_1915_1928/."

@@ -1,0 +1,23 @@
+title: "The Early Works of John Gould Fletcher"
+subtitle: "The Five 1913 Books"
+author: "John Gould Fletcher"
+year: 2026
+publisher: ""
+isbn: ""
+language: en
+content_dir: ../manuscript/reading
+output_dir: output
+lualatex_path: lualatex
+draft_mode: true
+
+render_config:
+  fontsize: 11pt
+  mainfont: Crimson Pro
+  paperwidth: 6in
+  paperheight: 9in
+  top_margin: 0.875in
+  bottom_margin: 0.875in
+  inner_margin: 1in
+  outer_margin: 0.75in
+  line_spread: 1.15
+  stanza_skip: 1.2ex

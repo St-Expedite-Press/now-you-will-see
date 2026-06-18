@@ -1,0 +1,28 @@
+title: "The Early Works of John Gould Fletcher"
+subtitle: "The Five 1913 Books"
+author: "John Gould Fletcher"
+year: 2026
+publisher: "St. Expedite Press"
+isbn: ""
+language: en
+content_dir: ../manuscript/reading
+output_dir: output/hardcover
+lualatex_path: lualatex
+draft_mode: false
+
+# Hardcover — 6 x 9 in case-bound
+# IngramSpark hardcover: minimum inner margin 1.0 in for 300–500 pp
+render_config:
+  fontsize: 11pt
+  mainfont: Crimson Pro
+  paperwidth: 6in
+  paperheight: 9in
+  top_margin: 1in
+  bottom_margin: 1in
+  inner_margin: 1.125in
+  outer_margin: 0.875in
+  line_spread: 1.15
+  stanza_skip: 1.4ex
+  # One-poem-per-page placement knobs (relative to the text block, so trim-independent).
+  short_poem_maxheight: '0.62\textheight'  # below this height a poem is centered on its page
+  page_squeeze: '3\baselineskip'           # max overrun \enlargethispage may absorb to keep a poem whole
