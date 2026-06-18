@@ -114,6 +114,7 @@
 \BLOCK{elif poem.type == "dedicatory-poem"}
 \clearpage
 \thispagestyle{empty}
+\BLOCK{if poem.notes}\phantomsection\label{tg:note:\VAR{poem.note_id}}\BLOCK{endif}%
 \vspace*{\fill}
 \begin{center}
 {\small\itshape \VAR{poem.title}\par}
@@ -125,7 +126,7 @@
 \BLOCK{endfor}
 \end{verse}
 \BLOCK{if not loop.last}
-\vspace{\VAR{rc.get("stanza_skip") or "1.2ex"}}
+\vspace{\interstanzaskip}
 \BLOCK{endif}
 \BLOCK{endfor}
 \end{center}
@@ -166,18 +167,16 @@
 \partdivider{\VAR{poem.meta.get("part", "")}}
 \BLOCK{endif}
 
-%# One poem per page (rule 1).  A \clearpage on an already-fresh page (e.g. just
-%# after a divider or title page) is a no-op, so this never double-blanks.
-\clearpage
+%# One-per-page mode starts each poem on a fresh page (a \clearpage on an
+%# already-fresh page is a no-op).  Flow mode (softcover) omits it so poems pack;
+%# the poemblock supplies the inter-poem separation and break point.
+\BLOCK{if rc.get("page_mode") != "flow"}\clearpage\BLOCK{endif}
 %# Vertical placement is decided inside \begin{poemblock} by the poem's measured
-%# height: short poems are centered (rule 3), the rest top-set from the sink and
-%# allowed to flow (rules 2, 4).  See \NewEnviron{poemblock} in the preamble.
+%# height and the page mode.  See \NewEnviron{poemblock} in the preamble.
 \begin{poemblock}
-\poemtitle{\VAR{poem.title}%
-\BLOCK{if poem.notes}%
-\BLOCK{for _note in poem.notes}\endnotemark\BLOCK{endfor}%
-\BLOCK{endif}%
-}
+\BLOCK{if poem.meta.get("stanza_skip")}\setlength{\interstanzaskip}{\VAR{poem.meta.get("stanza_skip")}}\BLOCK{endif}%
+\BLOCK{if poem.notes}\phantomsection\label{tg:note:\VAR{poem.note_id}}\BLOCK{endif}%
+\poemtitle{\VAR{poem.title}}
 \BLOCK{if poem.subtitle}
 {\itshape \VAR{poem.subtitle}}\nopagebreak\medskip
 \BLOCK{endif}
@@ -216,7 +215,7 @@
 \end{verse}
 \BLOCK{endif}
 \BLOCK{if not loop.last}
-\vspace{\VAR{rc.get("stanza_skip") or "1.2ex"}}
+\vspace{\interstanzaskip}
 \BLOCK{endif}
 \BLOCK{endfor}
 \BLOCK{if not loop.last}
@@ -245,7 +244,7 @@
 \end{verse}
 \BLOCK{endif}
 \BLOCK{if not loop.last}
-\vspace{\VAR{rc.get("stanza_skip") or "1.2ex"}}
+\vspace{\interstanzaskip}
 \BLOCK{endif}
 \BLOCK{endfor}
 \BLOCK{endfor}
@@ -269,7 +268,7 @@
 \end{verse}
 \BLOCK{endif}
 \BLOCK{if not loop.last}
-\vspace{\VAR{rc.get("stanza_skip") or "1.2ex"}}
+\vspace{\interstanzaskip}
 %# Bind the final stanza to the one before it so a flowing poem cannot orphan
 %# its closing stanza alone at the top of a continuation page.
 \BLOCK{if loop.revindex == 2}\nopagebreak[4]\BLOCK{endif}
@@ -278,13 +277,7 @@
 \BLOCK{endif}
 
 \end{poemblock}
-
-\BLOCK{if poem.notes}
-\addtocounter{endnote}{-\VAR{poem.notes|length}}%
-\BLOCK{for _note in poem.notes}
-\stepcounter{endnote}%
-\endnotetext{\VAR{_note}}%
-\BLOCK{endfor}
-\BLOCK{endif}
+%# Notes are not emitted inline — they are collected into the keyed back-matter
+%# notes section per book (see render_notes_section / proof_notes template).
 
 \BLOCK{endif}

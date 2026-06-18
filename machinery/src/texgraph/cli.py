@@ -324,6 +324,12 @@ def proof_build(
              "Defaults to the project's collection.yaml.  Variants write to "
              "[bold]output/proof-<name>/[/bold] so they don't clobber each other.",
     ),
+    print_ready: bool = typer.Option(
+        False,
+        "--print-ready",
+        help="Produce a vendor-upload PDF/X (loads pdfx, even page count) into "
+             "[bold]output/print/<name>/[/bold] instead of a review proof.",
+    ),
     verbose: bool = typer.Option(
         False,
         "--verbose",
@@ -362,7 +368,7 @@ def proof_build(
         console.print(f"[red]Config error:[/red] {exc}")
         raise typer.Exit(code=1)
 
-    cfg.draft_mode = True
+    cfg.draft_mode = not print_ready  # print-ready keeps full PDF/X compile
 
     # Variant style sheets (hardcover, softcover) render through this same
     # pipeline into a distinct output dir so the trade proof is never clobbered.
@@ -372,7 +378,11 @@ def proof_build(
 
     interior_root = cfg.project_root
     project_root = interior_root.parent
-    proof_out = interior_root / "output" / (f"proof-{variant}" if variant else "proof")
+    if print_ready:
+        # Vendor-upload PDF/X output, kept apart from review proofs.
+        proof_out = interior_root / "output" / "print" / (variant or "default")
+    else:
+        proof_out = interior_root / "output" / (f"proof-{variant}" if variant else "proof")
     tex_out = proof_out / "tex"
     tex_out.mkdir(parents=True, exist_ok=True)
 
@@ -428,13 +438,14 @@ def proof_build(
             section_dir = tex_out / section.path.name
             section_dir.mkdir(exist_ok=True)
 
-            # For main-matter sections, create a per-section bucket for endnotes
+            # For main-matter sections, create a per-section bucket; its keyed
+            # notes section (if any) is rendered after the poems below.
+            section_title = str(section.meta.get("title") or "")
             if section_type not in ("frontmatter", "backmatter"):
-                section_title = str(section.meta.get("title") or "")
                 main_sections.append({
                     "title": section_title,
                     "paths": [],
-                    "print_endnotes": bool(section_title),  # only named book sections
+                    "notes_path": None,
                 })
 
             prev_part = ""
@@ -467,6 +478,20 @@ def proof_build(
                 else:
                     main_sections[-1]["paths"].append(rel_input)
 
+            # Keyed back-matter notes for this book (only if a poem carries notes).
+            if section_type not in ("frontmatter", "backmatter") and section_title:
+                try:
+                    notes_src = renderer.render_notes_section(
+                        section_title, section.poems, raw_config
+                    )
+                except Exception as exc:
+                    errors.append(f"{section.path.name}/_notes: {exc}")
+                    notes_src = None
+                if notes_src:
+                    (section_dir / "_notes.tex").write_text(notes_src, encoding="utf-8")
+                    fragment_count += 1
+                    main_sections[-1]["notes_path"] = f"{section.path.name}/_notes"
+
         progress.update(task, description="Fragments done.")
 
     if errors:
@@ -480,12 +505,24 @@ def proof_build(
     # --- Preamble -----------------------------------------------------------
     preamble_path = tex_out / "preamble.tex"
     preamble_path.write_text(
-        renderer.render_proof_preamble(raw_config), encoding="utf-8"
+        renderer.render_proof_preamble(raw_config, print_ready=print_ready),
+        encoding="utf-8",
     )
 
     # --- Master document ----------------------------------------------------
     slug = _slugify(cfg.title)
     master_path = tex_out / f"{slug}.tex"
+
+    # PDF/X metadata sidecar read by the pdfx package (matches \jobname).
+    if print_ready:
+        xmp = (
+            f"\\Title{{{cfg.title}}}\n"
+            f"\\Author{{{cfg.author}}}\n"
+            f"\\Language{{{cfg.language or 'en-US'}}}\n"
+            f"\\Keywords{{}}\n"
+            f"\\Subject{{}}\n"
+        )
+        (tex_out / f"{slug}.xmpdata").write_text(xmp, encoding="utf-8")
     master_path.write_text(
         renderer.render_proof_master(
             raw_config, frontmatter_paths, main_sections, backmatter_paths
@@ -645,6 +682,54 @@ def proof_preview(
         f"\n  Rendered [bold]{rendered}[/bold] page(s) -> "
         f"[bold]{preview_dir.relative_to(cfg.project_root.parent)}[/bold]"
     )
+
+
+@app.command(name="verify-coverage")
+def verify_coverage(
+    project: Optional[str] = typer.Option(
+        None, "--project", "-p", help="Project ID from [bold]workspace.yaml[/bold]."
+    ),
+) -> None:
+    """Prove every transcription poem reaches the reading edition (1:1).
+
+    Checks the ``source:`` links from reading poems to their documentary
+    witnesses: no broken links, no two readers sharing a witness, and — the
+    point — no transcription poem left unbuilt.  Exits non-zero on any gap, so
+    it can gate CI and guarantee no poem is ever silently dropped.
+    """
+    from texgraph.coverage import check_source_coverage
+    from texgraph.env import repo_root
+
+    console.rule("[bold cyan]Texgraph Source Coverage[/bold cyan]")
+
+    try:
+        cfg = _resolve_config(Path("collection.yaml"), project)
+    except (ValueError, FileNotFoundError) as exc:
+        console.print(f"[red]Config error:[/red] {exc}")
+        raise typer.Exit(code=1)
+
+    rep = check_source_coverage(cfg.resolved_content_dir, repo_root())
+    console.print(
+        f"  reading poems: [bold]{rep.reading_poems}[/bold]   "
+        f"transcription witnesses: [bold]{rep.transcription_poems}[/bold]"
+    )
+
+    def _show(label: str, items: list[str], style: str) -> None:
+        if items:
+            console.print(f"  [{style}]{label}: {len(items)}[/{style}]")
+            for it in items[:25]:
+                console.print(f"    [{style}]•[/{style}] {it}")
+
+    _show("UNREFERENCED transcription poems (would be unbuilt)", rep.unreferenced, "red")
+    _show("BROKEN source links", rep.broken_source, "red")
+    _show("DUPLICATE witnesses", rep.duplicate_source, "red")
+    _show("poems missing a source field (warning)", rep.missing_source, "yellow")
+
+    if rep.ok:
+        console.print("\n  [green]✓ Complete[/green] — every transcription poem maps to a built reading poem.")
+        raise typer.Exit(code=0)
+    console.print(f"\n  [red]✗ {rep.problems} coverage problem(s).[/red]")
+    raise typer.Exit(code=1)
 
 
 # ---------------------------------------------------------------------------

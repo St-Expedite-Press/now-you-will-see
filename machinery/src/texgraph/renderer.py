@@ -198,6 +198,16 @@ def _md_inline_to_latex(text: str) -> str:
 # Lone ATX heading marking an internal movement, e.g. "## I", "## II.", "## 3".
 _MOVEMENT_RE = re.compile(r"^#{1,6}\s+(.+?)\.?\s*$")
 
+# Context-note lemma detection (operates on raw, pre-escape note text).
+# Leading line citation, optionally with a quoted phrase: "ll. 9–10 ('...'):".
+_NOTE_CITE_RE = re.compile(
+    r"^(ll?\.\s*\d+(?:\s*[–-]\s*\d+)?(?:\s*\([^)]*\))?)\s*:\s*(.*)$", re.DOTALL
+)
+# Leading prosody label: "Form: ...".
+_NOTE_FORM_RE = re.compile(r"^Form:\s*(.*)$", re.DOTALL)
+# Inline line citation within an already-escaped note body ("l. 7", "ll. 9--10").
+_INLINE_CITE_RE = re.compile(r"\bll?\.\s*\d+(?:--\d+)?")
+
 
 def _movement_label(non_empty_lines: list[str]) -> str | None:
     """Return the movement label if *non_empty_lines* is a single ATX heading.
@@ -377,16 +387,53 @@ class LaTeXRenderer:
             **{"include_part_heading": False, **extras},
         )
 
+    def render_notes_section(
+        self,
+        title: str,
+        poems: list[Poem],
+        config: dict[str, Any],
+        template_name: str = "proof_notes.tex.jinja2",
+    ) -> str | None:
+        """Render the keyed back-matter notes section for one book.
+
+        Returns the rendered LaTeX, or ``None`` when no poem in *poems* carries
+        context notes.  Notes are grouped under each poem's title and page
+        reference (via ``\\pageref``); there are no in-text marks.
+        """
+        entries = []
+        for poem in poems:
+            ctx = self._process_poem(poem)
+            if ctx["notes"]:
+                entries.append({
+                    "title": ctx["title"],
+                    "note_id": ctx["note_id"],
+                    "notes": ctx["notes"],
+                })
+        if not entries:
+            return None
+        template = self._env.get_template(template_name)
+        return template.render(
+            title=escape_latex(title),
+            entries=entries,
+            rc=config.get("render_config") or {},
+        )
+
     def render_proof_preamble(
         self,
         config: dict[str, Any],
         template_name: str = "proof_preamble.tex.jinja2",
+        print_ready: bool = False,
     ) -> str:
-        """Render the shared LaTeX preamble fragment (no \\documentclass)."""
+        """Render the shared LaTeX preamble fragment (no \\documentclass).
+
+        When *print_ready* is True, the PDF/X compliance package is loaded so the
+        compiled PDF carries a PDF/X conformance intent for vendor upload.
+        """
         template = self._env.get_template(template_name)
         return template.render(
             config=self._escape_config_dict(config),
             rc=config.get("render_config") or {},
+            print_ready=print_ready,
         )
 
     def render_proof_master(
@@ -403,15 +450,15 @@ class LaTeXRenderer:
         ----------
         main_sections:
             List of dicts, each with keys ``title`` (str), ``paths`` (list[str]),
-            and ``print_endnotes`` (bool).  Endnotes are reset and printed
-            between volumes when ``print_endnotes`` is True.
+            and ``notes_path`` (str | None).  The keyed notes section for a book
+            is ``\\input`` after its poems when ``notes_path`` is set.
         """
         template = self._env.get_template(template_name)
         escaped_sections = [
             {
                 "title": escape_latex(sec.get("title", "")),
                 "paths": sec.get("paths", []),
-                "print_endnotes": sec.get("print_endnotes", False),
+                "notes_path": sec.get("notes_path"),
             }
             for sec in main_sections
         ]
@@ -499,7 +546,12 @@ class LaTeXRenderer:
             rendered_scenes = []
 
         raw_notes = str(poem.meta.get("context_notes") or "")
-        parsed_notes = self._parse_context_notes(raw_notes)
+        parsed_notes = [self._style_note(n) for n in self._parse_context_notes(raw_notes)]
+        # Stable cross-reference id for the keyed back-matter note block.  Include
+        # the section directory so same-named files across books (00_dedication.md,
+        # _title.md, ...) do not collide on one shared \label.
+        _p = Path(poem.path)
+        note_id = re.sub(r"[^a-zA-Z0-9]+", "-", f"{_p.parent.name}-{_p.stem}").strip("-")
 
         return {
             "title": escape_latex(poem.title),
@@ -519,30 +571,61 @@ class LaTeXRenderer:
             "parts": rendered_parts,
             "scenes": rendered_scenes,
             "path": str(poem.path),
-            "notes": [_md_inline_to_latex(n) for n in parsed_notes],
+            "notes": parsed_notes,
+            "note_id": note_id,
         }
 
     @staticmethod
-    def _parse_context_notes(raw: str) -> list[str]:
-        """Split a context_notes block into individual note strings.
+    def _parse_context_notes(raw: str) -> list[dict[str, str]]:
+        """Split a context_notes block into structured note entries.
 
-        Paragraphs are separated by blank lines.  Leading ``Note:`` or
-        ``Note: `` prefixes are stripped from each paragraph so the rendered
-        footnote text is clean prose.
+        Paragraphs (blank-line separated) become entries with a ``kind`` and a
+        ``lemma`` / ``body`` so the apparatus can be set with the lemma styled
+        apart from the gloss instead of as a uniform grey block:
+
+        * ``cite``  — leads with a line citation, optionally a quoted phrase:
+          ``ll. 9-10 ('...'):``.  The citation (sans colon) is the lemma.
+        * ``form``  — leads with ``Form:``; the lemma is ``Form``.
+        * ``plain`` — discursive prose; no lemma.
+
+        Leading ``Note:`` drafting prefixes are stripped.
         """
         if not raw.strip():
             return []
         paragraphs = re.split(r"\n\s*\n", raw.strip())
-        notes: list[str] = []
+        notes: list[dict[str, str]] = []
         for para in paragraphs:
             text = para.strip()
             if text.startswith("Note: "):
                 text = text[6:].strip()
             elif text.startswith("Note:"):
                 text = text[5:].strip()
-            if text:
-                notes.append(text)
+            if not text:
+                continue
+            cite = _NOTE_CITE_RE.match(text)
+            if cite:
+                notes.append({"kind": "cite",
+                              "lemma": cite.group(1).strip(),
+                              "body": cite.group(2).strip()})
+                continue
+            form = _NOTE_FORM_RE.match(text)
+            if form:
+                notes.append({"kind": "form", "lemma": "Form",
+                              "body": form.group(1).strip()})
+                continue
+            notes.append({"kind": "plain", "lemma": "", "body": text})
         return notes
+
+    @staticmethod
+    def _style_note(entry: dict[str, str]) -> dict[str, str]:
+        """Escape a note entry and accent inline line citations in the body."""
+        body = _md_inline_to_latex(entry["body"])
+        body = _INLINE_CITE_RE.sub(lambda m: r"\noteline{" + m.group(0) + "}", body)
+        return {
+            "kind": entry["kind"],
+            "lemma": _md_inline_to_latex(entry["lemma"]) if entry["lemma"] else "",
+            "body": body,
+        }
 
     # ------------------------------------------------------------------
     # Rendering helpers

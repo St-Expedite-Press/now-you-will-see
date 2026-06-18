@@ -20,10 +20,13 @@ render_config:
   paperheight: 8.5in
   top_margin: 0.875in
   bottom_margin: 0.875in
-  inner_margin: 0.875in
+  inner_margin: 0.95in   # >IngramSpark floor for a thick perfect-bound book (gutter loss)
   outer_margin: 0.75in
   line_spread: 1.15
   stanza_skip: 1.2ex
-  # One-poem-per-page placement knobs (relative to the text block, so trim-independent).
-  short_poem_maxheight: '0.62\textheight'  # below this height a poem is centered on its page
-  page_squeeze: '3\baselineskip'           # max overrun \enlargethispage may absorb to keep a poem whole
+  # Softcover packs poems (several short poems per page) to cut page count/cost.
+  page_mode: flow
+  poem_separation: '2.2\baselineskip'      # vertical gap between poems in flow mode
+  # One-per-page knobs below are inert under flow mode; kept for parity with hardcover.
+  short_poem_maxheight: '0.62\textheight'
+  page_squeeze: '3\baselineskip'

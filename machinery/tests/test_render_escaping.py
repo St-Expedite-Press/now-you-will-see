@@ -166,3 +166,32 @@ def test_movement_heading_becomes_label_not_verse(tmp_path):
     for stanza in ctx["stanzas"]:
         for line in stanza["lines"]:
             assert "#" not in line
+
+
+# ---------------------------------------------------------------------------
+# Context-note structuring: cite / form / plain split for the keyed apparatus
+# ---------------------------------------------------------------------------
+
+def test_context_notes_structured_kinds():
+    from texgraph.renderer import LaTeXRenderer
+
+    raw = (
+        "A discursive opening note about the poem.\n\n"
+        "Form: two pentameter quatrains, abab.\n\n"
+        "ll. 9–10 ('the loadstar'): the gloss for the cited lines."
+    )
+    notes = LaTeXRenderer._parse_context_notes(raw)
+    assert [n["kind"] for n in notes] == ["plain", "form", "cite"]
+    assert notes[1]["lemma"] == "Form"
+    assert notes[2]["lemma"].startswith("ll. 9")
+    assert "loadstar" in notes[2]["lemma"]
+    assert notes[2]["body"] == "the gloss for the cited lines."
+
+
+def test_inline_line_citation_accented():
+    from texgraph.renderer import LaTeXRenderer
+
+    styled = LaTeXRenderer._style_note(
+        {"kind": "plain", "lemma": "", "body": "the storm at l. 33 returns."}
+    )
+    assert r"\noteline{l. 33}" in styled["body"]

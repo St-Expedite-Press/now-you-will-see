@@ -274,6 +274,7 @@ subtitle: ""                             # optional
 epigraph: ""                             # optional
 dedication: ""                           # optional
 source: ""                               # optional — relative path to transcription witness
+stanza_skip: ""                          # optional — per-poem inter-stanza spacing override (e.g. 2ex)
 ---
 
 First line of poem body.
@@ -557,6 +558,7 @@ The CLI is invoked as `texgraph`.
 | `texgraph build [--project <id>] [--draft]` | interior (`typeset` alias) | Parse → render → compile PDF |
 | `texgraph proof-build [--project <id>] [--config <yaml>]` | manuscript/interior | Render retained proof TeX/PDF under `interior/output/proof/`. `--config` renders a variant style sheet (hardcover/softcover) through the same pipeline into `interior/output/proof-<name>/` |
 | `texgraph proof-preview [--project <id>] [--pages <spec>] [--sample <n>]` | manuscript/interior | Render structural proof pages (title pages, dividers, sparse leaves) to `interior/output/proof/preview/*.png` for visual review; requires poppler (`pdftoppm`, `pdftotext`) |
+| `texgraph verify-coverage [--project <id>]` | manuscript | Prove every transcription poem maps 1:1 to a built reading poem via `source:` links (no unbuilt, broken, or duplicated witnesses). Exits non-zero on any gap; also enforced by a test |
 | `texgraph watch [--project <id>]` | interior (`typeset` alias) | Auto-rebuild on file changes |
 | `texgraph list` | workspace | List registered projects |
 | `texgraph new poem "Title" [--section <id>]` | manuscript (`typeset` alias) | Scaffold poem file |

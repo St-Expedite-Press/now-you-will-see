@@ -20,13 +20,11 @@
 \mainmatter
 \pagestyle{fancy}
 \BLOCK{for sec in main_sections}
-\setcounter{endnote}{0}%
 \BLOCK{for path in sec.paths}
 \input{\VAR{path}}
 \BLOCK{endfor}
-\BLOCK{if sec.print_endnotes}
-\renewcommand{\notesname}{Notes to \VAR{sec.title}}
-\theendnotes
+\BLOCK{if sec.notes_path}
+\input{\VAR{sec.notes_path}}
 \BLOCK{endif}
 \BLOCK{endfor}
 

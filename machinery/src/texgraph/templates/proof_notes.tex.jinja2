@@ -1,0 +1,19 @@
+%# proof_notes.tex.jinja2
+%# Keyed back-matter notes for one book.  No in-text marks: each poem's notes
+%# are grouped under its title and page reference, keyed by line number.
+%# Context: title (escaped book title), entries [{title, note_id, notes[]}]
+\notessectionhead{Notes to \VAR{title}}
+\begingroup\small
+\BLOCK{for e in entries}
+\poemnotehead{\VAR{e.title}}{\VAR{e.note_id}}
+\BLOCK{for n in e.notes}
+\BLOCK{if n.kind == "form"}
+\poemnote{\notelemmaform{\VAR{n.lemma}}}{\VAR{n.body}}
+\BLOCK{elif n.kind == "cite"}
+\poemnote{\notelemmacite{\VAR{n.lemma}}}{\VAR{n.body}}
+\BLOCK{else}
+\poemnoteplain{\VAR{n.body}}
+\BLOCK{endif}
+\BLOCK{endfor}
+\BLOCK{endfor}
+\endgroup

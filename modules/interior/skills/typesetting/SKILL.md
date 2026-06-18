@@ -43,6 +43,23 @@ The full schema is in `ONTOLOGY.md § Data Schemas`. Common parameters:
 | `line_spread` | Leading multiplier | `1.1`–`1.2` |
 | `stanza_skip` | Vertical space between stanzas | `1.2ex`–`1.8ex` |
 
+### Adjusting inter-stanza spacing
+
+`stanza_skip` is the single lever for the gap between a poem's stanzas. In the
+proof pipeline it becomes the `\interstanzaskip` length (named to avoid the
+`verse` package's internal `\stanzaskip`); change `stanza_skip` in the style
+sheet to move every poem's stanza spacing at once. A single poem can override it
+from its own front matter — `stanza_skip: 2ex` — scoped to that poem only:
+
+```yaml
+---
+title: 'A Poem That Needs Air'
+type: poem
+order: 5
+stanza_skip: 2.2ex   # looser stanza gaps for this poem only
+---
+```
+
 ## Standard Format Geometries
 
 ```yaml
