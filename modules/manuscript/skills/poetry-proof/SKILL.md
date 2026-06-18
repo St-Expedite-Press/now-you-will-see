@@ -23,7 +23,7 @@ editorial apparatus, also load `modules/manuscript/skills/transcription-verifica
 ## Required Reads
 
 - `AGENTS.md`
-- `proof/AGENTS.md`
+- `modules/manuscript/AGENTS.md`
 - `ONTOLOGY.md § Data Schemas` — poem Markdown front matter spec
 - The poem source scan (open via `texgraph pdf render` or equivalent)
 - The poem file at `projects/<project_id>/interior/content/<section>/<file>.md`

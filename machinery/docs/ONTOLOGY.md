@@ -1,9 +1,14 @@
 # Texgraph Repository Ontology
 
 > Read this file when you need to navigate the repo structure, understand file
-> formats, route a request to the correct module, or verify system invariants.
-> This is the single authoritative reference for repo shape. `AGENTS.md` is the
-> dispatcher; this file is the map.
+> formats, or verify system invariants. This is the single authoritative
+> reference for repo shape and the deep technical map.
+>
+> **Routing note:** routine work no longer routes through this file. Root
+> `AGENTS.md` hands off directly to `projects/<id>/AGENTS.md`, where the loop
+> closes. The agent framework (modules, DAG, skills, command surface) is
+> described in the repo `README.md § Agent Framework`; this file is the reference
+> it links to. The tables below remain accurate as the module/stage map.
 
 ---
 

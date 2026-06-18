@@ -7,7 +7,7 @@ description: Consolidate, maintain, and verify project-level publication plans. 
 
 ## Workflow
 
-1. Read `AGENTS.md` and `transcribe/AGENTS.md`.
+1. Read `AGENTS.md` and `modules/transcription/AGENTS.md`.
 2. For voice-led or structural plans, read `PERSONA.md` and
    `modules/manuscript/skills/persona-editorial/SKILL.md`.
 3. Read the current files under `projects/<project_id>/transcription/project_plan/`,

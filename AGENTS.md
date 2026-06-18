@@ -1,165 +1,48 @@
-# AGENTS.md — Root Dispatcher
+# AGENTS.md — Root Handoff
 
-Read this file first. Then read `machinery/docs/ONTOLOGY.md` for full repo
-detail, or read the relevant module `AGENTS.md` for the task at hand.
+Read this file first. It does one thing: hand you off to the project you are
+working in. Routine work closes there — you should not need to hop through
+module docs to do it.
 
----
+## Handoff
 
-## Phase 0: Classify
+1. **Identify the active project.** Use the `--project <id>` given to you; else
+   the `workspace.yaml` `default_project` (currently `fletcher-early-works`); if
+   neither is clear, ask which project before doing project work.
+2. **Read `projects/<id>/AGENTS.md` and work from it.** It is self-contained for
+   that project: identity, the commands it actually uses, its working
+   conventions, and its current pipeline gate. The routing loop ends there.
+3. **Only leave the project for framework or cross-project work** — changes to
+   the CLI, the module pipeline, skills, schemas, or the repo structure. For
+   that, see **`README.md` § Agent Framework** (the map of modules, the DAG,
+   skills, and `machinery/docs/ONTOLOGY.md`, the authoritative reference).
 
-Before routing, determine the job type. Every request is one of four types:
+If a project has no `AGENTS.md` yet, model a new one on
+`projects/fletcher-early-works/AGENTS.md`.
 
-| Job type | Signals | Produces |
-|---|---|---|
-| `pipeline/<module>` | Changes or produces an artifact under `projects/<id>/` | Module output + PROMOTION.yaml |
-| `research` | Finding, evaluating, or deciding on sources — not yet committing them | Research note (optional) |
-| `conversation` | Question, planning discussion, feedback — no artifact target | Answer or decision |
-| `tooling` | Change to CLI, infrastructure, docs, or skills | Code or doc change |
+## Two loops that always apply
 
-**Classify first. Route second.**
+- **Ontology update** — after any task that changes directory structure, file
+  formats, CLI commands, data schemas, or pipeline edges, run
+  `python machinery/tools/ontology_check.py`; update `machinery/docs/ONTOLOGY.md`
+  where flagged, then `--save-baseline`.
+- **Skills update** — after any significant task, review which `SKILL.md` files
+  were (or should have been) loaded and patch obvious, low-risk gaps. Never bake
+  one-off task results into a reusable skill. Guidance:
+  `machinery/skills/skill-improvement-loop/SKILL.md`.
 
-If the job type is ambiguous, load `machinery/skills/task-classifier/SKILL.md`.
+## Non-negotiable invariants
 
----
+Full list in `machinery/docs/ONTOLOGY.md § Key Invariants`. The ones you can
+break without noticing:
 
-## Phase 1: Composite Paths
-
-A single request can be a sequence of job types. Declare the full path before
-starting; execute each phase in order; pause at each transition for user input.
-
-| Path | When | Transition trigger |
-|---|---|---|
-| `pipeline/<module>` | All inputs known — rote execution | — |
-| `conversation → pipeline/<module>` | Required inputs missing or ambiguous | User provides missing input |
-| `research → pipeline/sources` | Source not yet identified | User approves candidate |
-| `research → conversation` | Research raises an unanswerable question | Question surfaced to user |
-| `conversation` | Planning, scoping, feedback — no execution | — |
-| `tooling` | Framework change only | User approves scope |
-| `tooling → pipeline/<module>` | Fix a tool, then use it in the same session | Tool change complete + user confirms |
-
-**Rote vs. conversation-required** is a property of the task instance, not the type:
-- Rote: all required inputs present → execute immediately
-- Conversation-required: inputs missing or a decision is needed → ask first, then re-classify
-
----
-
-## Phase 2: Route
-
-### Pipeline routing
-
-| Request involves | Module | Read next |
-|---|---|---|
-| Workspace registration and project creation | `workspace` | `modules/workspace/AGENTS.md` |
-| Finding, downloading, or registering sources | `sources` | `modules/sources/AGENTS.md` |
-| Transcribing text from source scans | `transcription` | `modules/transcription/AGENTS.md` |
-| Auditing, correcting, or editorial review | `manuscript` | `modules/manuscript/AGENTS.md` |
-| Building proof drafts, PDFs, poems, and layout | `interior` | `modules/interior/AGENTS.md` |
-| Cover assets or cover production | `covers` | `modules/covers/AGENTS.md` |
-| E-reader, web, or publication-facing output | `publication` | `modules/publication/AGENTS.md` |
-| Release packaging or delivery | `release` | `modules/release/AGENTS.md` |
-
-For each routed module: read module `AGENTS.md`, load relevant skills, use only
-that module's tools, identify required user input, and record outputs under the
-module-owned project artifact directory.
-
-For requests spanning multiple pipeline modules, process in DAG order.
-
-### Non-pipeline routing
-
-| Job type | Read next | Notes |
-|---|---|---|
-| `conversation` | No additional file | Respond directly; no stage artifact |
-| `research` | `modules/sources/AGENTS.md` for source context | Optionally persist findings as `<topic>.research.md` in `projects/<id>/sources/` |
-| `tooling` | `machinery/AGENTS.md` | |
-
----
-
-## DAG
-
-```
-workspace → sources → transcription → manuscript → interior → [covers, publication] → release
-```
-
-Each pipeline edge requires a user gate. Gate details live in the module's `AGENTS.md`.
-
----
-
-## Project Structure
-
-```
-projects/<project_id>/
-  sources/        ← raw sources, provenance records, PROMOTION.yaml
-  transcription/  ← transcription files, plans, metadata, PROMOTION.yaml
-  manuscript/     ← proofing, corrections, textual review
-  interior/       ← collection.yaml, content/, proof drafts, output/, PROMOTION.yaml
-  covers/         ← cover assets and production files
-  publication/    ← publication-facing assets
-  release/        ← release packages and manifests
-```
-
-All registered projects use the canonical module directories (migrated
-2026-06-10). The reading edition lives in `manuscript/reading/`; builds
-consume it read-only and write only under `interior/output/`. For any
-project restored from an old layout, run
-`texgraph migrate modules --project <id> --dry-run` first.
-
-`workspace.yaml` maps project IDs to their interior roots
-(`projects/<id>/interior`).
-
----
-
-## System Invariants
-
-Critical rules — see `machinery/docs/ONTOLOGY.md § Key Invariants` for the full list:
-
-- `section_id` is the directory name, not `_meta.yaml:id`.
-- Module agents write only to their module-owned artifact directory.
-  Cross-module writes require explicit user approval.
-- Persona prose never enters source text, YAML, manifests, audits, or command
-  output.
-- Hand-curated text never lives under a directory any build writes. Reading
-  editions live in `manuscript/`; builds consume them read-only and write
-  only under `interior/output/`.
-- One doc home (`machinery/docs/`), one Python import root
-  (`machinery/src/texgraph/`), and `modules/<module>/` holds contracts only
-  (AGENTS.md, module.yaml, RUNBOOK.md, schemas, skills) — no runtime code.
-
----
-
-## Ontology Update Loop
-
-After any task that changes directory structure, file formats, CLI commands,
-data schemas, or pipeline edges — run:
-
-```powershell
-.\.venv\Scripts\python.exe machinery\tools\ontology_check.py
-```
-
-If it flags changes in tracked areas, update `machinery/docs/ONTOLOGY.md`
-before closing.
-Then save a new baseline:
-
-```powershell
-.\.venv\Scripts\python.exe machinery\tools\ontology_check.py --save-baseline
-```
-
----
-
-## Skills Update Loop
-
-At the end of every significant task:
-
-1. Identify which skills were loaded and which should have been loaded.
-2. Note any friction, missing instruction, unclear boundary, or tool gap.
-3. If the fix is obvious and low-risk, update the relevant `SKILL.md` now.
-4. If the fix is speculative or broad, record it as a proposed follow-up.
-5. Never bake one-off task results into reusable skills.
-
-Use `machinery/skills/skill-improvement-loop/SKILL.md` for full guidance.
-
----
-
-## Full Reference
-
-For directory taxonomy, file schemas, command surface, dependency map, and
-all invariants: read `machinery/docs/ONTOLOGY.md`.
+- Hand-curated text never lives under a directory a build writes. Reading
+  editions live in `manuscript/reading/`; builds consume them read-only and
+  write only under `interior/output/`.
+- A module/stage writes only to its own artifact directory; cross-module writes
+  need explicit user approval.
+- Persona/editorial voice never enters source text, YAML, manifests, audits, or
+  command output.
+- `modules/<module>/` holds contracts only (AGENTS.md, RUNBOOK.md, schemas,
+  skills) — never runtime code. All Python lives in `machinery/src/texgraph/`;
+  all canonical docs in `machinery/docs/`.

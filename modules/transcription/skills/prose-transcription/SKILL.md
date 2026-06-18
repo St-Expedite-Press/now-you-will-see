@@ -22,7 +22,7 @@ volume planning (`modules/transcription/skills/volume-planning`), or metadata op
 Before editing files, read:
 
 - `AGENTS.md`
-- `transcribe/AGENTS.md`
+- `modules/transcription/AGENTS.md`
 - `ONTOLOGY.md § Data Schemas` — source matter front matter spec
 - The relevant volume plan
 - The source scan pages for the piece being transcribed

@@ -21,7 +21,7 @@ For general prose transcription workflow, also read
 
 ## Workflow
 
-1. Read `AGENTS.md`, `transcribe/AGENTS.md`, the target `book.md`, and any
+1. Read `AGENTS.md`, `modules/transcription/AGENTS.md`, the target `book.md`, and any
    project-level editorial policy under `projects/<project_id>/transcription/metadata/`.
 2. Render/open the relevant source scan pages before editing:
    ```powershell

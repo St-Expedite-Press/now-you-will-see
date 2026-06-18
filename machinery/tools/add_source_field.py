@@ -12,8 +12,8 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).parent.parent.parent
 
-READING_ROOT = REPO_ROOT / "projects/fletcher-complete-original-collections/manuscript/reading"
-TRANSCRIPTION_POEMS = REPO_ROOT / "projects/fletcher-complete-original-collections/transcription/volumes/01_early_works/books"
+READING_ROOT = REPO_ROOT / "projects/fletcher-early-works/manuscript/reading"
+TRANSCRIPTION_POEMS = REPO_ROOT / "projects/fletcher-early-works/transcription/volumes/01_early_works/books"
 TRANSCRIPTION_FRONT_MATTER = TRANSCRIPTION_POEMS  # each book has front_matter/ subdir
 
 # Map reading book dir → transcription book dir

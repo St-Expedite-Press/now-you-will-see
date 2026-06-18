@@ -7,7 +7,7 @@ description: Build or update a volume or book transcription plan from scanned po
 
 ## Workflow
 
-1. Read `AGENTS.md`, `transcribe/AGENTS.md`, the project's editorial policy
+1. Read `AGENTS.md`, `modules/transcription/AGENTS.md`, the project's editorial policy
    (if present under `projects/<project_id>/transcription/metadata/`),
    `projects/<project_id>/transcription/metadata/source_manifest.md`, and the
    target `projects/<project_id>/transcription/<volume>/books/<book>/book.md`.

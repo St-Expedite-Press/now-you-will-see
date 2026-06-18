@@ -38,7 +38,7 @@ BOOK_MAP = {
     "05_visions_of_the_evening": "05_visions-of-the-evening",
 }
 
-DEFAULT_PROJECT = "fletcher-complete-original-collections"
+DEFAULT_PROJECT = "fletcher-early-works"
 
 
 def repo_root() -> Path:

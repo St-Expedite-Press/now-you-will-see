@@ -181,13 +181,13 @@ export default function CoverStudio({ projectId }: { projectId: string }) {
               <p className="mb-4 text-xs text-text-secondary">
                 Active regime: <span className="font-medium text-accent">Regime {activeRegime}</span>.
                 Set <code className="rounded bg-surface px-1 py-0.5">active_regime</code> in{' '}
-                <code className="rounded bg-surface px-1 py-0.5">projects/{projectId}/projects/fletcher-complete-original-collections/covers/STYLES.md</code> to change.
+                <code className="rounded bg-surface px-1 py-0.5">projects/fletcher-series/covers/STYLES.md</code> to change.
               </p>
             )}
             {!activeRegime && (
               <p className="mb-4 text-xs text-text-muted">
                 No active regime set. Edit{' '}
-                <code className="rounded bg-surface px-1 py-0.5">projects/{projectId}/projects/fletcher-complete-original-collections/covers/STYLES.md</code> and set{' '}
+                <code className="rounded bg-surface px-1 py-0.5">projects/fletcher-series/covers/STYLES.md</code> and set{' '}
                 <code className="rounded bg-surface px-1 py-0.5">active_regime: A|B|C|D</code>.
               </p>
             )}

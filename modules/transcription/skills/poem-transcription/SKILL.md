@@ -10,7 +10,7 @@ description: Transcribe poems from scanned page images into clean Markdown. Use 
 Before editing poem files, read:
 
 - `AGENTS.md`
-- `transcribe/AGENTS.md`
+- `modules/transcription/AGENTS.md`
 - `modules/transcription/skills/poem-transcription/SKILL.md`
 - `projects/fletcher-early-works/transcribe/metadata/editorial_policy.md`
 - the relevant volume plan in `projects/fletcher-early-works/transcribe/metadata/`

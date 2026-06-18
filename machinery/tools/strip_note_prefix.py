@@ -13,7 +13,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).parent.parent.parent
 READING_ROOT = (
     REPO_ROOT
-    / "projects/fletcher-complete-original-collections/manuscript/reading"
+    / "projects/fletcher-early-works/manuscript/reading"
 )
 
 # Matches the Context Notes section through end-of-file or next ## heading
