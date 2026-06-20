@@ -276,13 +276,15 @@ The system is mid-reform into the three-portion architecture above.
 - [x] **Phase 1 — Restructure** into `framework/` · `backend/` · `frontend/` (green: tests, CLI, gate)
 - [x] **Phase 2 — Framework** : `pipeline.yaml` + per-stage `agent.yaml` specs + validation
 - [x] **Phase 3 — Runtime (keystone)** : `ToolCatalog` (real tool-calls) + `GatedAgent` + `AgentRuntime` (gating enforced) + `HandoffController` + dev adapter (Anthropic) + Hermes stub — **wired into the FastAPI API** (`/api/agent/stage[s]`); 12 runtime/service tests
-- [ ] **Phase 4 — Station front end** : linear screens + gated chat + gate/handoff UX
-- [ ] **Phase 5 — Dev-agent charter** : root `CLAUDE.md`/`AGENTS.md`
+- [x] **Phase 4 — Station front end** : linear screens (`/projects/:id/station`) + gated chat + tool-step badges + gate/hand-off
+- [x] **Phase 5 — Dev-agent charter** : root `AGENTS.md`/`CLAUDE.md` (two-agent-world model); `machinery/` dissolved into the three portions
 - [ ] **Phase 6 — End-to-end** : Fletcher tenant runs Project → Proof in the station
 
-The LaTeX engine, the reference Fletcher edition, **and the gated agent runtime** are
-built and proven; the station **front end** is the active frontier. Only the production
-**Hermes adapter** awaits its integration contract — the dev adapter unblocks all else.
+The LaTeX engine, the reference Fletcher edition, the gated agent runtime, **and the
+station UI** are built; what remains is the **end-to-end run** plus two refinements —
+folding the graph/card editor into stage-3 proofing and token **streaming**. Only the
+production **Hermes adapter** awaits its integration contract; the dev adapter unblocks
+all else.
 
 ---
 
