@@ -1,0 +1,71 @@
+# pipeline.yaml — the agentic pipeline for the publishing station.
+#
+# Runtime-agnostic: consumed by the backend agent runtime (backend/runtime/) to
+# instantiate one gated specialist agent per stage, and portable to Hermes. Each
+# stage maps to a station screen; each edge is a user-approved gate (PROMOTION.yaml)
+# that hands the prior stage's `produces` forward as the next stage's `receives`.
+#
+# The per-stage agent definition (system prompt, persona, tool allow-list, skills)
+# lives in framework/agents/<stage>/agent.yaml. The backend module of the same id
+# (modules/<stage>/module.yaml) supplies the executable tools and the gate file.
+
+version: 1
+
+# Station screens (linear 0–3; screen 3 "Proof" keeps the graph/card editor).
+screens:
+  - id: 0
+    title: "Project"
+    stages: [workspace]
+  - id: 1
+    title: "Acquire"
+    stages: [sources]
+  - id: 2
+    title: "Structure"
+    stages: [transcription]
+  - id: 3
+    title: "Proof"
+    stages: [manuscript, interior]   # editorial reading edition + typeset proof
+
+stages:
+  workspace:
+    screen: 0
+    gate: null                       # no upstream gate; creation step
+    upstream: []
+    io:
+      receives: []
+      produces: [project_id, project_defaults, collection_yaml]
+
+  sources:
+    screen: 1
+    gate: projects/<project_id>/sources/PROMOTION.yaml
+    upstream: [workspace]
+    io:
+      receives: [project_id, project_defaults]
+      produces: [registered_sources, provenance_records, sources_gate]
+
+  transcription:
+    screen: 2
+    gate: projects/<project_id>/transcription/PROMOTION.yaml
+    upstream: [sources]
+    io:
+      receives: [registered_sources, provenance_records]
+      produces: [transcription_tree, transcription_plan, book_metadata, transcription_gate]
+
+  manuscript:
+    screen: 3
+    gate: null                       # editorial layer; promotes via interior proof sign-off
+    upstream: [transcription]
+    io:
+      receives: [transcription_tree, book_metadata]
+      produces: [reading_edition, corrections, textual_review]
+
+  interior:
+    screen: 3
+    gate: projects/<project_id>/interior/PROMOTION.yaml
+    upstream: [transcription]         # consumes manuscript/reading via collection.yaml content_dir
+    io:
+      receives: [reading_edition, collection_yaml]
+      produces: [proof_pdf, interior_gate]
+
+# Downstream stages exist in the backend module DAG but are not yet station screens.
+deferred_stages: [covers, publication, release]

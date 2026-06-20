@@ -1,8 +1,11 @@
 ---
 name: prose
-description: Typeset prose sections (type: prose) in a texgraph collection. Use for paragraph spacing, quotation/epigraph blocks, section headings, and verifying that prose content renders correctly alongside verse.
+description: "Typeset prose sections (type: prose) in a texgraph collection. Use for paragraph spacing, quotation/epigraph blocks, section headings, and verifying that prose content renders correctly alongside verse."
+module: interior
+tools:
+  - texgraph proof-build
+  - texgraph proof-preview
 ---
-
 # Prose Typesetting
 
 ## Use When
@@ -24,8 +27,8 @@ or e-reader/HTML output.
 Before making layout decisions, read:
 
 - `projects/<project_id>/interior/collection.yaml` — active `render_config`
-- `ONTOLOGY.md § Data Schemas` — prose front matter fields
-- `ONTOLOGY.md § Command Surface` — build and watch commands
+- `README.md § Data Schemas` — prose front matter fields
+- `README.md § Command Surface` — build and watch commands
 
 ## Prose Front Matter
 

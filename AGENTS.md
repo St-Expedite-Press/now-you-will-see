@@ -14,8 +14,14 @@ module docs to do it.
    conventions, and its current pipeline gate. The routing loop ends there.
 3. **Only leave the project for framework or cross-project work** — changes to
    the CLI, the module pipeline, skills, schemas, or the repo structure. For
-   that, see **`README.md` § Agent Framework** (the map of modules, the DAG,
-   skills, and `machinery/docs/ONTOLOGY.md`, the authoritative reference).
+   that, see **`README.md`** — the comprehensive repo doc and authoritative map
+   (modules, the DAG, skills, schemas, command surface, invariants).
+
+**Load context by relevance.** Whatever you route to, pull in only the skills and
+tools the task's module needs — see `README.md § Skill & Tool
+Loading Contract` and its Skill & Tool Index (classify → match the module row →
+open only that `SKILL.md`, use only its tools). Do not preload other modules'
+docs/skills or the full command surface; a `conversation` task loads neither.
 
 If a project has no `AGENTS.md` yet, model a new one on
 `projects/fletcher-early-works/AGENTS.md`.
@@ -24,16 +30,19 @@ If a project has no `AGENTS.md` yet, model a new one on
 
 - **Ontology update** — after any task that changes directory structure, file
   formats, CLI commands, data schemas, or pipeline edges, run
-  `python machinery/tools/ontology_check.py`; update `machinery/docs/ONTOLOGY.md`
+  `python tools/ontology_check.py`; update `README.md`
   where flagged, then `--save-baseline`.
 - **Skills update** — after any significant task, review which `SKILL.md` files
   were (or should have been) loaded and patch obvious, low-risk gaps. Never bake
   one-off task results into a reusable skill. Guidance:
-  `machinery/skills/skill-improvement-loop/SKILL.md`.
+  `machinery/skills/skill-improvement-loop/SKILL.md`. If you add or edit a skill,
+  keep its frontmatter (`name`, `description`, `module`, `tools`) complete and run
+  `python tools/skill_index.py --write` so the Skill & Tool Index and the
+  `--check` gate stay green.
 
 ## Non-negotiable invariants
 
-Full list in `machinery/docs/ONTOLOGY.md § Key Invariants`. The ones you can
+Full list in `README.md § Key Invariants`. The ones you can
 break without noticing:
 
 - Hand-curated text never lives under a directory a build writes. Reading
@@ -45,4 +54,4 @@ break without noticing:
   command output.
 - `modules/<module>/` holds contracts only (AGENTS.md, RUNBOOK.md, schemas,
   skills) — never runtime code. All Python lives in `machinery/src/texgraph/`;
-  all canonical docs in `machinery/docs/`.
+  all canonical docs in `README.md`.

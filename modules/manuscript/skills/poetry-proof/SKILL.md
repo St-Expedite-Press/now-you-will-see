@@ -1,8 +1,12 @@
 ---
 name: poetry-proof
-description: Proof verse transcriptions against source scans. Use for line-break fidelity, stanza correspondence, indentation accuracy, long-line and run-over handling, cycle structure, and front matter field correctness in poem files.
+description: "Proof verse transcriptions against source scans. Use for line-break fidelity, stanza correspondence, indentation accuracy, long-line and run-over handling, cycle structure, and front matter field correctness in poem files."
+module: manuscript
+tools:
+  - texgraph audit
+  - texgraph pdf render
+  - texgraph proof-preview
 ---
-
 # Poetry Proof
 
 ## Use When
@@ -24,7 +28,7 @@ editorial apparatus, also load `modules/manuscript/skills/transcription-verifica
 
 - `AGENTS.md`
 - `modules/manuscript/AGENTS.md`
-- `ONTOLOGY.md § Data Schemas` — poem Markdown front matter spec
+- `README.md § Data Schemas` — poem Markdown front matter spec
 - The poem source scan (open via `texgraph pdf render` or equivalent)
 - The poem file at `projects/<project_id>/interior/content/<section>/<file>.md`
 

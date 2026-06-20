@@ -1,138 +1,348 @@
-# Texgraph
+<div align="center">
 
-A Markdown → LuaLaTeX → PDF/X pipeline for typesetting scholarly poetry editions.
-Hand-curated poems (one Markdown file per poem) flow through a staged pipeline —
-source acquisition, transcription, editorial manuscript, interior typesetting,
-covers, publication, release — into print-ready books.
+# ✦ Texgraph ✦
 
-The CLI is `texgraph` (Python, `machinery/src/texgraph/`). Work is organized into
-**projects** under `projects/`, each registered in `workspace.yaml`.
+### an AI-agent-operated workstation for making books
 
-## What's here
+*Turn a public-domain PDF into a print-ready, fine-press critical edition — one
+guided screen at a time, each with a specialist agent at your shoulder.*
 
-| Project | What it is |
-|---|---|
-| `fletcher-early-works` | **Default.** Vol 1 of the Fletcher series — *The Early Works*, five 1913 books, 276 poems. Built: 534-page interior, print-ready PDF/X. |
-| `fletcher-dominant-works` / `-embattled-works` / `-falling-works` | Vols 2–4 of the series. Scaffolds awaiting transcription → reading promotion. |
-| `fletcher-series` | Shared, non-buildable series root: source PDFs (by era), `four_volume_order.md`, `PROJECT_PLAN.md`, series covers, `SERIES.md`. |
-| `lift-wind-love-heat` | A standalone collection (not Fletcher). |
-| `spectra_poems` | The tracked example project (*Iberian Dreams*) — a working build to model on. |
+![Python](https://img.shields.io/badge/python-3.11+-3776AB?logo=python&logoColor=white)
+![Engine](https://img.shields.io/badge/engine-LuaLaTeX-008080)
+![Output](https://img.shields.io/badge/output-PDF%2FX--3-B22222)
+![Backend](https://img.shields.io/badge/backend-FastAPI-009688?logo=fastapi&logoColor=white)
+![Frontend](https://img.shields.io/badge/frontend-React%20%2B%20Vite-61DAFB?logo=react&logoColor=black)
+![Runtime](https://img.shields.io/badge/agents-Hermes-7B2CBF)
+![License](https://img.shields.io/badge/license-MIT-2EA44F)
+![Status](https://img.shields.io/badge/status-alpha-orange)
 
-Quickstart and install: `machinery/docs/QUICKSTART.md`. Authoritative repo map
-(schemas, full command surface, invariants): `machinery/docs/ONTOLOGY.md`.
-
-## Repository layout
-
-```
-AGENTS.md                  root handoff (see below)
-README.md                  this file
-workspace.yaml             project registry (gitignored; example tracked)
-machinery/
-  src/texgraph/            all runtime Python + Jinja templates (the CLI)
-  tools/                   maintenance scripts (ontology check, dataset, migrations)
-  tests/                   pytest suite
-  docs/                    canonical docs (ONTOLOGY, PROCEDURES, QUICKSTART, ...)
-  skills/                  framework skills (task classifier, tooling, ...)
-  studio/                  optional FastAPI + React review UI
-modules/<module>/          per-stage contracts: AGENTS.md, RUNBOOK.md, schemas, skills (NO code)
-projects/<id>/             a project's pipeline stages + its AGENTS.md
-```
+</div>
 
 ---
 
-## Agent Framework
+> **The short version.** Republishing neglected public-domain literature to a
+> fine-press standard is slow, fiddly, expert work: acquire a clean scan, strip the
+> library cruft, transcribe verse without mangling its lineation, then typeset a proof
+> that respects the page. Texgraph turns that pipeline into a **browser station** where
+> every stage is a screen backed by a **chat agent gated to that stage** — and the
+> agents do real work, not suggestions. The reference tenant is *St. Expedite Press*'s
+> edition of **John Gould Fletcher's early works**.
 
-### Entry: one handoff, then close the loop in the project
+## Contents
 
-`AGENTS.md` (root) does exactly one thing: identify the active project and hand
-you to **`projects/<id>/AGENTS.md`**. That project file is self-contained for
-routine work — identity, the commands it uses, its working conventions, and its
-current pipeline gate. You should not need to traverse module docs to do ordinary
-project work; the routing loop ends at the project.
+- [What this is](#-what-this-is) · [The station](#-the-station) · [Architecture](#-architecture--three-portions)
+- [Two agent worlds](#-two-agent-worlds) · [How a gated agent is assembled](#-how-a-gated-agent-is-assembled)
+- [The pipeline](#-the-pipeline) · [Quickstart](#-quickstart) · [Repository layout](#-repository-layout)
+- [Command surface](#-command-surface) · [Skill & Tool Loading Contract](#skill--tool-loading-contract)
+- [Status & roadmap](#-status--roadmap) · [Reference](#-reference--repository-map)
 
+---
+
+## ✦ What this is
+
+Texgraph is two things wearing one repository:
+
+1. **A product** — an opinionated, agent-guided **publishing station**. You bring a
+   public-domain text; the station walks you from *project* → *acquire* → *structure*
+   → *proof*, and at each screen a **specialist agent** (scoped to exactly that job)
+   chats with you and operates the real tools. The differentiator is the last screen:
+   **populate and compile a proof, conversationally**, using everything decided
+   upstream as the jumping-off point.
+
+2. **A press** — the system is proven by actually shipping editions. The flagship is
+   *The Early Works of John Gould Fletcher* (five self-financed 1913 London books, 276
+   poems), set on crème Royal 8vo with a measured-height, one-poem-per-page interior
+   and a print-ready PDF/X.
+
+The engine underneath is a **Markdown → LuaLaTeX → PDF/X** pipeline; the intelligence
+on top is a fleet of **gated agents** that run on **Hermes** in production.
+
+## ✦ The station
+
+Four linear screens (the graph/card editor is kept as the stage-3 proofing power-tool).
+Each screen is one **gated specialist agent** + that stage's artifact view; each arrow
+is a **user-approved gate** (`PROMOTION.yaml`) that hands the prior screen's outputs
+forward.
+
+```mermaid
+flowchart LR
+    S0["🗂️ 0 · Project<br/><sub>workspace agent</sub>"]
+    S1["📥 1 · Acquire<br/><sub>sources agent</sub>"]
+    S2["✂️ 2 · Structure<br/><sub>transcription agent</sub>"]
+    S3["📖 3 · Proof<br/><sub>editorial + typeset agents</sub>"]
+    S0 -- "defaults" --> S1 -- "registered<br/>sources ⛩️" --> S2 -- "structured<br/>markdown ⛩️" --> S3 -- "proof PDF ⛩️" --> OUT(["🖨️ print-ready"])
+    classDef s fill:#f6f4ef,stroke:#7B2CBF,stroke-width:1px,color:#222;
+    class S0,S1,S2,S3 s;
 ```
-root AGENTS.md ──▶ projects/<id>/AGENTS.md ──▶ (do the work)
+
+| # | Screen | Agent does | Produces | Gate |
+|---|--------|-----------|----------|------|
+| 0 | **Project** | set title, author, imprint, trim defaults | project + `collection.yaml` defaults | — |
+| 1 | **Acquire** | find/upload PDF, verify, clear rights, rename + provenance | registered sources | `sources/PROMOTION.yaml` |
+| 2 | **Structure** | strip front/back-matter dross, map pages, transcribe verse, build the markdown tree | structured Markdown + plan | `transcription/PROMOTION.yaml` |
+| 3 | **Proof** | relineate + note (editorial) · set layout, build & visually review the proof (typeset) | proof PDF | `interior/PROMOTION.yaml` |
+
+## ✦ Architecture — three portions
+
+```mermaid
+flowchart TB
+    subgraph FW["🧠 framework/ — Agentic Framework / Knowledge Base"]
+        P["pipeline.yaml<br/><sub>DAG · screens · gates · io</sub>"]
+        A["agents/&lt;stage&gt;/agent.yaml<br/><sub>prompt · tools · skills · io</sub>"]
+        PER["PERSONA.md · skills · loading contract"]
+    end
+    subgraph BE["⚙️ backend/ — Back End"]
+        CORE["core/<br/><sub>LaTeX engine (texgraph)</sub>"]
+        API["api/<br/><sub>FastAPI</sub>"]
+        RT["runtime/<br/><sub>AgentRuntime · ToolCatalog · GatedAgent · Handoff</sub>"]
+    end
+    subgraph FE["🖥️ frontend/ — Front End"]
+        ST["linear station · gated chat<br/><sub>+ graph editor (proof)</sub>"]
+    end
+    FW -- "agent specs" --> RT
+    CORE --> RT
+    RT -- "tools + stream" --> API --> ST
+    HERMES(["☁️ Hermes (prod runtime)"]) -.consumes.-> FW
+    classDef fw fill:#efe9f7,stroke:#7B2CBF,color:#222;
+    classDef be fill:#e9f2ef,stroke:#009688,color:#222;
+    classDef fe fill:#eaf1f7,stroke:#2563eb,color:#222;
+    class FW,P,A,PER fw; class BE,CORE,API,RT be; class FE,ST fe;
 ```
 
-Leave the project only for **framework or cross-project work** — the CLI, the
-module pipeline, skills, schemas, repo structure. That machinery is *described*
-below and in `machinery/docs/ONTOLOGY.md`; it is reference, not a routing maze.
+| Portion | Is | Holds |
+|---|---|---|
+| **`framework/`** | runtime-agnostic agent definitions + knowledge (loads onto Hermes) | `pipeline.yaml`, `agents/<stage>/agent.yaml`, `PERSONA.md`, the loading contract |
+| **`backend/`** | the engine + API + agent runtime | `core/` (LaTeX pipeline), `api/` (FastAPI), `runtime/` (the agent layer), `cli/`, `tests/` |
+| **`frontend/`** | the browser station | linear stage screens + gated chat; graph/card editor for proofing |
 
-Two loops always apply (kept in root `AGENTS.md`): the **ontology update loop**
-(`machinery/tools/ontology_check.py` after structural/CLI/schema/edge changes) and
-the **skills update loop** (patch `SKILL.md` gaps after significant work).
+## ✦ Two agent worlds
 
-### The pipeline (described, not live-routed)
+> [!IMPORTANT]
+> Texgraph has **two distinct kinds of agent**, and the repo is organized around the
+> difference:
+>
+> | | **Development agent** | **Runtime agents** |
+> |---|---|---|
+> | who | Claude Code | Hermes (OpenRouter) |
+> | charter | root `AGENTS.md` / `CLAUDE.md` | `framework/agents/<stage>/agent.yaml` |
+> | job | **build & maintain the whole system**, including its own framework | **operate the station** for end users |
+> | scope | the repo | one pipeline stage each, gated |
+>
+> The development agent writes the runtime agents' definitions; it does not impersonate
+> them.
 
-Each project moves through a DAG of stages; each edge is a user-approved gate
-recorded in a `PROMOTION.yaml`:
+## ✦ How a gated agent is assembled
 
+The keystone idea: an agent for a screen is **composed**, not hand-written. The runtime
+reads the stage's spec and grants it *only* what that stage needs — its prompt, its
+skills, its tools, and write-access to its own directory.
+
+```mermaid
+flowchart LR
+    SPEC["agent.yaml<br/><sub>system_prompt · persona</sub>"] --> G{{"GatedAgent<br/>assembler"}}
+    SK["skills (by name)<br/><sub>loading contract</sub>"] --> G
+    TL["tool allow-list →<br/>ToolCatalog ops"] --> G
+    SC["artifact scope<br/><sub>modules/&lt;stage&gt;.artifact_dir</sub>"] --> G
+    G --> AG(["🤖 gated stage agent"])
+    AG -- "gate approved" --> H["HandoffController"] --> NEXT(["next stage agent<br/><sub>seeded with prior io</sub>"])
+    classDef k fill:#f6f4ef,stroke:#7B2CBF,color:#222; class SPEC,SK,TL,SC,G,AG,H,NEXT k;
 ```
-workspace → sources → transcription → manuscript → interior → [covers, publication] → release
+
+The agent **cannot** call another stage's tools or write another stage's directory — the
+allow-list and artifact scope are machine-enforced, and `tools/skill_index.py --check`
+verifies every spec's tools resolve to real commands and every named skill exists.
+
+## ✦ The pipeline
+
+Under the screens is a classic gated DAG; each edge is a user-approved `PROMOTION.yaml`.
+
+```mermaid
+flowchart LR
+    W([workspace]) --> S([sources]) --> T([transcription]) --> M([manuscript]) --> I([interior])
+    I --> C([covers]) & PU([publication]) --> R([release])
+    classDef d fill:#fff,stroke:#888,color:#333; class W,S,T,M,I,C,PU,R d;
 ```
 
-| Stage (`modules/<m>/`) | Owns | Project artifacts |
+| Stage | Owns | Project artifacts |
 |---|---|---|
 | `workspace` | project registration | `workspace.yaml` |
-| `sources` | source acquisition, provenance, stable naming | `sources/` |
+| `sources` | acquisition, provenance, stable naming | `sources/` |
 | `transcription` | poem-per-file transcription from scans | `transcription/` |
 | `manuscript` | editorial reading edition, proofing, corrections | `manuscript/reading/` |
-| `interior` | typeset proofs and print-ready PDFs | `interior/` (output under `output/`) |
-| `covers` · `publication` · `release` | cover production · e-book/web · packaging | `covers/` · `publication/` · `release/` |
+| `interior` | typeset proofs and print-ready PDFs | `interior/output/` |
+| `covers` · `publication` · `release` | covers · e-book/web · packaging | *(downstream; not yet station screens)* |
 
-Each `modules/<m>/AGENTS.md` is a thin contract (scope + artifact boundary);
-`modules/<m>/RUNBOOK.md` holds operating steps for `sources`, `transcription`,
-`interior`, `manuscript`. **Skills** (`modules/<m>/skills/*/SKILL.md` and
-`machinery/skills/*`) are loadable how-to guides — e.g. `interior/skills/typesetting`
-(render_config, page modes, the measured one-poem-per-page layout, PDF/X),
-`manuscript/skills/poetry-proof`, `transcription/skills/poem-transcription`.
+## ✦ Quickstart
 
-### Command surface
+```bash
+# 1. install (editable) + register your workspace
+python -m venv .venv && . .venv/Scripts/activate      # POSIX: . .venv/bin/activate
+pip install -e ".[studio]"                             # engine + Studio backend
+cp workspace.example.yaml workspace.yaml
+
+# 2. drive the engine from the CLI
+texgraph list                                          # projects in workspace.yaml
+texgraph proof-build  --project fletcher-early-works   # build the reference proof
+texgraph proof-preview --project fletcher-early-works  # render key pages to PNG
+texgraph verify-coverage --project fletcher-early-works
+
+# 3. dev loops (keep these green)
+python -m pytest -q
+python tools/skill_index.py --check                    # skill + agent-spec contract gate
+```
+
+**External tools:** a LuaLaTeX install (TeX Live) for builds; **poppler**
+(`pdftoppm`, `pdftotext`, `pdfinfo`) for `pdf` / `proof-preview`.
+
+## ✦ Repository layout
+
+```
+CLAUDE.md / AGENTS.md   development-agent charter (build & maintain the system)
+README.md               this file — the comprehensive doc + repo map
+framework/              🧠 agentic framework / knowledge base (runtime-agnostic)
+  pipeline.yaml           DAG → screens, gates, hand-off io contracts
+  agents/<stage>/agent.yaml   per-stage gated agent specs
+  PERSONA.md              editorial house-voice register
+backend/                ⚙️ back end
+  core/                   the LaTeX engine (import root: backend.core)
+  api/                    FastAPI product API (package: app)
+  runtime/                agent runtime (Phase 3 — in progress)
+  tests/                  pytest suite
+frontend/               🖥️ React + Vite station
+modules/<stage>/        backend stage contracts: AGENTS.md, module.yaml, RUNBOOK, schemas, skills
+tools/                  dev maintenance: ontology_check.py, skill_index.py, …
+projects/<id>/          tenant data; fletcher-* = reference tenant / golden test
+```
+
+## ✦ Command surface
 
 | Command | Purpose |
 |---|---|
-| `build` | Render a collection to a full PDF (legacy non-poetry templates). |
-| `proof-build [--config <sheet>] [--print-ready]` | The omnibus interior pipeline → review proof, trim variant, or even-page PDF/X. |
-| `proof-preview [--pages] [--sample]` | Render structural pages to PNG for visual review (needs poppler). |
-| `verify-coverage` | Prove every transcription poem maps 1:1 to a built reading poem. |
-| `watch` · `list` · `new poem` | Auto-rebuild · list projects · scaffold a poem. |
-| `verify <stage>` · `promote <stage>` | Check / approve a pipeline gate (`PROMOTION.yaml`). |
-| `migrate modules` · `modules list/verify` | Module-layout migration and registry. |
-| `audit` · `metadata` · `scan` · `plan` · `page-map` | Transcription audit, `book.json`, source scanning, plan/page mapping. |
-| `pdf info/text/render` · `archive files/download` · `studio` | PDF inspection · Internet Archive · review UI. |
+| `proof-build [--config <sheet>] [--print-ready]` | omnibus interior pipeline → review proof, trim variant, or even-page PDF/X |
+| `proof-preview [--config <sheet>] [--pages] [--sample]` | render structural pages to PNG for visual review (poppler) |
+| `verify-coverage` | prove every transcription poem maps 1:1 to a built reading poem |
+| `build` · `watch` · `list` · `new poem` | full build · auto-rebuild · list projects · scaffold a poem |
+| `verify <stage>` · `promote <stage>` | check / approve a pipeline gate |
+| `audit` · `metadata` · `scan` · `plan` · `page-map` | transcription audit, `book.json`, source scan, plan/page mapping |
+| `pdf info/text/render` · `archive files/download` · `ingest rename` · `studio` | PDF inspection · Internet Archive · source intake · review UI |
 
-Full flags and schemas: `machinery/docs/ONTOLOGY.md § Command Surface`.
+Full flags, schemas, and the Studio API are in the [Reference](#-reference--repository-map).
 
 ---
 
-## Repository Audit — 2026-06-18
+## Skill & Tool Loading Contract
 
-A full read-only audit (code, tooling, agent framework, project structure) was
-run after the Fletcher four-volume split. The framework reformulation above
-addresses the routing findings. Remaining items, by priority:
+Context loads **lazily and by relevance**. A development agent — and each runtime agent —
+opens only the `SKILL.md` files and tools its job needs, never the whole surface. Every
+skill and every `agent.yaml` declares its `tools` (the commands it drives), and
+`tools/skill_index.py` generates the index below and enforces the contract:
 
-### Fixed in this pass
-- **Root routing reformulated** — root `AGENTS.md` now hands off to per-project
-  `AGENTS.md` (created for all six workspace projects); the 4× duplicated
-  routing/classification/DAG tables are replaced by this one described framework.
-- **Stale agent-framework refs** — `modules/manuscript/RUNBOOK.md` header and its
-  pointer to the removed `typeset/AGENTS.md`; dangling deprecated-stage references
-  (`transcribe/AGENTS.md`, `proof/AGENTS.md`) in skill "Required Reads".
-- **Broken one-shot tools** repaired or retired (`add_source_field.py`,
-  `strip_note_prefix.py`, `scaffold_typeset_poems.py` hard-coded the pre-split
-  project path).
-- **Studio UI path bug** — `CoverStudio.tsx` showed a dead, doubled
-  `projects/.../projects/fletcher-complete-original-collections/...` path.
-- **`workspace.example.yaml`** updated to model multi-project (series) registration.
+```bash
+python tools/skill_index.py --check    # CI gate: frontmatter + agent specs + index in sync
+python tools/skill_index.py --write    # regenerate after editing a skill or agent spec
+```
 
-### Recommended (not yet done — larger or judgement calls)
-| Pri | Finding | Location |
-|---|---|---|
-| High | **Dead argparse CLI layer** duplicated by the live Typer CLI: `pdf.py` and `archive.py` are entirely dead; `register()`/`_run()` pairs in `audit/scan/metadata/plan/pagemap` are orphaned. Remove them and have `cli.py` call the pure functions. | `machinery/src/texgraph/` |
-| Med | **Unused templates/method** — `base_preamble`, `frontmatter`, `section_title`, `pdfx_metadata` Jinja templates and `renderer.render_poem()`/`poem.tex.jinja2` have no caller. | `templates/`, `renderer.py` |
-| Med | **`HANDOFF.md` describes the pre-split repo** (obsolete single project, dead `RUN_REPORT.md` path). Update or fold into this README. | `machinery/docs/HANDOFF.md` |
-| Med | **Tests bound to live Fletcher data** (coverage + proof-build path tests). Prefer fixtures. Untested: `cli`, `compiler._parse_log`, `config`, `workspace`, `env` guard, renderer cycle/screenplay/prose paths. | `machinery/tests/` |
-| Low | **Legacy stage aliases** (`ingest/transcribe/typeset/proof/final`) remain live for back-compat; retire once no project needs them. `studio`/`platform` modules are empty stubs — mark planned or remove. | `modules.py`, `promotions.py`, `modules/` |
+<!-- SKILL-INDEX:START — generated by tools/skill_index.py; do not edit by hand -->
 
-Dated history docs (`MODULE_REFACTOR_STATUS.md`, `REPO_STRUCTURE_PLAN.md`) are
-kept as records, not live guidance.
+Load **only** the row(s) for the module your classified job targets: open that skill's `SKILL.md` and use only its listed tools. Do not preload other modules' skills or the full command surface.
+
+| Module | Skill | Load it when… | Tools it uses |
+|---|---|---|---|
+| `sources` | [`source-intake`](../../modules/sources/skills/source-intake/SKILL.md) | Use when adding raw PDFs, checking source availability, running pdfinfo, recording page counts, refreshing source mat… | `texgraph pdf info`, `texgraph pdf text`, `texgraph pdf render`, `texgraph archive files`, `texgraph archive download`, `texgraph ingest rename`, `texgraph scan`, `texgraph verify sources` |
+| `transcription` | [`poem-transcription`](../../modules/transcription/skills/poem-transcription/SKILL.md) | Use when filling one poem per Markdown file, preserving lineation and indentation, normalizing drop caps, handling mu… | `texgraph new poem`, `texgraph audit`, `texgraph pdf render`, `texgraph pdf text` |
+| `transcription` | [`project-planning`](../../modules/transcription/skills/project-planning/SKILL.md) | Use when editing files under projects/<project_id>/transcription/project_plan/, combining planning documents, adding … | `texgraph plan` |
+| `transcription` | [`prose-transcription`](../../modules/transcription/skills/prose-transcription/SKILL.md) | Use for type: prose files, paragraph-based transcription, blockquote handling, and source paratext front matter | `texgraph new poem`, `texgraph audit`, `texgraph pdf text` |
+| `transcription` | [`source-matter`](../../modules/transcription/skills/source-matter/SKILL.md) | Use when handling dedications, prefaces, contents pages, acknowledgments, illustration lists, epigraphs, colophons, p… | `texgraph scan`, `texgraph pdf text` |
+| `transcription` | [`volume-planning`](../../modules/transcription/skills/volume-planning/SKILL.md) | Use when deriving contents, poem order, page offsets, batch ranges, source-page mappings, source front/back matter ha… | `texgraph plan`, `texgraph scan`, `texgraph page-map`, `texgraph metadata` |
+| `manuscript` | [`persona-editorial`](../../modules/manuscript/skills/persona-editorial/SKILL.md) | Use when drafting introductions, afterwords, institutional copy, interpretive framing, or structural plans that shoul… | `(none)` |
+| `manuscript` | [`poetry-proof`](../../modules/manuscript/skills/poetry-proof/SKILL.md) | Use for line-break fidelity, stanza correspondence, indentation accuracy, long-line and run-over handling, cycle stru… | `texgraph audit`, `texgraph pdf render`, `texgraph proof-preview` |
+| `manuscript` | [`prose-proof`](../../modules/manuscript/skills/prose-proof/SKILL.md) | Use for paragraph integrity, quotation mark normalization, correct type tagging, and front matter field accuracy in p… | `texgraph audit`, `texgraph pdf render` |
+| `manuscript` | [`transcription-verification`](../../modules/manuscript/skills/transcription-verification/SKILL.md) | Use when checking poem/source-matter statuses, source-page spans, forbidden markup, poem counts, checklist completion… | `texgraph audit`, `texgraph metadata`, `texgraph verify-coverage` |
+| `interior` | [`poetry`](../../modules/interior/skills/poetry/SKILL.md) | Use when configuring stanza spacing, line environment, poem title display, indentation, long-line handling, or cycle … | `texgraph proof-build`, `texgraph proof-preview` |
+| `interior` | [`prose`](../../modules/interior/skills/prose/SKILL.md) | Use for paragraph spacing, quotation/epigraph blocks, section headings, and verifying that prose content renders corr… | `texgraph proof-build`, `texgraph proof-preview` |
+| `interior` | [`typesetting`](../../modules/interior/skills/typesetting/SKILL.md) | Use for collection.yaml setup, render_config parameter selection (trim size, margins, fonts, leading), PDF/X build ve… | `texgraph proof-build`, `texgraph proof-preview`, `texgraph build`, `texgraph watch` |
+| `machinery` | [`repo-maintenance`](../../machinery/skills/repo-maintenance/SKILL.md) | Use when adding folders, scaffolding projects, updating documentation or metadata, standardizing filenames, editing A… | `texgraph modules list`, `texgraph migrate modules` |
+| `machinery` | [`skill-improvement-loop`](../../machinery/skills/skill-improvement-loop/SKILL.md) | Review and improve repo-local skills after each task. Use at the end of every task in this repo to assess whether AGE… | `tools/skill_index.py` |
+| `machinery` | [`task-classifier`](../../machinery/skills/task-classifier/SKILL.md) | Use when the job type of an incoming request is unclear | `(none)` |
+| `machinery` | [`technical-docs`](../../machinery/skills/technical-docs/SKILL.md) | Use when changing directory structure, file formats, CLI commands, data schemas, or pipeline edges requires documenta… | `tools/ontology_check.py`, `tools/skill_index.py` |
+| `machinery` | [`tooling`](../../machinery/skills/tooling/SKILL.md) | Use when creating, running, or updating stage tools, enforcing the repo .venv, wiring stage skills to helpers for PDF… | `tools/ontology_check.py`, `tools/skill_index.py` |
+
+<!-- SKILL-INDEX:END -->
+
+## ✦ Status & roadmap
+
+The system is mid-reform into the three-portion architecture above.
+
+- [x] **Phase 1 — Restructure** into `framework/` · `backend/` · `frontend/` (green: tests, CLI, gate)
+- [x] **Phase 2 — Framework** : `pipeline.yaml` + per-stage `agent.yaml` specs + validation
+- [ ] **Phase 3 — Runtime (keystone)** : `AgentRuntime` + `ToolCatalog` (real tool-calls) + `GatedAgent` + `HandoffController` + Hermes adapter
+- [ ] **Phase 4 — Station front end** : linear screens + gated chat + gate/handoff UX
+- [ ] **Phase 5 — Dev-agent charter** : root `CLAUDE.md`/`AGENTS.md`
+- [ ] **Phase 6 — End-to-end** : Fletcher tenant runs Project → Proof in the station
+
+The LaTeX engine and the reference Fletcher edition are built and proven; the agent
+runtime and the station UX are the active frontier.
+
+---
+
+# ✦ Reference — Repository Map
+
+<details>
+<summary><b>Directory taxonomy, data schemas, full command surface, invariants, dependencies</b> (click to expand)</summary>
+
+### Data schemas (essentials)
+
+- **`collection.yaml`** — per-project build config: `title`, `author`, `content_dir`
+  (→ `../manuscript/reading`), `output_dir`, and a `render_config` block (trim,
+  margins, `line_spread`, `stanza_skip`, placement knobs). Variant style sheets
+  (`collection_<name>.yaml`) build through the same pipeline into `output/proof-<name>/`.
+- **Poem Markdown front matter** — `title`, `type` (`poem`/`prose`/`dedication`/…),
+  `order`, `source`, optional `part`, `stanza_skip`. Reading-edition poems use the
+  three-section body: `## Original Lineation` / `## Editorial Relineation` /
+  `## Context Notes` (the parser typesets the relineation when present, else the
+  original; context notes become keyed back-matter endnotes).
+- **`PROMOTION.yaml`** — the machine-readable gate per stage: `stage`, `status`
+  (`pending`/`approved`), and stage-specific evidence. No silent promotions.
+- **`modules/<stage>/module.yaml`** — backend stage contract: `id`, `legacy_ids`,
+  `artifact_dir`, `upstream`, `promotion_schema`, `commands`, `skills`.
+- **`framework/agents/<stage>/agent.yaml`** — runtime agent spec: `stage`, `screen`,
+  `module`, `persona`, `gate`, `upstream`, `io {receives, produces}`, `tools`,
+  `skills`, `system_prompt`.
+
+### Key invariants
+
+1. **Hand-curated text never lives under a build-written directory.** Reading editions
+   live in `manuscript/reading/`; builds consume them read-only and write only under
+   `interior/output/`.
+2. **A stage writes only its own `artifact_dir`.** Cross-stage writes need explicit
+   approval; the runtime enforces this as each agent's artifact scope.
+3. **Persona/voice never enters documentary data** — not source text, YAML, manifests,
+   audit output, or command summaries.
+4. **`PROMOTION.yaml` is the only gate.** No stage proceeds without an approved upstream.
+5. **One CLI entrypoint** (`texgraph`, `backend.core.cli`); shared helpers in `utils.py`.
+6. **Contracts-only `modules/`** (AGENTS, module.yaml, RUNBOOK, schemas, skills — never
+   runtime code); all code in `backend/`.
+7. **Skills & tools load by relevance** (the loading contract); `agent.yaml` tool
+   allow-lists and skill references are machine-validated.
+8. **Content is flat within a section** — a `.md` nested below section level is a hard
+   build error.
+9. **Placement is decided by measured page height in TeX**, never a Python line-count proxy.
+10. **Visual proof review is mandatory** before interior sign-off — never approve from
+    the `.tex` alone.
+
+### Dependency map
+
+- **Engine:** `python-frontmatter`, `mistune`, `jinja2`, `pyyaml`, `typer`, `rich`,
+  `watchdog`, `pydantic`. **External:** LuaLaTeX (TeX Live), poppler-utils.
+- **Studio (`.[studio]`):** `fastapi`, `uvicorn`, `pydantic-settings`, `aiofiles`,
+  `python-multipart`, `watchfiles`, an LLM client. **Frontend:** React + Vite + TS.
+- **Dev:** `pytest`, `pytest-cov`, `black`, `ruff`, `mypy`.
+
+### Maintenance loops
+
+- **Ontology loop** — after structural/CLI/schema/edge changes, run
+  `python tools/ontology_check.py`; update this reference, then `--save-baseline`.
+- **Skills/agent loop** — after editing a skill or `agent.yaml`, run
+  `python tools/skill_index.py --write`; `--check` must stay green.
+
+</details>

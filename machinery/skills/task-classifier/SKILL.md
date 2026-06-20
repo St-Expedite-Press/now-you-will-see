@@ -1,3 +1,10 @@
+---
+name: task-classifier
+description: "Classify an ambiguous request into a job type (pipeline/<module>, research, conversation, tooling) before routing. Use when the job type of an incoming request is unclear."
+module: machinery
+tools:
+  - (none)
+---
 # Task Classifier
 
 Load this skill when the job type of an incoming request is ambiguous. Work
@@ -23,7 +30,7 @@ Source files, transcription, manuscript corrections, interior PDF builds, cover 
 → `conversation`. Respond directly. Do not open a module `AGENTS.md`.
 
 **4. Does this request describe a change to CLI, infrastructure, documentation, or skills?**
-"Add a command", "update machinery/docs/ONTOLOGY.md", "rewrite this skill", "fix a bug in the build system."
+"Add a command", "update README.md", "rewrite this skill", "fix a bug in the build system."
 → `tooling`. Route to `machinery/AGENTS.md`.
 
 **5. Is this a planning discussion, scoping question, or feedback with no named artifact target?**

@@ -1,8 +1,17 @@
 ---
 name: source-intake
-description: Verify, normalize, and document source PDFs for transcription projects. Use when adding raw PDFs, checking source availability, running pdfinfo, recording page counts, refreshing source matter inventory, or deciding whether a volume is safe to transcribe.
+description: "Verify, normalize, and document source PDFs for transcription projects. Use when adding raw PDFs, checking source availability, running pdfinfo, recording page counts, refreshing source matter inventory, or deciding whether a volume is safe to transcribe."
+module: sources
+tools:
+  - texgraph pdf info
+  - texgraph pdf text
+  - texgraph pdf render
+  - texgraph archive files
+  - texgraph archive download
+  - texgraph ingest rename
+  - texgraph scan
+  - texgraph verify sources
 ---
-
 # Source Intake
 
 ## Workflow
@@ -49,5 +58,5 @@ Use `notes` fields for uncertainty rather than forcing a source into the workflo
 
 ## Source Status Values
 
-See `ONTOLOGY.md § Data Schemas` for the full list:
+See `README.md § Data Schemas` for the full list:
 `present`, `missing`, `working_source_reprint`, `access_restricted`, `pending_acquisition`

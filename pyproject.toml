@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "texgraph"
 version = "0.1.0"
 description = "A Markdown-to-LuaLaTeX-to-PDFx editor and compiler for poetry collections"
-readme = "machinery/docs/PROJECT_OVERVIEW.md"
+readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [
@@ -54,7 +54,7 @@ dev = [
 ]
 
 [project.scripts]
-texgraph = "texgraph.cli:app"
+texgraph = "backend.core.cli:app"
 
 [project.urls]
 Homepage = "https://github.com/texgraph/texgraph"
@@ -62,10 +62,11 @@ Repository = "https://github.com/texgraph/texgraph"
 Issues = "https://github.com/texgraph/texgraph/issues"
 
 [tool.setuptools.packages.find]
-where = ["machinery/src"]
+where = ["."]
+include = ["backend*"]
 
 [tool.setuptools.package-data]
-texgraph = ["templates/*.tex", "templates/*.jinja2", "py.typed"]
+"backend.core" = ["templates/*.tex", "templates/*.jinja2", "py.typed"]
 
 # --- Black ---
 [tool.black]
@@ -90,5 +91,5 @@ warn_unused_configs = true
 
 # --- Pytest ---
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["backend/tests"]
 addopts = "--tb=short -q"

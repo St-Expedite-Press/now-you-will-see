@@ -1,14 +1,16 @@
 ---
 name: project-planning
-description: Consolidate, maintain, and verify project-level publication plans. Use when editing files under projects/<project_id>/transcription/project_plan/, combining planning documents, adding appendices or indexes, aligning plan prose with repo status, source inventory, metadata, tools, and skills.
+description: "Consolidate, maintain, and verify project-level publication plans. Use when editing files under projects/<project_id>/transcription/project_plan/, combining planning documents, adding appendices or indexes, aligning plan prose with repo status, source inventory, metadata, tools, and skills."
+module: transcription
+tools:
+  - texgraph plan
 ---
-
 # Project Planning
 
 ## Workflow
 
 1. Read `AGENTS.md` and `modules/transcription/AGENTS.md`.
-2. For voice-led or structural plans, read `PERSONA.md` and
+2. For voice-led or structural plans, read `framework/PERSONA.md` and
    `modules/manuscript/skills/persona-editorial/SKILL.md`.
 3. Read the current files under `projects/<project_id>/transcription/project_plan/`,
    plus relevant metadata: source manifest, publication order, and editorial

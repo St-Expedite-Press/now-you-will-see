@@ -1,8 +1,13 @@
-﻿---
-name: poem-transcription
-description: Transcribe poems from scanned page images into clean Markdown. Use when filling one poem per Markdown file, preserving lineation and indentation, normalizing drop caps, handling multipage poems, distinguishing poems from source paratext, and updating poem YAML metadata.
 ---
-
+name: poem-transcription
+description: "Transcribe poems from scanned page images into clean Markdown. Use when filling one poem per Markdown file, preserving lineation and indentation, normalizing drop caps, handling multipage poems, distinguishing poems from source paratext, and updating poem YAML metadata."
+module: transcription
+tools:
+  - texgraph new poem
+  - texgraph audit
+  - texgraph pdf render
+  - texgraph pdf text
+---
 # Poem Transcription
 
 ## Required Reads

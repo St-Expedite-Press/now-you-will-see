@@ -1,8 +1,10 @@
-﻿---
-name: skill-improvement-loop
-description: Review and improve repo-local skills after each task. Use at the end of every task in this repo to assess whether AGENTS.md or files under stage skills/ directories should be clarified, generalized, split, or updated based on what was learned.
 ---
-
+name: skill-improvement-loop
+description: "Review and improve repo-local skills after each task. Use at the end of every task in this repo to assess whether AGENTS.md or files under stage skills/ directories should be clarified, generalized, split, or updated based on what was learned."
+module: machinery
+tools:
+  - tools/skill_index.py
+---
 # Skill Improvement Loop
 
 ## End-Of-Task Review
@@ -16,7 +18,7 @@ At the end of every task:
    DAG edges, user gates, promotion records, stage inputs/outputs, module-agent
    behavior, external knowledge use, `book.json`, source front/back matter,
    source inventory, or volume-level apparatus.
-3. If the improvement is obvious and low risk, update `AGENTS.md`, `PERSONA.md`,
+3. If the improvement is obvious and low risk, update `AGENTS.md`, `framework/PERSONA.md`,
    or the relevant stage `skills/*/SKILL.md` before final response.
 4. If the improvement is speculative or broad, mention it as a proposed follow-up
    in the final response instead of editing.

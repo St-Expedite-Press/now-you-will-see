@@ -1,8 +1,11 @@
 ---
 name: prose-proof
-description: Proof prose transcriptions (prefaces, essays, paratext, source matter) against source scans. Use for paragraph integrity, quotation mark normalization, correct type tagging, and front matter field accuracy in prose files.
+description: "Proof prose transcriptions (prefaces, essays, paratext, source matter) against source scans. Use for paragraph integrity, quotation mark normalization, correct type tagging, and front matter field accuracy in prose files."
+module: manuscript
+tools:
+  - texgraph audit
+  - texgraph pdf render
 ---
-
 # Prose Proof
 
 ## Use When
@@ -22,7 +25,7 @@ infrastructure documentation.
 
 - `AGENTS.md`
 - `modules/manuscript/AGENTS.md`
-- `ONTOLOGY.md § Data Schemas` — source matter front matter spec, poem front matter spec
+- `README.md § Data Schemas` — source matter front matter spec, poem front matter spec
 - The prose source scan (open via `texgraph pdf render`)
 - The file being proofed
 

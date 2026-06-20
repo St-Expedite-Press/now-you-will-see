@@ -1,8 +1,11 @@
 ---
 name: tooling
-description: Use and maintain deterministic repo-local Python tools. Use when creating, running, or updating stage tools, enforcing the repo .venv, wiring stage skills to helpers for PDF inspection, page mapping, audits, source matter scanning, book.json metadata, and research efficiency.
+description: "Use and maintain deterministic repo-local Python tools. Use when creating, running, or updating stage tools, enforcing the repo .venv, wiring stage skills to helpers for PDF inspection, page mapping, audits, source matter scanning, book.json metadata, and research efficiency."
+module: machinery
+tools:
+  - tools/ontology_check.py
+  - tools/skill_index.py
 ---
-
 # Tooling
 
 ## Venv Rule
@@ -28,7 +31,7 @@ new dependencies in `requirements.txt` and `pyproject.toml`.
 
 1. Keep scripts deterministic and command-line driven.
 2. Put reusable Python helpers in the owning stage's `tools/` directory.
-3. Put cross-stage infrastructure helpers in `machinery/tools/`.
+3. Put cross-stage infrastructure helpers in `tools/`.
 4. Use scripts to accelerate inspection, mapping, auditing, and cleanup.
 5. Do not use tools to replace page-image review for transcription decisions.
 6. Document new tools in the relevant stage `AGENTS.md` tools section.
@@ -37,7 +40,7 @@ new dependencies in `requirements.txt` and `pyproject.toml`.
    per-book `book.json` files.
 9. Use `texgraph scan` after source acquisition or replacement to refresh
    source front/back matter signals.
-10. Proposed tool contracts belong in `machinery/docs/TOOL_PROPOSALS.md` until
+10. Proposed tool contracts belong in `README.md` until
     the user approves implementation.
 
 ## Common Commands

@@ -1,8 +1,11 @@
 ---
 name: source-matter
-description: Transcribe and manage source-book front and back matter. Use when handling dedications, prefaces, contents pages, acknowledgments, illustration lists, epigraphs, colophons, publisher ads, or other source paratext under a book's front_matter/ or back_matter/ folders.
+description: "Transcribe and manage source-book front and back matter. Use when handling dedications, prefaces, contents pages, acknowledgments, illustration lists, epigraphs, colophons, publisher ads, or other source paratext under a book's front_matter/ or back_matter/ folders."
+module: transcription
+tools:
+  - texgraph scan
+  - texgraph pdf text
 ---
-
 # Source Matter
 
 ## Scope
@@ -42,7 +45,7 @@ For general prose transcription workflow, also read
    `title`, `book`, `book_order`, `matter_order`, `matter_section`,
    `matter_type`, `source_pdf`, `source_pages_scan`, `source_pages_printed`,
    `status`, `notes`
-   See `ONTOLOGY.md § Data Schemas` for the full schema.
+   See `README.md § Data Schemas` for the full schema.
 8. Use `matter_section: "front"` or `matter_section: "back"`.
 9. Valid `matter_type` values: `dedication`, `preface`, `contents`, `epigraph`,
    `acknowledgment`, `illustration_list`, `frontispiece`, `dedicatory_poem`,
