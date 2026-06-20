@@ -206,7 +206,7 @@ framework/              🧠 agentic framework / knowledge base (runtime-agnosti
 backend/                ⚙️ back end
   core/                   the LaTeX engine (import root: backend.core)
   api/                    FastAPI product API (package: app)
-  runtime/                agent runtime (Phase 3 — in progress)
+  runtime/                gated agent runtime: ToolCatalog · GatedAgent · AgentRuntime · adapters · handoff
   tests/                  pytest suite
 frontend/               🖥️ React + Vite station
 modules/<stage>/        backend stage contracts: AGENTS.md, module.yaml, RUNBOOK, schemas, skills
@@ -275,13 +275,14 @@ The system is mid-reform into the three-portion architecture above.
 
 - [x] **Phase 1 — Restructure** into `framework/` · `backend/` · `frontend/` (green: tests, CLI, gate)
 - [x] **Phase 2 — Framework** : `pipeline.yaml` + per-stage `agent.yaml` specs + validation
-- [ ] **Phase 3 — Runtime (keystone)** : `AgentRuntime` + `ToolCatalog` (real tool-calls) + `GatedAgent` + `HandoffController` + Hermes adapter
+- [x] **Phase 3 — Runtime (keystone)** : `ToolCatalog` (real tool-calls) + `GatedAgent` + `AgentRuntime` (gating enforced) + `HandoffController` + dev adapter (Anthropic) + Hermes stub — **wired into the FastAPI API** (`/api/agent/stage[s]`); 12 runtime/service tests
 - [ ] **Phase 4 — Station front end** : linear screens + gated chat + gate/handoff UX
 - [ ] **Phase 5 — Dev-agent charter** : root `CLAUDE.md`/`AGENTS.md`
 - [ ] **Phase 6 — End-to-end** : Fletcher tenant runs Project → Proof in the station
 
-The LaTeX engine and the reference Fletcher edition are built and proven; the agent
-runtime and the station UX are the active frontier.
+The LaTeX engine, the reference Fletcher edition, **and the gated agent runtime** are
+built and proven; the station **front end** is the active frontier. Only the production
+**Hermes adapter** awaits its integration contract — the dev adapter unblocks all else.
 
 ---
 

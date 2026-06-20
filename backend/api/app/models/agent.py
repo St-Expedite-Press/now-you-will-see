@@ -53,3 +53,30 @@ class AgentWizardState(BaseModel):
     confirmed_fields: dict[str, object] = {}
     pending_sections: list[str] = []
     is_complete: bool = False
+
+
+# --- Gated per-stage agents (the station runtime) ------------------------------
+
+
+class StageMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str
+
+
+class StageChatRequest(BaseModel):
+    """One turn for a station screen's gated specialist agent."""
+    stage: str
+    project_id: str | None = None
+    messages: list[StageMessage]
+
+
+class StageStep(BaseModel):
+    tool: str
+    allowed: bool
+    ok: bool
+    output: str
+
+
+class StageChatResponse(BaseModel):
+    text: str
+    steps: list[StageStep] = []

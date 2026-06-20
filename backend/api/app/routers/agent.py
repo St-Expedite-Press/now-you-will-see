@@ -4,10 +4,36 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from fastapi.responses import StreamingResponse
 
 from app.core.exceptions import AgentError
-from app.models.agent import AgentChatRequest
-from app.services import agent_service
+from app.models.agent import AgentChatRequest, StageChatRequest, StageChatResponse
+from app.services import agent_service, runtime_service
 
 router = APIRouter()
+
+
+# --- Gated per-stage agents (the station runtime) ------------------------------
+
+
+@router.get("/stages")
+def stages() -> dict:
+    """The station screens and their stages (framework/pipeline.yaml)."""
+    return runtime_service.list_stages()
+
+
+@router.get("/stage/{stage}")
+def describe_stage(stage: str, project_id: str | None = None) -> dict:
+    """The gated agent's public shape for a stage: tools, skills, gate, io, scope."""
+    return runtime_service.describe_agent(stage, project_id)
+
+
+@router.post("/stage", response_model=StageChatResponse)
+def stage_chat(request: StageChatRequest) -> StageChatResponse:
+    """Run one turn for a screen's gated specialist agent (real tool-calling)."""
+    result = runtime_service.run_stage_turn(
+        request.stage,
+        request.project_id,
+        [m.model_dump() for m in request.messages],
+    )
+    return StageChatResponse(**result)
 
 
 @router.websocket("/ws")
