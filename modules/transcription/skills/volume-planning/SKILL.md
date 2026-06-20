@@ -1,17 +1,22 @@
 ---
 name: volume-planning
-description: Build or update a volume or book transcription plan from scanned poetry books. Use when deriving contents, poem order, page offsets, batch ranges, source-page mappings, source front/back matter handling, or volume-specific transcription instructions.
+description: "Build or update a volume or book transcription plan from scanned poetry books. Use when deriving contents, poem order, page offsets, batch ranges, source-page mappings, source front/back matter handling, or volume-specific transcription instructions."
+module: transcription
+tools:
+  - texgraph plan
+  - texgraph scan
+  - texgraph page-map
+  - texgraph metadata
 ---
-
 # Volume Planning
 
 ## Workflow
 
-1. Read `AGENTS.md`, `transcribe/AGENTS.md`, the project's editorial policy
+1. Read `AGENTS.md`, `modules/transcription/AGENTS.md`, the project's editorial policy
    (if present under `projects/<project_id>/transcription/metadata/`),
    `projects/<project_id>/transcription/metadata/source_manifest.md`, and the
    target `projects/<project_id>/transcription/<volume>/books/<book>/book.md`.
-2. For structural or voice-led plans, read `PERSONA.md`; for neutral
+2. For structural or voice-led plans, read `framework/PERSONA.md`; for neutral
    transcription plans, note the persona boundary without using the register.
 3. Confirm the source PDF is present and recorded in the source manifest.
 4. Use contents pages, title pages, running headers, and first poem pages to

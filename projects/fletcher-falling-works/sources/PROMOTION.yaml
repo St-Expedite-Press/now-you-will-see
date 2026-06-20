@@ -1,0 +1,8 @@
+stage: sources
+project_id: fletcher-falling-works
+status: approved
+notes: >
+  Source PDFs for this volume are held in the shared series root
+  projects/fletcher-series/sources/raw/ (see fletcher-series/SERIES.md and
+  sources/source_manifest.md). Rights/acquisition state per book is recorded in
+  projects/fletcher-series/metadata/four_volume_order.md.

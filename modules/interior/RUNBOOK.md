@@ -1,7 +1,7 @@
 # Interior Module Runbook
 
 Operator guide for proof draft and production PDF builds. See `AGENTS.md` for
-the module contract. See `machinery/docs/ONTOLOGY.md § Data Schemas` for
+the module contract. See `README.md § Data Schemas` for
 `collection.yaml` and `PROMOTION.yaml` field reference.
 
 ---

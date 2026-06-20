@@ -1,0 +1,39 @@
+title: "The Early Works of John Gould Fletcher"
+subtitle: "The Five 1913 Books"
+author: "John Gould Fletcher"
+year: 2026
+publisher: "St. Expedite Press"
+isbn: ""
+language: en
+content_dir: ../manuscript/reading
+output_dir: output/royal
+lualatex_path: lualatex
+draft_mode: false
+
+# Royal 8vo (6.14 x 9.21 in / 156 x 234 mm) — case-bound.
+# This is the LARGEST trim IngramSpark still prints on CREME stock (crème caps at
+# 6.14 x 9.21); it is also the period-correct London poetry octavo for the 1913
+# books. Interior paper: CREME, B&W. IngramSpark inner-margin floor for >500pp
+# hardcover is 1.0in; 1.125 here covers gutter loss on a thick case-bound block.
+render_config:
+  # Body 11pt for presence on the Royal page.  At the 328pt measure below, ~6 of
+  # the volume's longest verse lines exceed the measure and turn with a deep
+  # hanging indent (see \vin in the preamble); the rest set whole.  (10pt would
+  # avoid all turns but reads small on this trim — deliberate trade.)
+  fontsize: 11pt
+  mainfont: Crimson Pro
+  paperwidth: 6.14in
+  paperheight: 9.21in
+  top_margin: 1in
+  bottom_margin: 1.1in        # > top: lifts the block to the optical centre (verse)
+  inner_margin: 1in           # IngramSpark floor for >500pp hardcover (gutter-safe)
+  outer_margin: 0.6in         # text block ~4.54in / 328pt
+  line_spread: 1.15
+  stanza_skip: 1.2ex          # ~one blank line now that the verse list-glue is
+                              # zeroed and \interstanzaskip is the real lever
+  short_poem_placement: top   # top-set short poems from the sink (not centered)
+                              # — consistent title height, no top-of-page white band
+  title_sink: 0.03\textheight # how far titles drop below the top margin
+  # One-poem-per-page placement knobs (relative to the text block, trim-independent).
+  short_poem_maxheight: '0.62\textheight'  # below this height a poem is centred
+  page_squeeze: '2\baselineskip'           # gentler than the 3bl hardcover squeeze

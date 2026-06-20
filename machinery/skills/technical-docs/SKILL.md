@@ -1,18 +1,21 @@
 ---
 name: technical-docs
-description: Maintain and update Texgraph repo documentation under machinery/docs, module AGENTS.md files, SKILL.md files, and root compatibility stubs. Use when changing directory structure, file formats, CLI commands, data schemas, or pipeline edges requires documentation to be kept in sync.
+description: "Maintain and update Texgraph repo documentation in README.md, module AGENTS.md files, SKILL.md files, and root compatibility stubs. Use when changing directory structure, file formats, CLI commands, data schemas, or pipeline edges requires documentation to be kept in sync."
+module: machinery
+tools:
+  - tools/ontology_check.py
+  - tools/skill_index.py
 ---
-
 # Technical Documentation
 
 ## Use When
 
 Load this skill when the task is documentation maintenance:
 
-- Updating `machinery/docs/ONTOLOGY.md` after structural or schema changes
+- Updating `README.md` after structural or schema changes
 - Rewriting a module `AGENTS.md` to reflect new contracts or skills
 - Writing or updating a `SKILL.md` for a new or changed workflow
-- Updating `machinery/docs/PROJECT_OVERVIEW.md` after significant capability changes
+- Updating `README.md` after significant capability changes
 - Updating root stubs only when compatibility pointers change
 - Running the ontology checker and acting on its output
 - Keeping docs in sync after CLI command changes, dependency changes,
@@ -26,7 +29,7 @@ and `machinery/skills/tooling`.
 
 Before any documentation change:
 
-- `machinery/docs/ONTOLOGY.md` — current authoritative repo reference
+- `README.md` — current authoritative repo reference
 - `AGENTS.md` — root dispatcher contract
 - The module `AGENTS.md` relevant to the change (if updating a module doc)
 - The relevant `SKILL.md` files (if updating skills)
@@ -41,7 +44,7 @@ data schemas, or pipeline edges, run the ontology checker:
 ```
 
 The checker compares the current git state against a stored baseline and
-reports which `machinery/docs/ONTOLOGY.md` sections need review.
+reports which `README.md` sections need review.
 
 ### Acting on checker output
 
@@ -65,7 +68,7 @@ Update every flagged section before saving a new baseline.
 .\.venv\Scripts\python.exe machinery\tools\ontology_check.py --save-baseline
 ```
 
-Do not save a new baseline until `machinery/docs/ONTOLOGY.md` has been updated.
+Do not save a new baseline until `README.md` has been updated.
 
 ## Ontology Update Rules
 
@@ -76,7 +79,7 @@ Do not save a new baseline until `machinery/docs/ONTOLOGY.md` has been updated.
 - **Key Invariants**: new must-be-true fact, or removal of a constraint
 - **Dependency Map**: new Python package, removed package, new external binary
 
-Keep each section in `machinery/docs/ONTOLOGY.md` tight — one authoritative source, no repetition.
+Keep each section in `README.md` tight — one authoritative source, no repetition.
 
 ## Module AGENTS.md Conventions
 
@@ -89,8 +92,8 @@ A module `AGENTS.md` should contain only:
 5. **Invariants**: module-specific rules (2-4 bullet points max)
 
 A module `AGENTS.md` should NOT contain:
-- Repository layout (in `machinery/docs/ONTOLOGY.md`)
-- Full command reference (in `machinery/docs/ONTOLOGY.md`)
+- Repository layout (in `README.md`)
+- Full command reference (in `README.md`)
 - Content duplicated from root `AGENTS.md`
 - Workflow steps that belong in a SKILL.md
 
@@ -108,7 +111,7 @@ Every `SKILL.md` must have:
 
 A SKILL.md should not:
 - Hardcode project-specific paths — use `projects/<project_id>/`
-- Duplicate content from `machinery/docs/ONTOLOGY.md` — reference it
+- Duplicate content from `README.md` — reference it
 - Describe the tool's general operation — describe *this workflow*
 
 ## Skills Update Loop
@@ -125,8 +128,8 @@ See `machinery/skills/skill-improvement-loop/SKILL.md` for the full loop.
 
 ## Guardrails
 
-- Do not update `machinery/docs/ONTOLOGY.md` speculatively — only when a tracked area actually changed.
+- Do not update `README.md` speculatively — only when a tracked area actually changed.
 - Do not save a new baseline before updating the flagged sections.
-- Do not duplicate content across `machinery/docs/ONTOLOGY.md`, `AGENTS.md`, and `SKILL.md` — each has one home.
+- Do not duplicate content across `README.md`, `AGENTS.md`, and `SKILL.md` — each has one home.
 - Documentation changes that affect module contracts require explicit user review
   before committing.

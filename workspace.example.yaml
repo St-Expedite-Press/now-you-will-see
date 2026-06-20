@@ -1,8 +1,19 @@
+# Copy this file to workspace.yaml (gitignored) and register your projects.
+# Each entry maps a project id to its interior root. A multi-volume series is
+# just several sibling projects sharing a non-buildable series root (not
+# registered here) — see projects/fletcher-series/SERIES.md.
 projects:
   - id: spectra_poems
     path: projects/spectra_poems/interior
     description: "Example project: Iberian Dreams (tracked, buildable)"
   - id: my-collection
     path: projects/my-collection/interior
-    description: "Local project workspace; copy this file to workspace.yaml and register your project here"
+    description: "Your project; register one path per buildable project"
+  # Example of a multi-volume series (each volume is its own project):
+  - id: fletcher-early-works
+    path: projects/fletcher-early-works/interior
+    description: "Fletcher Vol 1 — The Early Works (built)"
+  - id: fletcher-dominant-works
+    path: projects/fletcher-dominant-works/interior
+    description: "Fletcher Vol 2 — scaffold"
 default_project: spectra_poems

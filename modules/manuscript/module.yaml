@@ -9,6 +9,13 @@ promotion_schema: null
 commands:
   - texgraph audit
   - texgraph metadata
-  - texgraph plan
+  - texgraph proof-preview
+  - texgraph verify-coverage
   - texgraph new poem
+  - texgraph verify manuscript
+skills:
+  - poetry-proof
+  - prose-proof
+  - transcription-verification
+  - persona-editorial
 agent_doc: modules/manuscript/AGENTS.md

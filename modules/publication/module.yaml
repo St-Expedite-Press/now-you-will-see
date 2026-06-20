@@ -6,5 +6,5 @@ upstream:
   - interior
 promotion_schema: projects/<project_id>/publication/PROMOTION.yaml
 commands:
-  - texgraph verify front-end
+  - texgraph verify publication
 agent_doc: modules/publication/AGENTS.md

@@ -6,8 +6,14 @@ upstream:
   - transcription
 promotion_schema: projects/<project_id>/interior/PROMOTION.yaml
 commands:
-  - texgraph build
   - texgraph proof-build
+  - texgraph proof-preview
+  - texgraph build
   - texgraph watch
-  - texgraph verify typeset
+  - texgraph verify-coverage
+  - texgraph verify interior
+skills:
+  - typesetting
+  - poetry
+  - prose
 agent_doc: modules/interior/AGENTS.md

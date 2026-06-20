@@ -1,8 +1,11 @@
 ---
 name: poetry
-description: Typeset verse (lyric, formal, free, poem-cycle) using the texgraph build system. Use when configuring stanza spacing, line environment, poem title display, indentation, long-line handling, or cycle section headings in a collection build.
+description: "Typeset verse (lyric, formal, free, poem-cycle) using the texgraph build system. Use when configuring stanza spacing, line environment, poem title display, indentation, long-line handling, or cycle section headings in a collection build."
+module: interior
+tools:
+  - texgraph proof-build
+  - texgraph proof-preview
 ---
-
 # Poetry Typesetting
 
 ## Use When
@@ -23,8 +26,8 @@ Do not use for: prose sections (`type: prose`), cover assets, or e-reader output
 Before making layout decisions, read:
 
 - `projects/<project_id>/interior/collection.yaml` — active `render_config` values
-- `ONTOLOGY.md § Data Schemas` — `collection.yaml` and poem front matter fields
-- `ONTOLOGY.md § Command Surface` — build and watch commands
+- `README.md § Data Schemas` — `collection.yaml` and poem front matter fields
+- `README.md § Command Surface` — build and watch commands
 
 ## render_config Keys for Verse
 

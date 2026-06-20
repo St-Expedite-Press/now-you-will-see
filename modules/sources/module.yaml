@@ -11,5 +11,7 @@ commands:
   - texgraph pdf render
   - texgraph archive files
   - texgraph archive download
-  - texgraph verify ingest
+  - texgraph verify sources
+skills:
+  - source-intake
 agent_doc: modules/sources/AGENTS.md

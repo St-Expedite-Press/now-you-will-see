@@ -50,7 +50,7 @@ projects/<project_id>/transcription/
 
 ```powershell
 .\.venv\Scripts\texgraph.exe verify transcription `
-  --project fletcher-complete-original-collections
+  --project fletcher-early-works
 ```
 
 Exit 0 means the source is approved and you may proceed.
@@ -64,12 +64,12 @@ Before creating any files, understand what you are transcribing.
 ```powershell
 # Extract the table of contents pages as text
 .\.venv\Scripts\texgraph.exe pdf text `
-  projects/fletcher-complete-original-collections/sources/raw/gould-fletcher_1922_preludes-and-symphonies_ia.pdf `
+  projects/fletcher-early-works/sources/raw/gould-fletcher_1922_preludes-and-symphonies_ia.pdf `
   --first 1 --last 15
 
 # Render the first 15 pages as images for visual inspection
 .\.venv\Scripts\texgraph.exe pdf render `
-  projects/fletcher-complete-original-collections/sources/raw/gould-fletcher_1922_preludes-and-symphonies_ia.pdf `
+  projects/fletcher-early-works/sources/raw/gould-fletcher_1922_preludes-and-symphonies_ia.pdf `
   --first 1 --last 15 --prefix tmp_toc
 ```
 
@@ -95,7 +95,7 @@ Record this offset in the book manifest (see Step 4).
 Create the directory structure. For *Preludes and Symphonies* inside the Fletcher project:
 
 ```
-projects/fletcher-complete-original-collections/transcription/volumes/
+projects/fletcher-early-works/transcription/volumes/
   03_later_collections/
     volume.md
     books/
@@ -126,7 +126,7 @@ author: "John Gould Fletcher"
 publisher: "Macmillan"
 place: "New York"
 year: 1922
-source_pdf: "projects/fletcher-complete-original-collections/sources/raw/gould-fletcher_1922_preludes-and-symphonies_ia.pdf"
+source_pdf: "projects/fletcher-early-works/sources/raw/gould-fletcher_1922_preludes-and-symphonies_ia.pdf"
 source_status: present
 pdf_pages: <N>
 rights_status: public_domain
@@ -190,7 +190,7 @@ title: "Irradiation I"
 book: "Preludes and Symphonies"
 book_order: 1
 poem_order: 1
-source_pdf: "projects/fletcher-complete-original-collections/sources/raw/gould-fletcher_1922_preludes-and-symphonies_ia.pdf"
+source_pdf: "projects/fletcher-early-works/sources/raw/gould-fletcher_1922_preludes-and-symphonies_ia.pdf"
 source_pages_scan: [17]
 source_pages_printed: [9]
 status: transcribed
@@ -216,7 +216,7 @@ Over the rooftops race the shadows of clouds;
 
 ```powershell
 .\.venv\Scripts\texgraph.exe pdf render `
-  projects/fletcher-complete-original-collections/sources/raw/gould-fletcher_1922_preludes-and-symphonies_ia.pdf `
+  projects/fletcher-early-works/sources/raw/gould-fletcher_1922_preludes-and-symphonies_ia.pdf `
   --first 17 --last 17 --prefix tmp_poem001
 ```
 
@@ -229,17 +229,17 @@ Run these after each book section is complete, not just at the end.
 ```powershell
 # Check for forbidden tokens, missing fields, and unchecked items
 .\.venv\Scripts\texgraph.exe audit `
-  projects/fletcher-complete-original-collections/transcription/volumes/03_later_collections/books/preludes_and_symphonies_1922
+  projects/fletcher-early-works/transcription/volumes/03_later_collections/books/preludes_and_symphonies_1922
 
 # Generate/update book.json metadata
 .\.venv\Scripts\texgraph.exe metadata `
-  projects/fletcher-complete-original-collections/transcription/volumes/03_later_collections/books/preludes_and_symphonies_1922 `
+  projects/fletcher-early-works/transcription/volumes/03_later_collections/books/preludes_and_symphonies_1922 `
   --write --check
 
 # Scan source PDFs for front/back matter signals (run after all books done)
 .\.venv\Scripts\texgraph.exe scan `
-  projects/fletcher-complete-original-collections/transcription/volumes `
-  --output projects/fletcher-complete-original-collections/transcription/metadata/source_matter_inventory.md
+  projects/fletcher-early-works/transcription/volumes `
+  --output projects/fletcher-early-works/transcription/metadata/source_matter_inventory.md
 ```
 
 **`texgraph audit` checks:**
@@ -272,7 +272,7 @@ Update `transcription_status: complete` in the front matter.
 When the user has reviewed a representative sample of the transcription against the source scans, write the PROMOTION.yaml:
 
 ```yaml
-# projects/fletcher-complete-original-collections/transcription/PROMOTION.yaml
+# projects/fletcher-early-works/transcription/PROMOTION.yaml
 stage: transcription
 status: approved
 approved_at: <ISO 8601>
@@ -292,7 +292,7 @@ Verify the gate passes:
 
 ```powershell
 .\.venv\Scripts\texgraph.exe verify interior `
-  --project fletcher-complete-original-collections
+  --project fletcher-early-works
 ```
 
 Exit 0 means manuscript/interior work may begin.

@@ -10,5 +10,12 @@ commands:
   - texgraph page-map
   - texgraph plan
   - texgraph scan
-  - texgraph verify transcribe
+  - texgraph new poem
+  - texgraph verify transcription
+skills:
+  - poem-transcription
+  - prose-transcription
+  - source-matter
+  - volume-planning
+  - project-planning
 agent_doc: modules/transcription/AGENTS.md

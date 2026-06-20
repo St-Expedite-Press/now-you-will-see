@@ -1,8 +1,13 @@
 ---
 name: typesetting
-description: Configure and verify typeset builds using the texgraph render_config system. Use for collection.yaml setup, render_config parameter selection (trim size, margins, fonts, leading), PDF/X build verification, vendor submission checks, and template debugging. For content-type-specific decisions, load poetry or prose skill instead.
+description: "Configure and verify typeset builds using the texgraph render_config system. Use for collection.yaml setup, render_config parameter selection (trim size, margins, fonts, leading), PDF/X build verification, vendor submission checks, and template debugging. For content-type-specific decisions, load poetry or prose skill instead."
+module: interior
+tools:
+  - texgraph proof-build
+  - texgraph proof-preview
+  - texgraph build
+  - texgraph watch
 ---
-
 # Typesetting
 
 ## Use When
@@ -24,13 +29,13 @@ For verse layout decisions (stanza_skip, indentation, cycles), load
 ## Required Reads
 
 - `projects/<project_id>/interior/collection.yaml` — current render_config
-- `ONTOLOGY.md § Data Schemas` — full collection.yaml and render_config schema
-- `ONTOLOGY.md § Command Surface` — build and watch commands
+- `README.md § Data Schemas` — full collection.yaml and render_config schema
+- `README.md § Command Surface` — build and watch commands
 
 ## render_config Reference
 
 All geometry and typography is set in `collection.yaml` under `render_config`.
-The full schema is in `ONTOLOGY.md § Data Schemas`. Common parameters:
+The full schema is in `README.md § Data Schemas`. Common parameters:
 
 | Key | Description | Common values |
 |---|---|---|

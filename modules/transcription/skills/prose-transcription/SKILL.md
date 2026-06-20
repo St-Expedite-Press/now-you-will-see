@@ -1,8 +1,12 @@
 ---
 name: prose-transcription
-description: Transcribe prose source matter (prefaces, essays, dedications, colophons, publisher ads) from scanned pages into Markdown. Use for type: prose files, paragraph-based transcription, blockquote handling, and source paratext front matter.
+description: "Transcribe prose source matter (prefaces, essays, dedications, colophons, publisher ads) from scanned pages into Markdown. Use for type: prose files, paragraph-based transcription, blockquote handling, and source paratext front matter."
+module: transcription
+tools:
+  - texgraph new poem
+  - texgraph audit
+  - texgraph pdf text
 ---
-
 # Prose Transcription
 
 ## Use When
@@ -22,8 +26,8 @@ volume planning (`modules/transcription/skills/volume-planning`), or metadata op
 Before editing files, read:
 
 - `AGENTS.md`
-- `transcribe/AGENTS.md`
-- `ONTOLOGY.md § Data Schemas` — source matter front matter spec
+- `modules/transcription/AGENTS.md`
+- `README.md § Data Schemas` — source matter front matter spec
 - The relevant volume plan
 - The source scan pages for the piece being transcribed
 
@@ -77,7 +81,7 @@ book: "Book Title"
 book_order: 1
 matter_order: 1
 matter_section: front         # front | back
-matter_type: dedication       # see ONTOLOGY.md for full list
+matter_type: dedication       # see README.md for full list
 source_pdf: "ingest/raw/<bucket>/<stable>.pdf"
 source_pages_scan: "1-2"
 source_pages_printed: "i-ii"

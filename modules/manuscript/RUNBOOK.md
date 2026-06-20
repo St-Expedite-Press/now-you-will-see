@@ -1,9 +1,9 @@
-# Proof Workflow Runbook
+# Manuscript Runbook
 
-Proof is now a first-draft mode of the `typeset` stage.
-
-Use this directory for reusable proofing skills and legacy correction records.
-For new work, route through `typeset/AGENTS.md`.
+The manuscript stage owns the editorial reading edition: proofing, corrections,
+and content readiness before interior typesetting. Proof drafts are produced by
+the interior pipeline (`texgraph proof-build`); see `modules/interior/AGENTS.md`
+for the build itself. This runbook covers manuscript-side operations.
 
 ## Current Flow
 

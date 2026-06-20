@@ -1,8 +1,12 @@
 ---
 name: transcription-verification
-description: Audit completed transcription work across a project. Use when checking poem/source-matter statuses, source-page spans, forbidden markup, poem counts, checklist completion, book.json consistency, temporary render cleanup, and readiness for checked or final status.
+description: "Audit completed transcription work across a project. Use when checking poem/source-matter statuses, source-page spans, forbidden markup, poem counts, checklist completion, book.json consistency, temporary render cleanup, and readiness for checked or final status."
+module: manuscript
+tools:
+  - texgraph audit
+  - texgraph metadata
+  - texgraph verify-coverage
 ---
-
 # Transcription Verification
 
 ## Checks
