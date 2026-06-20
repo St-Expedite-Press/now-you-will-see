@@ -278,13 +278,13 @@ The system is mid-reform into the three-portion architecture above.
 - [x] **Phase 3 — Runtime (keystone)** : `ToolCatalog` (real tool-calls) + `GatedAgent` + `AgentRuntime` (gating enforced) + `HandoffController` + dev adapter (Anthropic) + Hermes stub — **wired into the FastAPI API** (`/api/agent/stage[s]`); 12 runtime/service tests
 - [x] **Phase 4 — Station front end** : linear screens (`/projects/:id/station`) + gated chat + tool-step badges + gate/hand-off
 - [x] **Phase 5 — Dev-agent charter** : root `AGENTS.md`/`CLAUDE.md` (two-agent-world model); `machinery/` dissolved into the three portions
-- [ ] **Phase 6 — End-to-end** : Fletcher tenant runs Project → Proof in the station
+- [x] **Phase 6 — End-to-end** : Fletcher tenant driven Project → Proof through the station — gated tool-calls, gating refusal, gate/hand-off chain, and a compiled proof (`tools/station_e2e.py`; report: `projects/fletcher-early-works/reports/RUN-2026-06-20.md`)
 
-The LaTeX engine, the reference Fletcher edition, the gated agent runtime, **and the
-station UI** are built; what remains is the **end-to-end run** plus two refinements —
-folding the graph/card editor into stage-3 proofing and token **streaming**. Only the
-production **Hermes adapter** awaits its integration contract; the dev adapter unblocks
-all else.
+**All six phases are in.** The engine, the reference Fletcher edition, the gated
+runtime, the station UI, and the end-to-end path are built and proven (87 tests).
+Remaining work is two refinements — folding the graph/card editor into stage-3
+proofing and token **streaming** — plus a **live-LLM** turn (the dev adapter needs a
+key) and the production **Hermes adapter** (awaiting its integration contract).
 
 ---
 

@@ -39,12 +39,15 @@ Runner = Callable[[list[str], RunContext], ToolResult]
 
 
 def default_runner(argv: list[str], ctx: RunContext) -> ToolResult:
-    """Run the installed ``texgraph`` CLI; capture trimmed combined output."""
+    """Run the installed ``texgraph`` CLI; capture trimmed combined output.
+
+    Captures bytes and decodes UTF-8 explicitly — ``text=True`` defaults to cp1252
+    on Windows and crashes on the CLI's unicode (rules, ✓, em dashes).
+    """
     exe = shutil.which("texgraph") or "texgraph"
-    proc = subprocess.run(
-        [exe, *argv], cwd=str(ctx.repo_root), capture_output=True, text=True
-    )
-    out = ((proc.stdout or "") + (proc.stderr or "")).strip()
+    proc = subprocess.run([exe, *argv], cwd=str(ctx.repo_root), capture_output=True)
+    raw = (proc.stdout or b"") + (proc.stderr or b"")
+    out = raw.decode("utf-8", errors="replace").strip()
     return ToolResult(ok=proc.returncode == 0, output=out[-4000:], tool=" ".join(argv[:2]))
 
 
