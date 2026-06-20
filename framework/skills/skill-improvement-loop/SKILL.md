@@ -1,7 +1,7 @@
 ---
 name: skill-improvement-loop
 description: "Review and improve repo-local skills after each task. Use at the end of every task in this repo to assess whether AGENTS.md or files under stage skills/ directories should be clarified, generalized, split, or updated based on what was learned."
-module: machinery
+module: framework
 tools:
   - tools/skill_index.py
 ---

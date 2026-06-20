@@ -57,7 +57,7 @@ def _skill_descriptions(root: Path) -> dict[str, str]:
     """name -> one-line description, scanned from the loading-contract skill set."""
     out: dict[str, str] = {}
     for p in list((root / "modules").glob("*/skills/*/SKILL.md")) + list(
-        (root / "machinery/skills").glob("*/SKILL.md")
+        (root / "framework/skills").glob("*/SKILL.md")
     ) + list((root / "framework/agents").glob("*/skills/*/SKILL.md")):
         fm = _read_frontmatter(p)
         name = fm.get("name") or p.parent.name

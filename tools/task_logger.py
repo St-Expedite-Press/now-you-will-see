@@ -26,7 +26,7 @@ USAGE — build dataset from labeled tasks:
     python tools/task_logger.py build --output logs/dataset/ --split 0.9
 
 PROGRAMMATIC USAGE — Anthropic API wrapper:
-    from machinery.tools.task_logger import AnthropicLogger
+    from tools.task_logger import AnthropicLogger
     import anthropic
 
     logger = AnthropicLogger(task_description="Search for Fletcher references")
@@ -39,7 +39,7 @@ PROGRAMMATIC USAGE — Anthropic API wrapper:
     logger.end(outcome="success", notes="Found 8 files")
 
 PROGRAMMATIC USAGE — OpenAI API wrapper:
-    from machinery.tools.task_logger import OpenAILogger
+    from tools.task_logger import OpenAILogger
     import openai
 
     logger = OpenAILogger(task_description="Generate poem scaffold")
@@ -49,7 +49,7 @@ PROGRAMMATIC USAGE — OpenAI API wrapper:
     logger.end(outcome="success")
 
 PROGRAMMATIC USAGE — Manual / custom framework:
-    from machinery.tools.task_logger import Task
+    from tools.task_logger import Task
 
     task = Task.create(description="Run audit", framework="custom", model="my-model")
     task.log("user", [{"type": "text", "text": "Run the audit"}])

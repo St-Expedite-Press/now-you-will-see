@@ -261,8 +261,8 @@ def _workflow(root: Path, runner: CommandRunner) -> AuditSubagentResult:
 
 
 def _pipeline_gates(root: Path) -> AuditSubagentResult:
-    cli = _read(root / "machinery/src/texgraph/cli.py")
-    promotions = _read(root / "machinery/src/texgraph/promotions.py")
+    cli = _read(root / "backend/core/cli.py")
+    promotions = _read(root / "backend/core/promotions.py")
     agents = _read(root / "AGENTS.md")
     evidence = [
         _evidence("gate-docs", "doc", "Root dispatcher and ontology define staged gates.", path="AGENTS.md"),
@@ -270,7 +270,7 @@ def _pipeline_gates(root: Path) -> AuditSubagentResult:
             "gate-code",
             "file",
             f"promotions.py present={bool(promotions)}; verify command present={'def verify' in cli}.",
-            path="machinery/src/texgraph/promotions.py",
+            path="backend/core/promotions.py",
         ),
     ]
     findings: list[Finding] = []
@@ -325,7 +325,7 @@ def _pipeline_gates(root: Path) -> AuditSubagentResult:
 
 
 def _react_studio(root: Path) -> AuditSubagentResult:
-    frontend = root / "machinery/studio/frontend/src"
+    frontend = root / "frontend/src"
     files = list(frontend.rglob("*.tsx")) + list(frontend.rglob("*.ts")) if frontend.exists() else []
     joined_names = "\n".join(str(path.relative_to(root)).replace("\\", "/") for path in files)
     evidence = [
@@ -333,7 +333,7 @@ def _react_studio(root: Path) -> AuditSubagentResult:
             "react-files",
             "ui",
             f"React source files found: {len(files)}.",
-            path="machinery/studio/frontend/src",
+            path="frontend/src",
         ),
         _evidence(
             "studio-views",
@@ -341,7 +341,7 @@ def _react_studio(root: Path) -> AuditSubagentResult:
             "Cards, graph, build, covers, and agent surfaces are present in source."
             if all(name in joined_names for name in ("CardBrowser", "GraphCanvas", "BuildPanel", "CoverStudio", "AgentPanel"))
             else "One or more expected Studio surfaces are missing.",
-            path="machinery/studio/frontend/src",
+            path="frontend/src",
         ),
     ]
     findings: list[Finding] = []
@@ -366,7 +366,7 @@ def _react_studio(root: Path) -> AuditSubagentResult:
                 "audit-ui-new",
                 "ui",
                 "Audit dashboard is not present before this implementation.",
-                path="machinery/studio/frontend/src",
+                path="frontend/src",
             )
         )
 
@@ -383,12 +383,12 @@ def _react_studio(root: Path) -> AuditSubagentResult:
 
 
 def _backend_api(root: Path) -> AuditSubagentResult:
-    routers = sorted((root / "machinery/studio/backend/app/routers").glob("*.py"))
-    services = sorted((root / "machinery/studio/backend/app/services").glob("*.py"))
-    main = _read(root / "machinery/studio/backend/app/main.py")
+    routers = sorted((root / "backend/api/app/routers").glob("*.py"))
+    services = sorted((root / "backend/api/app/services").glob("*.py"))
+    main = _read(root / "backend/api/app/main.py")
     evidence = [
-        _evidence("backend-routers", "api", f"Router files found: {len(routers)}.", path="machinery/studio/backend/app/routers"),
-        _evidence("backend-services", "api", f"Service files found: {len(services)}.", path="machinery/studio/backend/app/services"),
+        _evidence("backend-routers", "api", f"Router files found: {len(routers)}.", path="backend/api/app/routers"),
+        _evidence("backend-services", "api", f"Service files found: {len(services)}.", path="backend/api/app/services"),
     ]
     score = 8 if "/api/projects" in main and "/api/agent" in main else 5
     findings: list[Finding] = []
@@ -399,7 +399,7 @@ def _backend_api(root: Path) -> AuditSubagentResult:
                 "audit-api-new",
                 "api",
                 "Audit API is not registered before this implementation.",
-                path="machinery/studio/backend/app/main.py",
+                path="backend/api/app/main.py",
             )
         )
 
@@ -416,20 +416,20 @@ def _backend_api(root: Path) -> AuditSubagentResult:
 
 
 def _ai_reliability(root: Path) -> AuditSubagentResult:
-    agent_service = _read(root / "machinery/studio/backend/app/services/agent_service.py")
-    agent_panel = _read(root / "machinery/studio/frontend/src/components/agent/AgentPanel.tsx")
+    agent_service = _read(root / "backend/api/app/services/agent_service.py")
+    agent_panel = _read(root / "frontend/src/components/agent/AgentPanel.tsx")
     evidence = [
         _evidence(
             "agent-service",
             "api",
             f"Agent service present={bool(agent_service)}; hard-coded prompt={'_SYSTEM_PROMPT' in agent_service}.",
-            path="machinery/studio/backend/app/services/agent_service.py",
+            path="backend/api/app/services/agent_service.py",
         ),
         _evidence(
             "agent-panel",
             "ui",
             f"Agent panel present={bool(agent_panel)}; sends contextual chat={'send(content' in agent_panel}.",
-            path="machinery/studio/frontend/src/components/agent/AgentPanel.tsx",
+            path="frontend/src/components/agent/AgentPanel.tsx",
         ),
     ]
     findings = [
@@ -449,7 +449,7 @@ def _ai_reliability(root: Path) -> AuditSubagentResult:
                 "agent-key-boundary",
                 "api",
                 "Agent service fails closed when ANTHROPIC_API_KEY is not set.",
-                path="machinery/studio/backend/app/services/agent_service.py",
+                path="backend/api/app/services/agent_service.py",
             )
         )
         score += 1
@@ -468,9 +468,9 @@ def _ai_reliability(root: Path) -> AuditSubagentResult:
 
 def _maintainability(root: Path, runner: CommandRunner) -> AuditSubagentResult:
     commands = [
-        ("pytest", [str(root / ".venv" / "Scripts" / "python.exe"), "-m", "pytest", "machinery/tests", "-q"], root),
-        ("typecheck", ["npm", "run", "typecheck"], root / "machinery/studio/frontend"),
-        ("frontend-build", ["npm", "run", "build"], root / "machinery/studio/frontend"),
+        ("pytest", [str(root / ".venv" / "Scripts" / "python.exe"), "-m", "pytest", "backend/tests", "-q"], root),
+        ("typecheck", ["npm", "run", "typecheck"], root / "frontend"),
+        ("frontend-build", ["npm", "run", "build"], root / "frontend"),
     ]
     evidence: list[EvidenceRef] = []
     failures = 0
@@ -481,9 +481,9 @@ def _maintainability(root: Path, runner: CommandRunner) -> AuditSubagentResult:
             _evidence(eid, "test", f"exit={code}; {output[:800] if output else 'no output'}", command=" ".join(args))
         )
 
-    test_files = list((root / "machinery/tests").glob("test_*.py"))
+    test_files = list((root / "backend/tests").glob("test_*.py"))
     evidence.append(
-        _evidence("test-count", "file", f"Test files found under machinery/tests: {len(test_files)}.", path="machinery/tests")
+        _evidence("test-count", "file", f"Test files found under backend/tests: {len(test_files)}.", path="backend/tests")
     )
     score = 6 - failures
     findings: list[Finding] = []
@@ -524,7 +524,7 @@ def _maintainability(root: Path, runner: CommandRunner) -> AuditSubagentResult:
 
 def _operations_security(root: Path) -> AuditSubagentResult:
     quickstart = _read_doc(root, "QUICKSTART.md")
-    config = _read(root / "machinery/studio/backend/app/core/config.py")
+    config = _read(root / "backend/api/app/core/config.py")
     gitignore = _read(root / ".gitignore")
     evidence = [
         _evidence(

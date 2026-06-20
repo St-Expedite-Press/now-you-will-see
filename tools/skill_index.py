@@ -13,7 +13,7 @@ This tool is the keeper of that contract. It:
 
   1. Validates every SKILL.md has the required frontmatter
      (name, description, module, tools) and that:
-       - `module` resolves to a real module (or `machinery`);
+       - `module` resolves to a real module (or `framework`);
        - every `tools` entry resolves to a real `texgraph` CLI command
          (extracted from cli.py) or an allow-listed framework tool.
   2. Generates / verifies the Skill & Tool Index table inside README.md,
@@ -56,7 +56,7 @@ def _repo_root() -> Path:
 
 def _known_modules(root: Path) -> set[str]:
     mods = {p.name for p in (root / "modules").iterdir() if p.is_dir()}
-    mods.add("machinery")
+    mods.add("framework")  # home of the development-agent skills
     return mods
 
 
@@ -92,14 +92,17 @@ def _parse_frontmatter(text: str) -> dict | None:
 
 def _skill_files(root: Path) -> list[Path]:
     return sorted(
-        list((root / "machinery/skills").glob("*/SKILL.md"))
+        list((root / "framework/skills").glob("*/SKILL.md"))
+        + list((root / "framework/agents").glob("*/skills/*/SKILL.md"))
         + list((root / "modules").glob("*/skills/*/SKILL.md"))
     )
 
 
 def _module_of(path: Path, root: Path) -> str:
     rel = path.relative_to(root).parts
-    return "machinery" if rel[0] == "machinery" else rel[1]
+    if rel[0] == "framework":
+        return "framework" if rel[1] == "skills" else rel[2]  # framework/agents/<stage>/skills/...
+    return rel[1]  # modules/<stage>/skills/...
 
 
 def validate(root: Path) -> tuple[list[dict], list[str]]:
@@ -204,10 +207,10 @@ def _trigger(desc: str) -> str:
 
 def render_index(records: list[dict], root: Path) -> str:
     modules = _known_modules(root)
-    # Stable module order: pipeline DAG, then machinery.
+    # Stable module order: pipeline DAG, then framework.
     order = [
         "workspace", "sources", "transcription", "manuscript", "interior",
-        "covers", "publication", "release", "studio", "platform", "machinery",
+        "covers", "publication", "release", "studio", "platform", "framework",
     ]
     order += sorted(m for m in modules if m not in order)
 
@@ -235,7 +238,7 @@ def render_index(records: list[dict], root: Path) -> str:
 
 
 def _link(rel: str) -> str:
-    return "../../" + rel if rel.startswith("modules/") or rel.startswith("machinery/") else rel
+    return rel  # paths are repo-root-relative; the index lives in the repo-root README
 
 
 def write_index(root: Path, records: list[dict]) -> bool:

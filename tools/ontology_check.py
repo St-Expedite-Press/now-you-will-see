@@ -47,8 +47,8 @@ TRACKED: dict[str, list[str]] = {
     ],
     "dependencies": [
         "requirements.txt",
-        "machinery/studio/requirements-studio.txt",
-        "machinery/studio/backend/requirements.txt",
+        "backend/api/requirements-studio.txt",
+        "backend/api/requirements.txt",
     ],
 }
 
