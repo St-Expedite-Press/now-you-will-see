@@ -6,6 +6,7 @@ import ProjectConfig from '@/pages/ProjectConfig'
 import ProjectEditor from '@/pages/ProjectEditor'
 import IngestProjectPicker from '@/pages/IngestProjectPicker'
 import IngestDocuments from '@/pages/IngestDocuments'
+import Station from '@/pages/Station'
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
       <Route path="/projects" element={<ProjectSelect />} />
       <Route path="/projects/new" element={<ProjectConfig />} />
       <Route path="/projects/:projectId/ingest" element={<IngestDocuments />} />
+      <Route path="/projects/:projectId/station" element={<Station />} />
       <Route path="/projects/:projectId" element={<ProjectEditor />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
