@@ -1329,7 +1329,7 @@ def studio(
     except ImportError:
         console.print(
             "[red]uvicorn is required for Texgraph Studio.[/red]\n"
-            "  Install it:  pip install -r machinery/studio/requirements-studio.txt"
+            "  Install it:  pip install -r backend/api/requirements-studio.txt"
         )
         raise typer.Exit(code=1)
 

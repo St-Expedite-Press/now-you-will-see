@@ -44,6 +44,6 @@ resolve to real CLI commands; referenced skills exist; `stage` matches the direc
 and keeps the Skill & Tool Index in sync. Run `--write` after editing a spec or skill.
 
 > Note: stage **skills** currently live with their backend module
-> (`modules/<stage>/skills/`) and `machinery/skills/` and are referenced by name;
+> (`modules/<stage>/skills/`) and `framework/skills/` and are referenced by name;
 > physically co-locating them under `agents/<stage>/skills/` for full portability is a
 > pending hygiene step.

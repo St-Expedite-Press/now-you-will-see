@@ -1,7 +1,7 @@
 ---
 name: technical-docs
 description: "Maintain and update Texgraph repo documentation in README.md, module AGENTS.md files, SKILL.md files, and root compatibility stubs. Use when changing directory structure, file formats, CLI commands, data schemas, or pipeline edges requires documentation to be kept in sync."
-module: machinery
+module: framework
 tools:
   - tools/ontology_check.py
   - tools/skill_index.py
@@ -22,8 +22,8 @@ Load this skill when the task is documentation maintenance:
   or pipeline edge changes
 
 Do not use for: poem transcription, interior layout decisions, proof work, or
-ingest operations. For infrastructure code changes, use `machinery/AGENTS.md`
-and `machinery/skills/tooling`.
+ingest operations. For infrastructure code changes, use `AGENTS.md`
+and `framework/skills/tooling`.
 
 ## Required Reads
 
@@ -40,7 +40,7 @@ After any task that changes directory structure, file formats, CLI commands,
 data schemas, or pipeline edges, run the ontology checker:
 
 ```powershell
-.\.venv\Scripts\python.exe machinery\tools\ontology_check.py
+.\.venv\Scripts\python.exe tools\ontology_check.py
 ```
 
 The checker compares the current git state against a stored baseline and
@@ -65,7 +65,7 @@ Update every flagged section before saving a new baseline.
 ### Save baseline after update
 
 ```powershell
-.\.venv\Scripts\python.exe machinery\tools\ontology_check.py --save-baseline
+.\.venv\Scripts\python.exe tools\ontology_check.py --save-baseline
 ```
 
 Do not save a new baseline until `README.md` has been updated.
@@ -124,7 +124,7 @@ At the end of every significant task:
 4. If speculative or broad: note it as a proposed follow-up.
 5. Never bake one-off task results into reusable skills.
 
-See `machinery/skills/skill-improvement-loop/SKILL.md` for the full loop.
+See `framework/skills/skill-improvement-loop/SKILL.md` for the full loop.
 
 ## Guardrails
 

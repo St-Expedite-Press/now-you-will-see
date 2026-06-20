@@ -1,7 +1,7 @@
 ---
 name: task-classifier
 description: "Classify an ambiguous request into a job type (pipeline/<module>, research, conversation, tooling) before routing. Use when the job type of an incoming request is unclear."
-module: machinery
+module: framework
 tools:
   - (none)
 ---
@@ -31,7 +31,7 @@ Source files, transcription, manuscript corrections, interior PDF builds, cover 
 
 **4. Does this request describe a change to CLI, infrastructure, documentation, or skills?**
 "Add a command", "update README.md", "rewrite this skill", "fix a bug in the build system."
-→ `tooling`. Route to `machinery/AGENTS.md`.
+→ `tooling`. Route to `AGENTS.md`.
 
 **5. Is this a planning discussion, scoping question, or feedback with no named artifact target?**
 "What should we build next?", "how does this pipeline work?", "rate these options."
@@ -97,4 +97,4 @@ the appropriate module `AGENTS.md`. The session continues — no restart needed.
 | `pipeline/release` | Release package | `projects/<id>/release/` |
 | `research` | `<topic>.research.md` note (optional) | `projects/<id>/sources/` |
 | `conversation` | None | — |
-| `tooling` | Code or doc change | `machinery/` or repo root |
+| `tooling` | Code or doc change | `backend/`, `framework/`, or repo root |

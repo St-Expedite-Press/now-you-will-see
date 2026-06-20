@@ -13,7 +13,7 @@ from app.models.cover import CoverAsset, CoverAssetsResponse, CoverRegimesRespon
 
 router = APIRouter()
 
-# app/routers/covers.py -> app/ -> backend/ -> studio/ -> machinery/ -> repo root
+# app/routers/covers.py -> app/ -> backend/ -> api/ -> backend/ -> repo root
 _REPO_ROOT = Path(__file__).resolve().parents[5]
 _PROJECTS_DIR = _REPO_ROOT / "projects"
 _UMBRELLA_PROJECT = "fletcher-early-works"

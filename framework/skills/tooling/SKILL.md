@@ -1,7 +1,7 @@
 ---
 name: tooling
 description: "Use and maintain deterministic repo-local Python tools. Use when creating, running, or updating stage tools, enforcing the repo .venv, wiring stage skills to helpers for PDF inspection, page mapping, audits, source matter scanning, book.json metadata, and research efficiency."
-module: machinery
+module: framework
 tools:
   - tools/ontology_check.py
   - tools/skill_index.py
@@ -62,8 +62,8 @@ new dependencies in `requirements.txt` and `pyproject.toml`.
 .\.venv\Scripts\texgraph.exe pdf text <pdf> --first <n> --last <n>
 
 # Ontology checker
-.\.venv\Scripts\python.exe machinery\tools\ontology_check.py
-.\.venv\Scripts\python.exe machinery\tools\ontology_check.py --save-baseline
+.\.venv\Scripts\python.exe tools\ontology_check.py
+.\.venv\Scripts\python.exe tools\ontology_check.py --save-baseline
 ```
 
 Use CLI `--check` modes in verification-only contexts. Use `--write` only when

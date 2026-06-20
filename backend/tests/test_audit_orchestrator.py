@@ -31,7 +31,7 @@ def test_audit_schema_validation() -> None:
             EvidenceRef(
                 id="gate-code",
                 kind="file",
-                path="machinery/src/texgraph/promotions.py",
+                path="backend/core/promotions.py",
                 observed="verify exists",
             )
         ],
